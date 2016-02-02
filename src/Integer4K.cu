@@ -105,7 +105,8 @@ __global__ void multiply(Integer4K* device_result, Integer4K* device_x, Integer4
 	int lengthX = device_x -> length;
 	int lengthY = device_y -> length;
 	
-	
+	deviceClearInteger4k(device_result);
+		
 	for (int j = 0; j < lengthY; j++)	// iterates over Y
 	{		
 		// clear cc I think
@@ -113,8 +114,8 @@ __global__ void multiply(Integer4K* device_result, Integer4K* device_x, Integer4
 		for (int i=0, zIndex=j; i<lengthX; i++, zIndex++)
 		{
 			asm volatile("\n\t"
-				"madc.lo.cc.u32  %0, %2, %3, %0; \n\t"	//not sure whether to propagete carry here
-				"madc.hi.cc.u32  %1, %2, %3, %1; \n\t" :
+				"mad.lo.cc.u32  %0, %2, %3, %0; \n\t"	//not sure whether to propagete carry here
+				"madc.hi.u32  %1, %2, %3, %1; \n\t" :
 				"=r"(device_result->mag[zIndex]),
 				"=r"(device_result->mag[zIndex + 1]) :
 				"r"(device_x->mag[i]),

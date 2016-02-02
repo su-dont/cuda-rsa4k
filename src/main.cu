@@ -160,10 +160,8 @@ void testMultiply()
 {
 	printf("\ntesting multipling...");
 
-	Integer4K *x = fromHexString("1243abc312def391acd89897ad987f789868091243abc312d"
-								 "ef391acd89897ad987f78986809e08f890");
-	Integer4K *y = fromHexString("897ad987f78986809e08f81243abc312def391acd89897ad"
-								 "987f78986809e08f890c0981243abc312de");
+	Integer4K *x = fromHexString("2");
+	Integer4K *y = fromHexString("2");
 	Integer4K *z = (Integer4K*)malloc(sizeof(Integer4K));
 
 	Integer4K *d_x, *d_y, *d_z;
@@ -178,12 +176,14 @@ void testMultiply()
 
 	checkCuda(cudaMemcpy(z, d_z, sizeof(Integer4K), cudaMemcpyDeviceToHost));
 
-	//printf(toHexString(z));
+	printf("\ngot: %s", toHexString(z)); 
 
-	int ok = strcmp(toHexString(z), "9cefab0500157ffb493d1c64d2c1bd868f17e7f0d73cf"
-								    "10f5eb2e760b58fc12a852d7ead559cb427ab32d582d6"
-								    "99cc0178720d032604397f688bf12ed10b6cedeec1d4f"
-								    "fdb079626dbd6f45933b3332f1ace0");
+	char* result = "9bbb";
+
+	printf("\nis:  %s\n", result);
+
+	int ok = strcmp(toHexString(z), result);
+
 
 	if (ok == 0)
 		printf("ok!");
