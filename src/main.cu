@@ -160,8 +160,8 @@ void testMultiply()
 {
 	printf("\ntesting multipling...");
 
-	Integer4K *x = fromHexString("2");
-	Integer4K *y = fromHexString("2");
+	Integer4K *x = fromHexString("fffff");
+	Integer4K *y = fromHexString("fffff");
 	Integer4K *z = (Integer4K*)malloc(sizeof(Integer4K));
 
 	Integer4K *d_x, *d_y, *d_z;

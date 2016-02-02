@@ -1,6 +1,6 @@
 SRC=src/main.cu
 OUT=bin/main
-FLAGS=-G --machine 64
+FLAGS=-g -G --machine 64
 NVCC=/usr/local/cuda/bin/nvcc
 
 run: $(OUT)
