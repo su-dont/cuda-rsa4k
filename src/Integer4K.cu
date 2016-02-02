@@ -109,15 +109,13 @@ __global__ void multiply(Integer4K* device_result, Integer4K* device_x, Integer4
 		
 	for (int j = 0; j < lengthY; j++)	// iterates over Y
 	{		
-		// clear cc I think
 		#pragma unroll
-		for (int i=0, zIndex=j; i<lengthX; i++, zIndex++)
+		for (int i=0, zIndex=j; i<lengthX; i++, zIndex++)	// iterates over X
 		{
 			asm volatile("\n\t"
-				"\n\t"
-				"mad.lo.cc.u32   %0, %3, %4, %0; \n\t"	
-				"madc.hi.cc.u32  %1, %3, %4, %1; \n\t"
-				"addc.u32        %2, 0, 0;	 \n\t"  :
+				"mad.lo.cc.u32   %0, %3, %4, %0; \n\t" // mull low and add, carry out	
+				"madc.hi.cc.u32  %1, %3, %4, %1; \n\t" // mull high and add, carry in/out
+				"addc.u32        %2, 0, 0;	 \n\t"  :  // propagate carry
 				"+r"(device_result->mag[zIndex]),
 				"+r"(device_result->mag[zIndex + 1]),
 				"+r"(device_result->mag[zIndex + 2]) :

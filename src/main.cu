@@ -160,8 +160,10 @@ void testMultiply()
 {
 	printf("\ntesting multipling...");
 
-	Integer4K *x = fromHexString("fffff");
-	Integer4K *y = fromHexString("fffff");
+	Integer4K *x = fromHexString("1243abc312def391acd89897affffffffffffffffffffffffffffd987f7"
+									"89868091243abc312def391acd89897ad987f78986809e08f890");
+	Integer4K *y = fromHexString("897ad987f78986809e08f81ffffffffffffffffffffffffffff243abc31"
+									"2def391acd89897ad987f78986809e08f890c0981243abc312de");
 	Integer4K *z = (Integer4K*)malloc(sizeof(Integer4K));
 
 	Integer4K *d_x, *d_y, *d_z;
@@ -178,13 +180,16 @@ void testMultiply()
 
 	printf("\ngot: %s", toHexString(z)); 
 
-	char* result = "9bbb";
+	char* result = "9cefab0500157ffb493d1c7495614977d378891d2438575ffff03d60740ebb9f5"
+									"ed3b30499ad4e4daa9afdeabb53a51bbb0a8fb9bee913a3f"
+									"26be3f9f1841875da84f043d4549abbf876ba8f239ef8633"
+									"b64397f688bf12ed10b6cedeec1d4ffdb079626dbd6f4593"
+									"3b3332f1ace0";
 
 	printf("\nis:  %s\n", result);
 
 	int ok = strcmp(toHexString(z), result);
-
-
+	
 	if (ok == 0)
 		printf("ok!");
 	else
