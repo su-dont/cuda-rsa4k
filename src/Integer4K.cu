@@ -100,6 +100,39 @@ __global__ void subtract(Integer4K* device_result, Integer4K* device_x, Integer4
 
 }
 
+__global__ void multiply(Integer4K* device_result, Integer4K* device_x, Integer4K* device_y) 
+{
+	int lengthX = device_x -> length;
+	int lengthY = device_y -> length;
+	
+	
+	for (int j = 0; j < lengthY; j++)	// iterates over Y
+	{		
+		// clear cc I think
+		#pragma unroll
+		for (int i=0, zIndex=j; i<lengthX; i++, zIndex++)
+		{
+			asm volatile("\n\t"
+				"madc.lo.cc.u32  %0, %2, %3, %0; \n\t"	//not sure whether to propagete carry here
+				"madc.hi.cc.u32  %1, %2, %3, %1; \n\t" :
+				"=r"(device_result->mag[zIndex]),
+				"=r"(device_result->mag[zIndex + 1]) :
+				"r"(device_x->mag[i]),
+				"r"(device_y->mag[j])); 			
+		}
+	}
+
+	int i = ARRAY_SIZE - 1;
+	for (; i >= 0; i--)
+	{
+		if (device_result->mag[i] != 0UL)
+			break;
+	}
+	device_result->length = i + 1;
+
+}
+
+
 __device__ void deviceClearInteger4k(Integer4K* integer)
 {
 	for (int i = 0; i < ARRAY_SIZE; i++)
