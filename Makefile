@@ -1,17 +1,16 @@
 SRC=src/main.cu
-OUT=$(SRC:.cu=)
+OUT=bin/main
 FLAGS=-G --machine 64
-NVCC=nvcc
+NVCC=/usr/local/cuda/bin/nvcc
 
 run: $(OUT)
 	./$(OUT)
 
 $(OUT): $(SRC)
-	$(NVCC) $(CFLAGS) $< -o $@
+	$(NVCC) $(FLAGS) $< -o $@
 
 .PHONY: clean
 
 clean:
-	rm -rf $(CSRC:.c=.o) $(COBJ)
-	rm -rf $(CSRC1:.c=.o) $(COBJ1)
-	rm -rf $(CSRC2:.c=.o) $(COBJ2)
+	rm -r bin
+	mkdir bin

@@ -122,8 +122,8 @@ void testLeftShift()
 int main()
 {	
 	checkCuda(cudaDeviceReset());
-	clock_t start = clock();
-	
+	clock_t start = clock();;
+		
 	testAdding();
 	testSubtract();
 	testLeftShift();

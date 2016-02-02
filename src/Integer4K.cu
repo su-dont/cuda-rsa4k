@@ -119,7 +119,7 @@ __host__ void leftShift(Integer4K* integer, int n)
 		return;
 
 	int ints = n >> 5;
-    int bits = n & 0x1f;
+	int bits = n & 0x1f;
 	int newLength = integer->length + ints;
 
 	if(newLength >= ARRAY_SIZE)
@@ -193,7 +193,7 @@ __host__ char* toHexString(const Integer4K* number)
 		
 	for (int i = ARRAY_SIZE - 1, j=0; i >= 0; i--)
 	{		
-		sprintf(buffer + 8 * j++, "%08lx", number->mag[i]);	
+		sprintf(buffer + 8 * j++, "%08x", number->mag[i]);	
 	}
 
 	// clear leading zeros
