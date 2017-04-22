@@ -2122,8 +2122,14 @@ LOOP:
 	addc.u32		%r11, %r11, 0;
 	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
 	add.u32 		%r11, %r11, %r13;
-	addc.u32		%r13, 0, 0;
+	addc.u32		%r13, 0, 0;			// can store carry out
 	st.global.u32	[%r1+508], %r10;	
+	st.global.u32	[%r1+512], %r11;	// last round - store .hi in memory
+
+	// if r13 has some carry - propagate it to next value
+	ld.global.u32	%r10, [%r1+516];
+	addc.u32		%r10, %r10, %r13;
+	st.global.u32	[%r1+516], %r10;	
 
 	add.u32			%r12, %r12, 1;			// increment counter
 

@@ -75,7 +75,7 @@ void BigInteger::leftShift(int n)
 	int bits = n & 0x1f;
 	int newLength = length + ints;
 
-	if(newLength >= ARRAY_SIZE)
+	if (newLength >= ARRAY_SIZE)
 	{
 		throw std::overflow_error("BigInteger::leftShift newLength >= ARRAY_SIZE");
 		return;
@@ -113,6 +113,8 @@ void BigInteger::add(BigInteger x)
 		magnitude[i] = result->getMagnitudeArray()[i];
 	}
 	length = result->getLength();
+
+	delete result;
 }
 
 void BigInteger::multiply(BigInteger x)
@@ -124,6 +126,8 @@ void BigInteger::multiply(BigInteger x)
 		magnitude[i] = result->getMagnitudeArray()[i];
 	}
 	length = result->getLength();
+
+	delete result;
 }
 
 unsigned int* BigInteger::getMagnitudeArray(void)
