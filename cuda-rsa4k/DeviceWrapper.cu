@@ -36,9 +36,8 @@ DeviceWrapper::~DeviceWrapper()
 BigInteger* DeviceWrapper::add(BigInteger& x, BigInteger& y)
 {
 	//todo: vaildate x,y
-	//todo: overflow?
 
-	unsigned int* resultArray = new unsigned int[BigInteger::ARRAY_SIZE];
+	unsigned int* resultArray = new unsigned int[BigInteger::ARRAY_SIZE + 1];	// + 1 to check for overflow
 
 	int size = sizeof(unsigned int*) * BigInteger::ARRAY_SIZE;
 	
@@ -46,7 +45,7 @@ BigInteger* DeviceWrapper::add(BigInteger& x, BigInteger& y)
 	unsigned int* device_x;
 	unsigned int* device_y;
 
-	checkCuda(cudaMalloc(&device_result, size));
+	checkCuda(cudaMalloc(&device_result, size + sizeof(unsigned int*)));
 	checkCuda(cudaMalloc(&device_x, size));
 	checkCuda(cudaMalloc(&device_y, size));
 	
@@ -55,7 +54,14 @@ BigInteger* DeviceWrapper::add(BigInteger& x, BigInteger& y)
 	
 	device_add << <1, 1 >> > (device_result, device_x, device_y);
 	
-	checkCuda(cudaMemcpy(resultArray, device_result, size, cudaMemcpyDeviceToHost));
+	checkCuda(cudaMemcpy(resultArray, device_result, size + sizeof(unsigned int*), cudaMemcpyDeviceToHost));
+
+	unsigned int overflow = resultArray[128];
+	if (overflow != 0UL)
+	{
+		std::cerr << "ERROR: BigInteger::add overflow!" << endl;
+		throw std::overflow_error("BigInteger::add overflow");
+	}
 
 	checkCuda(cudaFree(device_result));
 	checkCuda(cudaFree(device_x));

@@ -673,11 +673,14 @@
 	addc.cc.u32 	%r9, %r7, %r8;
 	st.global.u32 	[%r1+504], %r9;
 
-	// last oparation only propagates carry in
 	ld.global.u32 	%r7, [%r2+508];
 	ld.global.u32 	%r8, [%r3+508];
-	addc.u32 	%r9, %r7, %r8;
+	addc.cc.u32 	%r9, %r7, %r8;
 	st.global.u32 	[%r1+508], %r9;
+
+	// store overflow carry
+	addc.u32		%r9, 0, 0;
+	st.global.u32 	[%r1+512], %r9;
 
 	ret;
 }
