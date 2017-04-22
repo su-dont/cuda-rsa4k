@@ -1,6 +1,3 @@
-#bin folder
-bin/
-
 # Object files
 *.o
 *.ko

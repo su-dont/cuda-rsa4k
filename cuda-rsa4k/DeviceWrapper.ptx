@@ -1,0 +1,2134 @@
+
+.version 5.0
+.target sm_30
+.address_size 32
+
+	// .globl	_Z10device_addPjPKjS1_
+.weak .global .align 4 .b8 _ZTVSt9exception[20];
+.weak .global .align 4 .b8 _ZTVSt13runtime_error[20];
+.weak .global .align 4 .b8 _ZTVSt8bad_cast[20];
+.weak .global .align 4 .b8 _ZTVSt11_Facet_base[24];
+.weak .global .align 4 .b8 _ZTVNSt6locale5facetE[24];
+.weak .global .align 4 .b8 _ZTVSt10ctype_base[24];
+.weak .global .align 4 .b8 _ZTVSt5ctypeIcE[56];
+.weak .global .align 4 .b8 _ZTVSt14error_category[36];
+.weak .global .align 4 .b8 _ZTVSt13_System_error[20];
+.weak .global .align 4 .b8 _ZTVSt12system_error[20];
+.weak .global .align 4 .b8 _ZTVSt23_Generic_error_category[36];
+.weak .global .align 4 .b8 _ZTVSt24_Iostream_error_category[36];
+.weak .global .align 4 .b8 _ZTVNSt8ios_base7failureE[20];
+.weak .global .align 4 .b8 _ZTVSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE[56];
+
+.visible .entry _Z10device_addPjPKjS1_(
+	.param .u32 result,
+	.param .u32 x,
+	.param .u32 y
+)
+{
+	.reg .pred 	%p<2>;
+	.reg .b32 	%r<10>;
+
+	ld.param.u32 	%r4, [result];
+	ld.param.u32 	%r5, [x];
+	ld.param.u32 	%r6, [y];
+	cvta.to.global.u32 	%r1, %r4;
+	cvta.to.global.u32 	%r2, %r5;
+	cvta.to.global.u32 	%r3, %r6;
+
+	// first oparation only generates carry out
+	ld.global.u32 	%r7, [%r2];
+	ld.global.u32 	%r8, [%r3];
+	add.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1], %r9;
+
+	// following oparations generate carry out
+	// and propagate carry in
+	ld.global.u32 	%r7, [%r2+4];
+	ld.global.u32 	%r8, [%r3+4];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+4], %r9;
+
+	ld.global.u32 	%r7, [%r2+8];
+	ld.global.u32 	%r8, [%r3+8];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+8], %r9;
+
+	ld.global.u32 	%r7, [%r2+12];
+	ld.global.u32 	%r8, [%r3+12];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+12], %r9;
+
+	ld.global.u32 	%r7, [%r2+16];
+	ld.global.u32 	%r8, [%r3+16];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+16], %r9;
+	
+	ld.global.u32 	%r7, [%r2+20];
+	ld.global.u32 	%r8, [%r3+20];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+20], %r9;
+	
+	ld.global.u32 	%r7, [%r2+24];
+	ld.global.u32 	%r8, [%r3+24];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+24], %r9;
+	
+	ld.global.u32 	%r7, [%r2+28];
+	ld.global.u32 	%r8, [%r3+28];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+28], %r9;
+	
+	ld.global.u32 	%r7, [%r2+32];
+	ld.global.u32 	%r8, [%r3+32];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+32], %r9;
+	
+	ld.global.u32 	%r7, [%r2+36];
+	ld.global.u32 	%r8, [%r3+36];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+36], %r9;
+	
+	ld.global.u32 	%r7, [%r2+40];
+	ld.global.u32 	%r8, [%r3+40];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+40], %r9;
+	
+	ld.global.u32 	%r7, [%r2+44];
+	ld.global.u32 	%r8, [%r3+44];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+44], %r9;
+	
+	ld.global.u32 	%r7, [%r2+48];
+	ld.global.u32 	%r8, [%r3+48];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+48], %r9;
+	
+	ld.global.u32 	%r7, [%r2+52];
+	ld.global.u32 	%r8, [%r3+52];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+52], %r9;
+	
+	ld.global.u32 	%r7, [%r2+56];
+	ld.global.u32 	%r8, [%r3+56];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+56], %r9;
+	
+	ld.global.u32 	%r7, [%r2+60];
+	ld.global.u32 	%r8, [%r3+60];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+60], %r9;
+	
+	ld.global.u32 	%r7, [%r2+64];
+	ld.global.u32 	%r8, [%r3+64];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+64], %r9;
+	
+	ld.global.u32 	%r7, [%r2+68];
+	ld.global.u32 	%r8, [%r3+68];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+68], %r9;
+	
+	ld.global.u32 	%r7, [%r2+72];
+	ld.global.u32 	%r8, [%r3+72];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+72], %r9;
+	
+	ld.global.u32 	%r7, [%r2+76];
+	ld.global.u32 	%r8, [%r3+76];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+76], %r9;
+	
+	ld.global.u32 	%r7, [%r2+80];
+	ld.global.u32 	%r8, [%r3+80];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+80], %r9;
+	
+	ld.global.u32 	%r7, [%r2+84];
+	ld.global.u32 	%r8, [%r3+84];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+84], %r9;
+	
+	ld.global.u32 	%r7, [%r2+88];
+	ld.global.u32 	%r8, [%r3+88];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+88], %r9;
+	
+	ld.global.u32 	%r7, [%r2+92];
+	ld.global.u32 	%r8, [%r3+92];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+92], %r9;
+	
+	ld.global.u32 	%r7, [%r2+96];
+	ld.global.u32 	%r8, [%r3+96];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+96], %r9;
+	
+	ld.global.u32 	%r7, [%r2+100];
+	ld.global.u32 	%r8, [%r3+100];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+100], %r9;
+	
+	ld.global.u32 	%r7, [%r2+104];
+	ld.global.u32 	%r8, [%r3+104];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+104], %r9;
+
+	ld.global.u32 	%r7, [%r2+108];
+	ld.global.u32 	%r8, [%r3+108];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+108], %r9;
+
+	ld.global.u32 	%r7, [%r2+112];
+	ld.global.u32 	%r8, [%r3+112];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+112], %r9;
+
+	ld.global.u32 	%r7, [%r2+116];
+	ld.global.u32 	%r8, [%r3+116];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+116], %r9;
+	
+	ld.global.u32 	%r7, [%r2+120];
+	ld.global.u32 	%r8, [%r3+120];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+120], %r9;
+	
+	ld.global.u32 	%r7, [%r2+124];
+	ld.global.u32 	%r8, [%r3+124];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+124], %r9;
+	
+	ld.global.u32 	%r7, [%r2+128];
+	ld.global.u32 	%r8, [%r3+128];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+128], %r9;
+	
+	ld.global.u32 	%r7, [%r2+132];
+	ld.global.u32 	%r8, [%r3+132];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+132], %r9;
+	
+	ld.global.u32 	%r7, [%r2+136];
+	ld.global.u32 	%r8, [%r3+136];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+136], %r9;
+	
+	ld.global.u32 	%r7, [%r2+140];
+	ld.global.u32 	%r8, [%r3+140];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+140], %r9;
+	
+	ld.global.u32 	%r7, [%r2+144];
+	ld.global.u32 	%r8, [%r3+144];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+144], %r9;
+	
+	ld.global.u32 	%r7, [%r2+148];
+	ld.global.u32 	%r8, [%r3+148];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+148], %r9;
+	
+	ld.global.u32 	%r7, [%r2+152];
+	ld.global.u32 	%r8, [%r3+152];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+152], %r9;
+	
+	ld.global.u32 	%r7, [%r2+156];
+	ld.global.u32 	%r8, [%r3+156];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+156], %r9;
+	
+	ld.global.u32 	%r7, [%r2+160];
+	ld.global.u32 	%r8, [%r3+160];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+160], %r9;
+	
+	ld.global.u32 	%r7, [%r2+164];
+	ld.global.u32 	%r8, [%r3+164];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+164], %r9;
+	
+	ld.global.u32 	%r7, [%r2+168];
+	ld.global.u32 	%r8, [%r3+168];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+168], %r9;
+	
+	ld.global.u32 	%r7, [%r2+172];
+	ld.global.u32 	%r8, [%r3+172];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+172], %r9;
+	
+	ld.global.u32 	%r7, [%r2+176];
+	ld.global.u32 	%r8, [%r3+176];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+176], %r9;
+	
+	ld.global.u32 	%r7, [%r2+180];
+	ld.global.u32 	%r8, [%r3+180];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+180], %r9;
+	
+	ld.global.u32 	%r7, [%r2+184];
+	ld.global.u32 	%r8, [%r3+184];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+184], %r9;
+	
+	ld.global.u32 	%r7, [%r2+188];
+	ld.global.u32 	%r8, [%r3+188];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+188], %r9;
+	
+	ld.global.u32 	%r7, [%r2+192];
+	ld.global.u32 	%r8, [%r3+192];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+192], %r9;
+	
+	ld.global.u32 	%r7, [%r2+196];
+	ld.global.u32 	%r8, [%r3+196];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+196], %r9;
+	
+	ld.global.u32 	%r7, [%r2+200];
+	ld.global.u32 	%r8, [%r3+200];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+200], %r9;
+	
+	ld.global.u32 	%r7, [%r2+204];
+	ld.global.u32 	%r8, [%r3+204];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+204], %r9;
+
+	ld.global.u32 	%r7, [%r2+208];
+	ld.global.u32 	%r8, [%r3+208];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+208], %r9;
+
+	ld.global.u32 	%r7, [%r2+212];
+	ld.global.u32 	%r8, [%r3+212];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+212], %r9;
+
+	ld.global.u32 	%r7, [%r2+216];
+	ld.global.u32 	%r8, [%r3+216];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+216], %r9;
+	
+	ld.global.u32 	%r7, [%r2+220];
+	ld.global.u32 	%r8, [%r3+220];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+220], %r9;
+	
+	ld.global.u32 	%r7, [%r2+224];
+	ld.global.u32 	%r8, [%r3+224];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+224], %r9;
+	
+	ld.global.u32 	%r7, [%r2+228];
+	ld.global.u32 	%r8, [%r3+228];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+228], %r9;
+	
+	ld.global.u32 	%r7, [%r2+232];
+	ld.global.u32 	%r8, [%r3+232];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+232], %r9;
+	
+	ld.global.u32 	%r7, [%r2+236];
+	ld.global.u32 	%r8, [%r3+236];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+236], %r9;
+	
+	ld.global.u32 	%r7, [%r2+240];
+	ld.global.u32 	%r8, [%r3+240];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+240], %r9;
+	
+	ld.global.u32 	%r7, [%r2+244];
+	ld.global.u32 	%r8, [%r3+244];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+244], %r9;
+	
+	ld.global.u32 	%r7, [%r2+248];
+	ld.global.u32 	%r8, [%r3+248];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+248], %r9;
+	
+	ld.global.u32 	%r7, [%r2+252];
+	ld.global.u32 	%r8, [%r3+252];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+252], %r9;
+	
+	ld.global.u32 	%r7, [%r2+256];
+	ld.global.u32 	%r8, [%r3+256];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+256], %r9;
+	
+	ld.global.u32 	%r7, [%r2+260];
+	ld.global.u32 	%r8, [%r3+260];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+260], %r9;
+	
+	ld.global.u32 	%r7, [%r2+264];
+	ld.global.u32 	%r8, [%r3+264];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+264], %r9;
+	
+	ld.global.u32 	%r7, [%r2+268];
+	ld.global.u32 	%r8, [%r3+268];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+268], %r9;
+	
+	ld.global.u32 	%r7, [%r2+272];
+	ld.global.u32 	%r8, [%r3+272];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+272], %r9;
+	
+	ld.global.u32 	%r7, [%r2+276];
+	ld.global.u32 	%r8, [%r3+276];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+276], %r9;
+	
+	ld.global.u32 	%r7, [%r2+280];
+	ld.global.u32 	%r8, [%r3+280];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+280], %r9;
+	
+	ld.global.u32 	%r7, [%r2+284];
+	ld.global.u32 	%r8, [%r3+284];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+284], %r9;
+	
+	ld.global.u32 	%r7, [%r2+288];
+	ld.global.u32 	%r8, [%r3+288];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+288], %r9;
+	
+	ld.global.u32 	%r7, [%r2+292];
+	ld.global.u32 	%r8, [%r3+292];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+292], %r9;
+	
+	ld.global.u32 	%r7, [%r2+296];
+	ld.global.u32 	%r8, [%r3+296];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+296], %r9;
+	
+	ld.global.u32 	%r7, [%r2+300];
+	ld.global.u32 	%r8, [%r3+300];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+300], %r9;
+
+	ld.global.u32 	%r7, [%r2+304];
+	ld.global.u32 	%r8, [%r3+304];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+304], %r9;
+
+	ld.global.u32 	%r7, [%r2+308];
+	ld.global.u32 	%r8, [%r3+308];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+308], %r9;
+
+	ld.global.u32 	%r7, [%r2+312];
+	ld.global.u32 	%r8, [%r3+312];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+312], %r9;
+
+	ld.global.u32 	%r7, [%r2+316];
+	ld.global.u32 	%r8, [%r3+316];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+316], %r9;
+	
+	ld.global.u32 	%r7, [%r2+320];
+	ld.global.u32 	%r8, [%r3+320];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+320], %r9;
+	
+	ld.global.u32 	%r7, [%r2+324];
+	ld.global.u32 	%r8, [%r3+324];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+324], %r9;
+	
+	ld.global.u32 	%r7, [%r2+328];
+	ld.global.u32 	%r8, [%r3+328];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+328], %r9;
+	
+	ld.global.u32 	%r7, [%r2+332];
+	ld.global.u32 	%r8, [%r3+332];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+332], %r9;
+	
+	ld.global.u32 	%r7, [%r2+336];
+	ld.global.u32 	%r8, [%r3+336];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+336], %r9;
+	
+	ld.global.u32 	%r7, [%r2+340];
+	ld.global.u32 	%r8, [%r3+340];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+340], %r9;
+	
+	ld.global.u32 	%r7, [%r2+344];
+	ld.global.u32 	%r8, [%r3+344];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+344], %r9;
+	
+	ld.global.u32 	%r7, [%r2+348];
+	ld.global.u32 	%r8, [%r3+348];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+348], %r9;
+	
+	ld.global.u32 	%r7, [%r2+352];
+	ld.global.u32 	%r8, [%r3+352];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+352], %r9;
+	
+	ld.global.u32 	%r7, [%r2+356];
+	ld.global.u32 	%r8, [%r3+356];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+356], %r9;
+	
+	ld.global.u32 	%r7, [%r2+360];
+	ld.global.u32 	%r8, [%r3+360];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+360], %r9;
+	
+	ld.global.u32 	%r7, [%r2+364];
+	ld.global.u32 	%r8, [%r3+364];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+364], %r9;
+	
+	ld.global.u32 	%r7, [%r2+368];
+	ld.global.u32 	%r8, [%r3+368];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+368], %r9;
+	
+	ld.global.u32 	%r7, [%r2+372];
+	ld.global.u32 	%r8, [%r3+372];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+372], %r9;
+	
+	ld.global.u32 	%r7, [%r2+376];
+	ld.global.u32 	%r8, [%r3+376];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+376], %r9;
+	
+	ld.global.u32 	%r7, [%r2+380];
+	ld.global.u32 	%r8, [%r3+380];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+380], %r9;
+	
+	ld.global.u32 	%r7, [%r2+384];
+	ld.global.u32 	%r8, [%r3+384];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+384], %r9;
+	
+	ld.global.u32 	%r7, [%r2+388];
+	ld.global.u32 	%r8, [%r3+388];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+388], %r9;
+	
+	ld.global.u32 	%r7, [%r2+392];
+	ld.global.u32 	%r8, [%r3+392];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+392], %r9;
+	
+	ld.global.u32 	%r7, [%r2+396];
+	ld.global.u32 	%r8, [%r3+396];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+396], %r9;
+
+	ld.global.u32 	%r7, [%r2+400];
+	ld.global.u32 	%r8, [%r3+400];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+400], %r9;
+
+	ld.global.u32 	%r7, [%r2+404];
+	ld.global.u32 	%r8, [%r3+404];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+404], %r9;
+
+	ld.global.u32 	%r7, [%r2+408];
+	ld.global.u32 	%r8, [%r3+408];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+408], %r9;
+
+	ld.global.u32 	%r7, [%r2+412];
+	ld.global.u32 	%r8, [%r3+412];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+412], %r9;
+
+	ld.global.u32 	%r7, [%r2+416];
+	ld.global.u32 	%r8, [%r3+416];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+416], %r9;
+	
+	ld.global.u32 	%r7, [%r2+420];
+	ld.global.u32 	%r8, [%r3+420];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+420], %r9;
+	
+	ld.global.u32 	%r7, [%r2+424];
+	ld.global.u32 	%r8, [%r3+424];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+424], %r9;
+	
+	ld.global.u32 	%r7, [%r2+428];
+	ld.global.u32 	%r8, [%r3+428];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+428], %r9;
+	
+	ld.global.u32 	%r7, [%r2+432];
+	ld.global.u32 	%r8, [%r3+432];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+432], %r9;
+	
+	ld.global.u32 	%r7, [%r2+436];
+	ld.global.u32 	%r8, [%r3+436];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+436], %r9;
+	
+	ld.global.u32 	%r7, [%r2+440];
+	ld.global.u32 	%r8, [%r3+440];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+440], %r9;
+	
+	ld.global.u32 	%r7, [%r2+444];
+	ld.global.u32 	%r8, [%r3+444];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+444], %r9;
+	
+	ld.global.u32 	%r7, [%r2+448];
+	ld.global.u32 	%r8, [%r3+448];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+448], %r9;
+	
+	ld.global.u32 	%r7, [%r2+452];
+	ld.global.u32 	%r8, [%r3+452];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+452], %r9;
+	
+	ld.global.u32 	%r7, [%r2+456];
+	ld.global.u32 	%r8, [%r3+456];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+456], %r9;
+	
+	ld.global.u32 	%r7, [%r2+460];
+	ld.global.u32 	%r8, [%r3+460];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+460], %r9;
+	
+	ld.global.u32 	%r7, [%r2+464];
+	ld.global.u32 	%r8, [%r3+464];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+464], %r9;
+	
+	ld.global.u32 	%r7, [%r2+468];
+	ld.global.u32 	%r8, [%r3+468];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+468], %r9;
+	
+	ld.global.u32 	%r7, [%r2+472];
+	ld.global.u32 	%r8, [%r3+472];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+472], %r9;
+	
+	ld.global.u32 	%r7, [%r2+476];
+	ld.global.u32 	%r8, [%r3+476];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+476], %r9;
+	
+	ld.global.u32 	%r7, [%r2+480];
+	ld.global.u32 	%r8, [%r3+480];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+480], %r9;
+	
+	ld.global.u32 	%r7, [%r2+484];
+	ld.global.u32 	%r8, [%r3+484];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+484], %r9;
+	
+	ld.global.u32 	%r7, [%r2+488];
+	ld.global.u32 	%r8, [%r3+488];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+488], %r9;
+	
+	ld.global.u32 	%r7, [%r2+492];
+	ld.global.u32 	%r8, [%r3+492];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+492], %r9;
+	
+	ld.global.u32 	%r7, [%r2+496];
+	ld.global.u32 	%r8, [%r3+496];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+496], %r9;
+
+	ld.global.u32 	%r7, [%r2+500];
+	ld.global.u32 	%r8, [%r3+500];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+500], %r9;
+
+	ld.global.u32 	%r7, [%r2+504];
+	ld.global.u32 	%r8, [%r3+504];
+	addc.cc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+504], %r9;
+
+	// last oparation only propagates carry in
+	ld.global.u32 	%r7, [%r2+508];
+	ld.global.u32 	%r8, [%r3+508];
+	addc.u32 	%r9, %r7, %r8;
+	st.global.u32 	[%r1+508], %r9;
+
+	ret;
+}
+
+.visible .entry _Z15device_multiplyPjPKjS1_(
+	.param .u32 result,
+	.param .u32 x,
+	.param .u32 y
+)
+{
+	.reg .pred 	%p<2>;
+	.reg .b32 	%r<15>;
+
+	// load parameters
+	ld.param.u32 	%r4, [result];
+	ld.param.u32 	%r5, [x];
+	ld.param.u32 	%r6, [y];
+	cvta.to.global.u32 	%r2, %r5;
+	
+	mov.u32		%r12, 0;		// counter from 0 to 128
+
+LOOP:
+
+	cvta.to.global.u32 	%r3, %r6;		// clear y index
+	cvta.to.global.u32 	%r1, %r4;		// clear result index
+
+	mul.lo.u32		%r14, %r12, 4;		// offset = counter * 4
+
+	add.u32		%r3, %r3, %r14;		// apply offset to y
+	add.u32		%r1, %r1, %r14;		// apply offset to result	
+
+	ld.global.u32 	%r8, [%r3];		// r8 := y	
+
+	// clear registers
+	mov.u32 %r9, 0;
+	mov.u32 %r10, 0;
+	mov.u32 %r11, 0;
+	mov.u32 %r13, 0;
+	
+	ld.global.u32 	%r7, [%r2];				// r7 := x[0]
+	ld.global.u32 	%r9, [%r1];				// r9 := result[0]	
+	add.cc.u32		%r9, %r9, %r11;			// r9 += .hi from previeous mul	
+	addc.u32		%r11, 0, 0;				// propagate above carry out in next .hi (r11)	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	// r10 = y * x (low) + r9
+	addc.u32		%r11, %r11, 0;			// accumulate carry out in next .hi (r11)		
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;	// r11 += y * x (high) 
+	add.u32 		%r11, %r11, %r13;		// propagate previeous round carry out
+	addc.u32		%r13, 0, 0;				// store carry out from mad.hi.cc.u32 	%r11, %r8, %r7, %r11 for next round	
+	st.global.u32	[%r1], %r10;			// store r10 (low) in memory
+
+	ld.global.u32 	%r7, [%r2+4];			// r7 := x[1]
+	ld.global.u32 	%r9, [%r1+4];			// r9 := result[1]	
+	add.cc.u32		%r9, %r9, %r11;			// r9 += .hi from previeous mul		
+	addc.u32		%r11, 0, 0;				// propagate above carry out in next .hi (r11)	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	// r10 = y * x (low) + r9	
+	addc.u32		%r11, %r11, 0;			// accumulate carry out in next .hi (r11)
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;	// r11 += y * x (high) 	
+	add.u32 		%r11, %r11, %r13;		// propagate previeous round carry out			
+	addc.u32		%r13, 0, 0;				// store carry out from mad.hi.cc.u32 	%r11, %r8, %r7, %r11 for next round	
+	st.global.u32	[%r1+4], %r10;			// store r10 (low) in memory
+
+	ld.global.u32 	%r7, [%r2+8];
+	ld.global.u32 	%r9, [%r1+8];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;		
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;			
+	st.global.u32	[%r1+8], %r10;			
+
+	ld.global.u32 	%r7, [%r2+12];
+	ld.global.u32 	%r9, [%r1+12];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;		
+	st.global.u32	[%r1+12], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+16];
+	ld.global.u32 	%r9, [%r1+16];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;		
+	st.global.u32	[%r1+16], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+20];
+	ld.global.u32 	%r9, [%r1+20];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+20], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+24];
+	ld.global.u32 	%r9, [%r1+24];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;		
+	st.global.u32	[%r1+24], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+28];
+	ld.global.u32 	%r9, [%r1+28];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+28], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+32];
+	ld.global.u32 	%r9, [%r1+32];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+32], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+36];
+	ld.global.u32 	%r9, [%r1+36];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+36], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+40];
+	ld.global.u32 	%r9, [%r1+40];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+40], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+44];
+	ld.global.u32 	%r9, [%r1+44];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+44], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+48];
+	ld.global.u32 	%r9, [%r1+48];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;		
+	st.global.u32	[%r1+48], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+52];
+	ld.global.u32 	%r9, [%r1+52];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;		
+	st.global.u32	[%r1+52], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+56];
+	ld.global.u32 	%r9, [%r1+56];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+56], %r10;	 	
+
+	ld.global.u32 	%r7, [%r2+60];
+	ld.global.u32 	%r9, [%r1+60];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+60], %r10;	 	
+	
+	ld.global.u32 	%r7, [%r2+64];
+	ld.global.u32 	%r9, [%r1+64];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+64], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+68];
+	ld.global.u32 	%r9, [%r1+68];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+68], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+72];
+	ld.global.u32 	%r9, [%r1+72];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;		
+	st.global.u32	[%r1+72], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+76];
+	ld.global.u32 	%r9, [%r1+76];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;		
+	st.global.u32	[%r1+76], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+80];
+	ld.global.u32 	%r9, [%r1+80];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+80], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+84];
+	ld.global.u32 	%r9, [%r1+84];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+84], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+88];
+	ld.global.u32 	%r9, [%r1+88];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;		
+	st.global.u32	[%r1+88], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+92];
+	ld.global.u32 	%r9, [%r1+92];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;		
+	st.global.u32	[%r1+92], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+96];
+	ld.global.u32 	%r9, [%r1+96];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;		
+	st.global.u32	[%r1+96], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+100];
+	ld.global.u32 	%r9, [%r1+100];	
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+100], %r10; 
+	
+	ld.global.u32 	%r7, [%r2+104];			
+	ld.global.u32 	%r9, [%r1+104];			
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+104], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+108];
+	ld.global.u32 	%r9, [%r1+108];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+108], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+112];
+	ld.global.u32 	%r9, [%r1+112];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+112], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+116];
+	ld.global.u32 	%r9, [%r1+116];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+116], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+120];
+	ld.global.u32 	%r9, [%r1+120];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+120], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+124];
+	ld.global.u32 	%r9, [%r1+124];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+124], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+128];
+	ld.global.u32 	%r9, [%r1+128];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+128], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+132];
+	ld.global.u32 	%r9, [%r1+132];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+132], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+136];
+	ld.global.u32 	%r9, [%r1+136];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+136], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+140];
+	ld.global.u32 	%r9, [%r1+140];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+140], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+144];
+	ld.global.u32 	%r9, [%r1+144];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+144], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+148];
+	ld.global.u32 	%r9, [%r1+148];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+148], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+152];
+	ld.global.u32 	%r9, [%r1+152];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+152], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+156];
+	ld.global.u32 	%r9, [%r1+156];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+156], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+160];
+	ld.global.u32 	%r9, [%r1+160];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+160], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+164];
+	ld.global.u32 	%r9, [%r1+164];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+164], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+168];
+	ld.global.u32 	%r9, [%r1+168];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+168], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+172];
+	ld.global.u32 	%r9, [%r1+172];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+172], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+176];
+	ld.global.u32 	%r9, [%r1+176];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+176], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+180];
+	ld.global.u32 	%r9, [%r1+180];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+180], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+184];
+	ld.global.u32 	%r9, [%r1+184];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+184], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+188];
+	ld.global.u32 	%r9, [%r1+188];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+188], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+192];
+	ld.global.u32 	%r9, [%r1+192];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+192], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+196];
+	ld.global.u32 	%r9, [%r1+196];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;			
+	st.global.u32	[%r1+196], %r10;
+	
+	ld.global.u32 	%r7, [%r2+200];
+	ld.global.u32 	%r9, [%r1+200];	
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+200], %r10; 
+	
+	ld.global.u32 	%r7, [%r2+204];			
+	ld.global.u32 	%r9, [%r1+204];			
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+204], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+208];
+	ld.global.u32 	%r9, [%r1+208];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+208], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+212];
+	ld.global.u32 	%r9, [%r1+212];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+212], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+216];
+	ld.global.u32 	%r9, [%r1+216];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+216], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+220];
+	ld.global.u32 	%r9, [%r1+220];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+220], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+224];
+	ld.global.u32 	%r9, [%r1+224];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+224], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+228];
+	ld.global.u32 	%r9, [%r1+228];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+228], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+232];
+	ld.global.u32 	%r9, [%r1+232];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+232], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+236];
+	ld.global.u32 	%r9, [%r1+236];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+236], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+240];
+	ld.global.u32 	%r9, [%r1+240];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+240], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+244];
+	ld.global.u32 	%r9, [%r1+244];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+244], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+248];
+	ld.global.u32 	%r9, [%r1+248];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+248], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+252];
+	ld.global.u32 	%r9, [%r1+252];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+252], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+256];
+	ld.global.u32 	%r9, [%r1+256];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+256], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+260];
+	ld.global.u32 	%r9, [%r1+260];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+260], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+264];
+	ld.global.u32 	%r9, [%r1+264];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+264], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+268];
+	ld.global.u32 	%r9, [%r1+268];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+268], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+272];
+	ld.global.u32 	%r9, [%r1+272];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+272], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+276];
+	ld.global.u32 	%r9, [%r1+276];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+276], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+280];
+	ld.global.u32 	%r9, [%r1+280];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+280], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+284];
+	ld.global.u32 	%r9, [%r1+284];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+284], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+288];
+	ld.global.u32 	%r9, [%r1+288];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+288], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+292];
+	ld.global.u32 	%r9, [%r1+292];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+292], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+296];
+	ld.global.u32 	%r9, [%r1+296];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+296], %r10;
+	
+	ld.global.u32 	%r7, [%r2+300];
+	ld.global.u32 	%r9, [%r1+300];	
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+300], %r10; 
+	
+	ld.global.u32 	%r7, [%r2+304];			
+	ld.global.u32 	%r9, [%r1+304];			
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+304], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+308];
+	ld.global.u32 	%r9, [%r1+308];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+308], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+312];
+	ld.global.u32 	%r9, [%r1+312];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+312], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+316];
+	ld.global.u32 	%r9, [%r1+316];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+316], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+320];
+	ld.global.u32 	%r9, [%r1+320];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+320], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+324];
+	ld.global.u32 	%r9, [%r1+324];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+324], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+328];
+	ld.global.u32 	%r9, [%r1+328];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+328], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+332];
+	ld.global.u32 	%r9, [%r1+332];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+332], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+336];
+	ld.global.u32 	%r9, [%r1+336];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+336], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+340];
+	ld.global.u32 	%r9, [%r1+340];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+340], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+344];
+	ld.global.u32 	%r9, [%r1+344];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+344], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+348];
+	ld.global.u32 	%r9, [%r1+348];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+348], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+352];
+	ld.global.u32 	%r9, [%r1+352];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+352], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+356];
+	ld.global.u32 	%r9, [%r1+356];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+356], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+360];
+	ld.global.u32 	%r9, [%r1+360];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+360], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+364];
+	ld.global.u32 	%r9, [%r1+364];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+364], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+368];
+	ld.global.u32 	%r9, [%r1+368];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+368], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+372];
+	ld.global.u32 	%r9, [%r1+372];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+372], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+376];
+	ld.global.u32 	%r9, [%r1+376];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+376], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+380];
+	ld.global.u32 	%r9, [%r1+380];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+380], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+384];
+	ld.global.u32 	%r9, [%r1+384];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+384], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+388];
+	ld.global.u32 	%r9, [%r1+388];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+388], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+392];
+	ld.global.u32 	%r9, [%r1+392];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+392], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+396];
+	ld.global.u32 	%r9, [%r1+396];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;		
+	st.global.u32	[%r1+396], %r10;
+	
+	ld.global.u32 	%r7, [%r2+400];
+	ld.global.u32 	%r9, [%r1+400];	
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+400], %r10; 
+	
+	ld.global.u32 	%r7, [%r2+404];			
+	ld.global.u32 	%r9, [%r1+404];			
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+404], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+408];
+	ld.global.u32 	%r9, [%r1+408];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+408], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+412];
+	ld.global.u32 	%r9, [%r1+412];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+412], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+416];
+	ld.global.u32 	%r9, [%r1+416];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+416], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+420];
+	ld.global.u32 	%r9, [%r1+420];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+420], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+424];
+	ld.global.u32 	%r9, [%r1+424];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+424], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+428];
+	ld.global.u32 	%r9, [%r1+428];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+428], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+432];
+	ld.global.u32 	%r9, [%r1+432];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+432], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+436];
+	ld.global.u32 	%r9, [%r1+436];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+436], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+440];
+	ld.global.u32 	%r9, [%r1+440];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+440], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+444];
+	ld.global.u32 	%r9, [%r1+444];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+444], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+448];
+	ld.global.u32 	%r9, [%r1+448];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+448], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+452];
+	ld.global.u32 	%r9, [%r1+452];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+452], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+456];
+	ld.global.u32 	%r9, [%r1+456];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+456], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+460];
+	ld.global.u32 	%r9, [%r1+460];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+460], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+464];
+	ld.global.u32 	%r9, [%r1+464];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+464], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+468];
+	ld.global.u32 	%r9, [%r1+468];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+468], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+472];
+	ld.global.u32 	%r9, [%r1+472];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+472], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+476];
+	ld.global.u32 	%r9, [%r1+476];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+476], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+480];
+	ld.global.u32 	%r9, [%r1+480];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+480], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+484];
+	ld.global.u32 	%r9, [%r1+484];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+484], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+488];
+	ld.global.u32 	%r9, [%r1+488];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+488], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+492];
+	ld.global.u32 	%r9, [%r1+492];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+492], %r10;	 
+	
+	ld.global.u32 	%r7, [%r2+496];
+	ld.global.u32 	%r9, [%r1+496];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;		
+	st.global.u32	[%r1+496], %r10;
+
+	ld.global.u32 	%r7, [%r2+500];
+	ld.global.u32 	%r9, [%r1+500];	
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+500], %r10; 
+	
+	ld.global.u32 	%r7, [%r2+504];			
+	ld.global.u32 	%r9, [%r1+504];			
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;	
+	st.global.u32	[%r1+504], %r10;	 
+
+	ld.global.u32 	%r7, [%r2+508];
+	ld.global.u32 	%r9, [%r1+508];
+	add.cc.u32		%r9, %r9, %r11;		
+	addc.u32		%r11, 0, 0;	
+	mad.lo.cc.u32 	%r10, %r8, %r7, %r9;	
+	addc.u32		%r11, %r11, 0;
+	mad.hi.cc.u32 	%r11, %r8, %r7, %r11;
+	add.u32 		%r11, %r11, %r13;
+	addc.u32		%r13, 0, 0;
+	st.global.u32	[%r1+508], %r10;	
+
+	add.u32			%r12, %r12, 1;			// increment counter
+
+	setp.lo.u32		%p1, %r12, 128;			// counter < 128
+	@%p1 bra		LOOP;
+	
+	ret;
+}
