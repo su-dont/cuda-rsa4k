@@ -19,6 +19,23 @@
 .weak .global .align 4 .b8 _ZTVNSt8ios_base7failureE[20];
 .weak .global .align 4 .b8 _ZTVSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE[56];
 
+
+.visible .entry _Z16device_get_clockPy(
+	.param .u32 result
+)
+{
+	.reg .b32 	%r<3>;
+	.reg .b64 	%rd<2>;
+
+
+	ld.param.u32 		%r1, [result];
+	cvta.to.global.u32 	%r2, %r1;
+	mov.u64 			%rd1, %clock64;
+	st.global.u64 		[%r2], %rd1;
+	ret;
+}
+
+
 .visible .entry _Z10device_addPjPKjS1_(
 	.param .u32 result,
 	.param .u32 x,

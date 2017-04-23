@@ -16,6 +16,11 @@ __global__ void device_multiply(unsigned int* result, const unsigned int* x, con
 	// implementation in DeviceWrapper.ptx	
 }
 
+__global__ void device_get_clock(unsigned long long* result)
+{
+	// implementation in DeviceWrapper.ptx	
+}
+
 inline cudaError_t checkCuda(cudaError_t result)
 {
 	if (result != cudaSuccess)
@@ -33,19 +38,33 @@ DeviceWrapper::~DeviceWrapper()
 {
 }
 
+unsigned long long DeviceWrapper::getClock(void)
+{
+	unsigned long long clock;
+	unsigned long long* deviceClock;
+	checkCuda(cudaMalloc(&deviceClock, sizeof(unsigned long long)));
+	
+	device_get_clock << <1, 1 >> > (deviceClock);
+
+	checkCuda(cudaMemcpy(&clock, deviceClock, sizeof(unsigned long long), cudaMemcpyDeviceToHost));
+	checkCuda(cudaFree(deviceClock));
+	
+	return clock;
+}
+
 BigInteger* DeviceWrapper::add(BigInteger& x, BigInteger& y)
 {
 	//todo: vaildate x,y
 
 	unsigned int* resultArray = new unsigned int[BigInteger::ARRAY_SIZE + 1];	// + 1 to check for overflow
 
-	int size = sizeof(unsigned int*) * BigInteger::ARRAY_SIZE;
+	int size = sizeof(unsigned int) * BigInteger::ARRAY_SIZE;
 	
 	unsigned int* device_result;
 	unsigned int* device_x;
 	unsigned int* device_y;
 
-	checkCuda(cudaMalloc(&device_result, size + sizeof(unsigned int*)));
+	checkCuda(cudaMalloc(&device_result, size + sizeof(unsigned int)));
 	checkCuda(cudaMalloc(&device_x, size));
 	checkCuda(cudaMalloc(&device_y, size));
 	
@@ -54,7 +73,7 @@ BigInteger* DeviceWrapper::add(BigInteger& x, BigInteger& y)
 	
 	device_add << <1, 1 >> > (device_result, device_x, device_y);
 	
-	checkCuda(cudaMemcpy(resultArray, device_result, size + sizeof(unsigned int*), cudaMemcpyDeviceToHost));
+	checkCuda(cudaMemcpy(resultArray, device_result, size + sizeof(unsigned int), cudaMemcpyDeviceToHost));
 
 	unsigned int overflow = resultArray[128];
 	if (overflow != 0UL)
@@ -78,7 +97,7 @@ BigInteger* DeviceWrapper::multiply(BigInteger& x, BigInteger& y)
 	int resultArraySize = BigInteger::ARRAY_SIZE * 2;
 	unsigned int* resultArray = new unsigned int[resultArraySize];
 	
-	int size = sizeof(unsigned int*) * BigInteger::ARRAY_SIZE;
+	int size = sizeof(unsigned int) * BigInteger::ARRAY_SIZE;
 
 	unsigned int* device_result;
 	unsigned int* device_x;

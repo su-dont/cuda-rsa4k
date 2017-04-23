@@ -28,6 +28,10 @@ call .\windows_device_build.bat
 "%nvcc%" %flags% -I.\..\ -ccbin "%CCBIN%" -dc .\..\BigInteger.cpp -o .\BigInteger.obj
 "%nvcc%" %flags% -I.\..\ -ccbin "%CCBIN%" -dc .\..\Test.cpp -o .\Test.obj
 "%nvcc%" %flags% -I.\..\ -ccbin "%CCBIN%" -dc .\..\main.cpp -o .\main.obj
+
+REM timer build
+"%nvcc%" %flags% -I.\..\ -ccbin "%CCBIN%" device.obj BigInteger.obj  .\..\timer.cpp -o .\timer.exe
+
 echo ::LINK::
 "%nvcc%" %flags% -ccbin "%CCBIN%" %objects% -o rsa.exe
 copy .\rsa.exe ..\..\rsa.exe
