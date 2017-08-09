@@ -139,6 +139,7 @@ extern "C" __global__ void device_add_partial(unsigned int* result, const unsign
 	__shared__ unsigned short carries[BigInteger::ARRAY_SIZE + 1];
 
 	register int index;
+#pragma unroll
 	for (index = 0; index < DeviceWrapper::ADDITION_CELLS_PER_THREAD - 1; index++)
 	{
 		asm volatile (
@@ -157,6 +158,7 @@ extern "C" __global__ void device_add_partial(unsigned int* result, const unsign
 	__syncthreads();	
 
 	register unsigned int carry;
+#pragma unroll
 	for (register int i = 0; i < DeviceWrapper::ADDITION_THREAD_COUNT; i++)
 	{
 		index = 0;
@@ -168,6 +170,7 @@ extern "C" __global__ void device_add_partial(unsigned int* result, const unsign
 			: "+r"(result[startIndex + index])
 			: "r"(carry));
 
+#pragma unroll
 		for (index = 1; index < DeviceWrapper::ADDITION_CELLS_PER_THREAD - 1; index++)
 		{
 			asm volatile (

@@ -22,7 +22,5 @@ public:
 	static BigInteger* multiply(BigInteger& x, BigInteger& y);
 	static BigInteger* multiplyParallel(BigInteger& x, BigInteger& y);
 
-
-
 };
 
