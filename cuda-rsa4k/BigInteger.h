@@ -29,7 +29,9 @@ public:
 
 	void leftShift(int bits);
 	void add(BigInteger x);
+	void addParallel(BigInteger x);
 	void multiply(BigInteger x);
+	void multiplyParallel(BigInteger x);
 
 	unsigned int* getMagnitudeArray(void);
 	int getLength(void);

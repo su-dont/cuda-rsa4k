@@ -117,9 +117,35 @@ void BigInteger::add(BigInteger x)
 	delete result;
 }
 
+void BigInteger::addParallel(BigInteger x)
+{
+	BigInteger* result = DeviceWrapper::addParallel(*this, x);
+
+	for (int i = 0; i < ARRAY_SIZE; i++)
+	{
+		magnitude[i] = result->getMagnitudeArray()[i];
+	}
+	length = result->getLength();
+
+	delete result;
+}
+
 void BigInteger::multiply(BigInteger x)
 {
 	BigInteger* result = DeviceWrapper::multiply(*this, x);
+
+	for (int i = 0; i < ARRAY_SIZE; i++)
+	{
+		magnitude[i] = result->getMagnitudeArray()[i];
+	}
+	length = result->getLength();
+
+	delete result;
+}
+
+void BigInteger::multiplyParallel(BigInteger x)
+{
+	BigInteger* result = DeviceWrapper::multiplyParallel(*this, x);
 
 	for (int i = 0; i < ARRAY_SIZE; i++)
 	{
