@@ -9,7 +9,7 @@ public:
 	static const int CELLS_PER_THREAD = BigInteger::ARRAY_SIZE / MULTIPLICATION_THREAD_COUNT; // 32
 
 	static const int ADDITION_THREAD_COUNT = 16;
-	static const int ADDITION_CELLS_PER_THREAD = BigInteger::ARRAY_SIZE / ADDITION_THREAD_COUNT;
+	static const int ADDITION_CELLS_PER_THREAD = BigInteger::ARRAY_SIZE / ADDITION_THREAD_COUNT; // 8
 
 	DeviceWrapper();
 	~DeviceWrapper();

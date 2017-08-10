@@ -7,7 +7,7 @@ using namespace std;
 int main()
 {
 	Test test;
-	test.runAll();
+	test.runAll(true);
 
 	int exit;
 	cin >> exit;
