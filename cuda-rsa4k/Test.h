@@ -15,8 +15,5 @@ public:
 	long long testAddParallel(bool print);
 	long long testMultiply(bool print);
 	long long testMultiplyParallel(bool print);
-
-
-
 };
 

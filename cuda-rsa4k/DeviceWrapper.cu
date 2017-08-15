@@ -6,6 +6,22 @@
 
 using namespace std;
 
+//parallel multiplication config
+static const int EVEN_EVEN = 0x0;
+static const int EVEN_ODD = 0x1;
+static const int ODD_EVEN = 0x2;
+static const int ODD_ODD = 0x3;
+
+__host__ __device__ inline int isXodd(int config)
+{
+	return ((0xFFFFFFFD | config) == 0xFFFFFFFF) ? 1 : 0;
+}
+
+__host__ __device__ inline int isYodd(int config)
+{
+	return ((0xFFFFFFFE | config) == 0xFFFFFFFF) ? 1 : 0;
+}
+
 extern "C" __global__ void device_add(unsigned int* result, const unsigned int* x, const unsigned int* y)
 {
 	// implementation in DeviceWrapper.ptx	
@@ -16,127 +32,55 @@ extern "C" __global__ void device_multiply(unsigned int* result, const unsigned 
 	// implementation in DeviceWrapper.ptx	
 }
 
-
 extern "C" __global__ void device_get_clock(unsigned long long* result)
 {
 	// implementation in DeviceWrapper.ptx	
 }
 
-extern "C" __global__ void device_multiply_partial(unsigned int* result, const unsigned int* x, const unsigned int* y)
+extern "C" __global__ void device_multiply_partial(unsigned int* result, const unsigned int* x, const unsigned int* y, const int config)
 {
-	int mod = (threadIdx.x % 2);
-	__shared__ unsigned int evenResult[290][DeviceWrapper::MULTIPLICATION_THREAD_COUNT];
-	__shared__ unsigned int oddResult[290][DeviceWrapper::MULTIPLICATION_THREAD_COUNT];
-		
-	// threads: 4 * 4 = 16
-	// 0, 32, 64, 96
-	const int startIndexX = (threadIdx.x % DeviceWrapper::MULTIPLICATION_THREAD_COUNT) * DeviceWrapper::CELLS_PER_THREAD;	// 32
-	// 0, 1, 2, 3
-	const int yArray = DeviceWrapper::div(threadIdx.x, DeviceWrapper::MULTIPLICATION_THREAD_COUNT);
-	// 0, 32, 64, 96
-	const int startIndexY = yArray * DeviceWrapper::CELLS_PER_THREAD;	// 32	 	
-	const int length = DeviceWrapper::CELLS_PER_THREAD;	// 32
-		
-	unsigned int(*resultArray)[DeviceWrapper::MULTIPLICATION_THREAD_COUNT];
+	register const int arraySize = BigInteger::ARRAY_SIZE + 1;
 
-	if (mod == 0) // even
-	{
-		resultArray = evenResult;
-	}
-	else // odd
-	{
-		resultArray = oddResult;
-	}
+	__shared__ unsigned int sharedResult[arraySize];
+	__shared__ unsigned int carries[arraySize];		// todo: bank conflict?
 
-	for (int i = startIndexX; i < startIndexX + length; i++)
+	register const int xIndex = threadIdx.x * 2 + isXodd(config);
+
+	sharedResult[xIndex] = 0;
+	sharedResult[xIndex + 1] = 0;
+	carries[xIndex] = 0;
+	carries[xIndex + 1] = 0;
+
+#pragma unroll
+	for (register int yIndex = isYodd(config); yIndex < arraySize; yIndex = yIndex + 2)
 	{
-		for (int j = startIndexY; j < startIndexY + length; j++)
-		{
-			asm volatile (
-				"mad.lo.cc.u32 %0, %3, %4, %0; \n\t"
-				"madc.hi.cc.u32 %1, %3, %4, %1; \n\t"
-				"addc.u32 %2, %2, 0; \n\t"
-				: "+r"(resultArray[i + j][yArray]), "+r"(resultArray[i + j + 1][yArray]), "+r"(resultArray[i + j + 2][yArray])
-				: "r"(x[i]), "r"(y[j]));
-		}
+		if (xIndex + yIndex >= arraySize)
+			break;
+
+		register unsigned int carry = carries[xIndex + yIndex];
+		carries[xIndex + yIndex] = 0;
+
+		asm volatile (
+			"add.cc.u32 %0, %0, %5; \n\t"
+			"mad.lo.cc.u32 %0, %3, %4, %0; \n\t"
+			"madc.hi.cc.u32 %1, %3, %4, %1; \n\t"
+			"addc.u32 %2, %2, 0; \n\t"
+			: "+r"(sharedResult[xIndex + yIndex]), "+r"(sharedResult[xIndex + yIndex + 1]), "+r"(carries[xIndex + yIndex + 2])
+			: "r"(x[xIndex]), "r"(y[yIndex]), "r"(carry));
+
+		__syncthreads();
 	}
-	
+			
+	result[xIndex] = sharedResult[xIndex];
+	result[xIndex + 1] = sharedResult[xIndex + 1];
 
 	__syncthreads();
-
-	if (threadIdx.x == 0)
-	{
-		for (int i = 0; i < 290; i++)
-		{
-			asm volatile (
-				"addc.cc.u32 %0, %1, %2; \n\t"
-				: "=r"(resultArray[i][0])
-				: "r"(resultArray[i][0]), "r"(resultArray[i][1]));
-		}
-
-		for (int i = 0; i < 290; i++)
-		{
-			asm volatile (
-				"addc.cc.u32 %0, %1, %2; \n\t"
-				: "=r"(resultArray[i][0])
-				: "r"(resultArray[i][0]), "r"(resultArray[i][2]));
-		}
-
-		for (int i = 0; i < 290; i++)
-		{
-			asm volatile (
-				"addc.cc.u32 %0, %1, %2; \n\t"
-				: "=r"(resultArray[i][0])
-				: "r"(resultArray[i][0]), "r"(resultArray[i][3]));
-		}
-	}
-
-	if (threadIdx.x == 1)
-	{
-		for (int i = 0; i < 290; i++)
-		{
-			asm volatile (
-				"addc.cc.u32 %0, %1, %2; \n\t"
-				: "=r"(resultArray[i][0])
-				: "r"(resultArray[i][0]), "r"(resultArray[i][1]));
-		}
-
-		for (int i = 0; i < 290; i++)
-		{
-			asm volatile (
-				"addc.cc.u32 %0, %1, %2; \n\t"
-				: "=r"(resultArray[i][0])
-				: "r"(resultArray[i][0]), "r"(resultArray[i][2]));
-		}
-
-		for (int i = 0; i < 290; i++)
-		{
-			asm volatile (
-				"addc.cc.u32 %0, %1, %2; \n\t"
-				: "=r"(resultArray[i][0])
-				: "r"(resultArray[i][0]), "r"(resultArray[i][3]));
-		}
-	}
-
-	__syncthreads();
-
-	if (threadIdx.x == 0)
-	{
-		for (int i = 0; i < 256; i++)
-		{
-			asm volatile (
-				"addc.cc.u32 %0, %1, %2; \n\t"
-				: "=r"(result[i])
-				: "r"(evenResult[i][0]), "r"(oddResult[i][0]));
-		}
-	}
-	
 }
 
 extern "C" __global__ void device_add_partial(unsigned int* result, const unsigned int* x, const unsigned int* y)
 {
 	register const int startIndex = threadIdx.x * DeviceWrapper::ADDITION_CELLS_PER_THREAD;
-	__shared__ unsigned short carries[BigInteger::ARRAY_SIZE + 1];
+	__shared__ unsigned short carries[BigInteger::ARRAY_SIZE + 1];	// todo: bank conflict?
 
 	register int index;
 #pragma unroll
@@ -186,12 +130,6 @@ extern "C" __global__ void device_add_partial(unsigned int* result, const unsign
 
 		__syncthreads();
 	}	
-}
-
-// returns x div y
-extern "C" __host__ __device__ inline int DeviceWrapper::div(const int x, const int y) 
-{
-	return x / y;
 }
 
 inline cudaError_t checkCuda(cudaError_t result)
@@ -345,52 +283,81 @@ BigInteger* DeviceWrapper::multiply(BigInteger& x, BigInteger& y)
 
 BigInteger* DeviceWrapper::multiplyParallel(BigInteger& x, BigInteger& y)
 {
-	//todo: vaildate x,y
-
-	// resultArray twice as long to account for overflow 
-	int resultArraySize = BigInteger::ARRAY_SIZE * 2;
-	unsigned int* resultArray = new unsigned int[resultArraySize];
-
+	unsigned int* resultArray = new unsigned int[BigInteger::ARRAY_SIZE + 1]; // + 1 to check for overflow
+	
 	int size = sizeof(unsigned int) * BigInteger::ARRAY_SIZE;
+	int resultArraySize = sizeof(unsigned int) * (BigInteger::ARRAY_SIZE + 1);
+
+	unsigned int* device_result_even_even;
+	unsigned int* device_result_even_odd;
+	unsigned int* device_result_odd_even;
+	unsigned int* device_result_odd_odd;
+
+	unsigned int* device_result_even;
+	unsigned int* device_result_odd;
 
 	unsigned int* device_result;
+
 	unsigned int* device_x;
 	unsigned int* device_y;
+	
+	checkCuda(cudaMalloc(&device_result_even_even, resultArraySize));
+	checkCuda(cudaMalloc(&device_result_even_odd, resultArraySize));
+	checkCuda(cudaMalloc(&device_result_odd_even, resultArraySize));
+	checkCuda(cudaMalloc(&device_result_odd_odd, resultArraySize));
 
-	checkCuda(cudaMalloc(&device_result, size * 2));	// resultArray twice as long to account for overflow 
+	checkCuda(cudaMalloc(&device_result_even, resultArraySize));
+	checkCuda(cudaMalloc(&device_result_odd, resultArraySize));
+	
+	checkCuda(cudaMalloc(&device_result, resultArraySize));
+
 	checkCuda(cudaMalloc(&device_x, size));
 	checkCuda(cudaMalloc(&device_y, size));
 
 	checkCuda(cudaMemcpy(device_x, x.getMagnitudeArray(), size, cudaMemcpyHostToDevice));
 	checkCuda(cudaMemcpy(device_y, y.getMagnitudeArray(), size, cudaMemcpyHostToDevice));
 
-	device_multiply_partial<<<1,16>>>(device_result, device_x, device_y);
+	// kernel launches
+	device_multiply_partial << <1, DeviceWrapper::MULTIPLICATION_THREAD_COUNT >> > (device_result_even_even, device_x, device_y, EVEN_EVEN);
+	device_multiply_partial << <1, DeviceWrapper::MULTIPLICATION_THREAD_COUNT >> > (device_result_even_odd, device_x, device_y, EVEN_ODD);
+	device_multiply_partial << <1, DeviceWrapper::MULTIPLICATION_THREAD_COUNT >> > (device_result_odd_even, device_x, device_y, ODD_EVEN);
+	device_multiply_partial << <1, DeviceWrapper::MULTIPLICATION_THREAD_COUNT >> > (device_result_odd_odd, device_x, device_y, ODD_ODD);
 
-	checkCuda(cudaMemcpy(resultArray, device_result, size * 2, cudaMemcpyDeviceToHost));
+	device_add_partial << <1, DeviceWrapper::ADDITION_THREAD_COUNT >> > (device_result_even, device_result_even_even, device_result_even_odd);
+	device_add_partial << <1, DeviceWrapper::ADDITION_THREAD_COUNT >> > (device_result_odd, device_result_odd_even, device_result_odd_odd);
 
-	unsigned int overflow = 0UL;
-	for (int i = resultArraySize - 1; i >= BigInteger::ARRAY_SIZE; i--)
-	{
-		overflow = overflow | resultArray[i];
-	}
-
+	device_add_partial << <1, DeviceWrapper::ADDITION_THREAD_COUNT >> > (device_result, device_result_even, device_result_odd);
+	
+	checkCuda(cudaMemcpy(resultArray, device_result, resultArraySize, cudaMemcpyDeviceToHost));
+	
+	unsigned int overflow = resultArray[128];
 	if (overflow != 0UL)
 	{
 		std::cerr << "ERROR: BigInteger::multiply overflow!" << endl;
 		//throw std::overflow_error("BigInteger::multiply overflow");
 	}
 
+	checkCuda(cudaFree(device_result_even_even));
+	checkCuda(cudaFree(device_result_even_odd));
+	checkCuda(cudaFree(device_result_odd_even));
+	checkCuda(cudaFree(device_result_odd_odd));
+
+	checkCuda(cudaFree(device_result_even));
+	checkCuda(cudaFree(device_result_odd));
+
 	checkCuda(cudaFree(device_result));
+
 	checkCuda(cudaFree(device_x));
 	checkCuda(cudaFree(device_y));
-	
-	//for (int i = 255; i >= 0; i--)
-	//{
-	//	cout << dec << resultArray[i];
 
-	//}
-	//cout << endl;
+	BigInteger* result = new BigInteger(resultArray);
+	if (result->getLength() < x.getLength() || result->getLength() < y.getLength())
+	{
+		std::cerr << "ERROR: BigInteger::multiply overflow!" << endl;
+		//throw std::overflow_error("BigInteger::multiply overflow");
+	}
 
-	return new BigInteger(resultArray);;
+	return result;
 }
+
 

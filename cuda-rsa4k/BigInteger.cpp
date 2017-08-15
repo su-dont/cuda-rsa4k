@@ -145,7 +145,7 @@ void BigInteger::multiply(BigInteger x)
 
 void BigInteger::multiplyParallel(BigInteger x)
 {
-	BigInteger* result = DeviceWrapper::multiplyParallel(*this, x);
+	BigInteger* result = DeviceWrapper::multiplyParallel(*this, x);	 
 
 	for (int i = 0; i < ARRAY_SIZE; i++)
 	{

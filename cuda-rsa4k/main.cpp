@@ -8,7 +8,7 @@ int main()
 {
 	Test test;
 	test.runAll(true);
-
+	
 	int exit;
 	cin >> exit;
     return 0;
