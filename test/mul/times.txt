@@ -1,0 +1,15 @@
+multiply kernel lunches execution times:
+
+no streams
+start: 0.127062092 s
+stop: 0.127759189 s
+
+time = 0.127759189 - 0.127062092 = 0.000697097 s = 697.097 us
+
+
+
+streams
+start: 0.114317632 s
+stop: 0.114827487 s
+
+time = 0.114827487 - 0.114317632 = 0.000509855 s = 509.899 us

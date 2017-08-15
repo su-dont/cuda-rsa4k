@@ -301,6 +301,7 @@ BigInteger* DeviceWrapper::multiplyParallel(BigInteger& x, BigInteger& y)
 	unsigned int* device_x;
 	unsigned int* device_y;
 	
+	// device memory allocations
 	checkCuda(cudaMalloc(&device_result_even_even, resultArraySize));
 	checkCuda(cudaMalloc(&device_result_even_odd, resultArraySize));
 	checkCuda(cudaMalloc(&device_result_odd_even, resultArraySize));
@@ -317,18 +318,33 @@ BigInteger* DeviceWrapper::multiplyParallel(BigInteger& x, BigInteger& y)
 	checkCuda(cudaMemcpy(device_x, x.getMagnitudeArray(), size, cudaMemcpyHostToDevice));
 	checkCuda(cudaMemcpy(device_y, y.getMagnitudeArray(), size, cudaMemcpyHostToDevice));
 
+	// two parallel streams for indepentent computations
+	cudaStream_t evenStream, oddStream;
+	checkCuda(cudaStreamCreate(&evenStream));
+	checkCuda(cudaStreamCreate(&oddStream));
+
 	// kernel launches
-	device_multiply_partial << <1, DeviceWrapper::MULTIPLICATION_THREAD_COUNT >> > (device_result_even_even, device_x, device_y, EVEN_EVEN);
-	device_multiply_partial << <1, DeviceWrapper::MULTIPLICATION_THREAD_COUNT >> > (device_result_even_odd, device_x, device_y, EVEN_ODD);
-	device_multiply_partial << <1, DeviceWrapper::MULTIPLICATION_THREAD_COUNT >> > (device_result_odd_even, device_x, device_y, ODD_EVEN);
-	device_multiply_partial << <1, DeviceWrapper::MULTIPLICATION_THREAD_COUNT >> > (device_result_odd_odd, device_x, device_y, ODD_ODD);
+	device_multiply_partial << <1, DeviceWrapper::MULTIPLICATION_THREAD_COUNT, 0, evenStream >> > (device_result_even_even, device_x, device_y, EVEN_EVEN);
+	device_multiply_partial << <1, DeviceWrapper::MULTIPLICATION_THREAD_COUNT, 0, evenStream >> > (device_result_even_odd, device_x, device_y, EVEN_ODD);
+	device_multiply_partial << <1, DeviceWrapper::MULTIPLICATION_THREAD_COUNT, 0, oddStream >> > (device_result_odd_even, device_x, device_y, ODD_EVEN);
+	device_multiply_partial << <1, DeviceWrapper::MULTIPLICATION_THREAD_COUNT, 0, oddStream >> > (device_result_odd_odd, device_x, device_y, ODD_ODD);
 
-	device_add_partial << <1, DeviceWrapper::ADDITION_THREAD_COUNT >> > (device_result_even, device_result_even_even, device_result_even_odd);
-	device_add_partial << <1, DeviceWrapper::ADDITION_THREAD_COUNT >> > (device_result_odd, device_result_odd_even, device_result_odd_odd);
+	// reduction
+	device_add_partial << <1, DeviceWrapper::ADDITION_THREAD_COUNT, 0, evenStream >> > (device_result_even, device_result_even_even, device_result_even_odd);
+	device_add_partial << <1, DeviceWrapper::ADDITION_THREAD_COUNT, 0, oddStream >> > (device_result_odd, device_result_odd_even, device_result_odd_odd);
 
+	checkCuda(cudaStreamSynchronize(evenStream));
+	checkCuda(cudaStreamSynchronize(oddStream));
+
+	// reduction
 	device_add_partial << <1, DeviceWrapper::ADDITION_THREAD_COUNT >> > (device_result, device_result_even, device_result_odd);
 	
+	// copy result to the host
 	checkCuda(cudaMemcpy(resultArray, device_result, resultArraySize, cudaMemcpyDeviceToHost));
+
+	// kill streams
+	checkCuda(cudaStreamDestroy(evenStream));
+	checkCuda(cudaStreamDestroy(oddStream));
 	
 	unsigned int overflow = resultArray[128];
 	if (overflow != 0UL)
@@ -337,6 +353,7 @@ BigInteger* DeviceWrapper::multiplyParallel(BigInteger& x, BigInteger& y)
 		//throw std::overflow_error("BigInteger::multiply overflow");
 	}
 
+	// clear memory
 	checkCuda(cudaFree(device_result_even_even));
 	checkCuda(cudaFree(device_result_even_odd));
 	checkCuda(cudaFree(device_result_odd_even));

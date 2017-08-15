@@ -16,12 +16,10 @@ public:
 	~DeviceWrapper();
 
 	static unsigned long long getClock(void);
-	static inline int div(const int x, const int y);
 
 	static BigInteger* add(BigInteger& x, BigInteger& y);
 	static BigInteger* addParallel(BigInteger& x, BigInteger& y);	
 	static BigInteger* multiply(BigInteger& x, BigInteger& y);
 	static BigInteger* multiplyParallel(BigInteger& x, BigInteger& y);
-
 };
 
