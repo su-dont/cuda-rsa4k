@@ -6,6 +6,22 @@
 
 using namespace std;
 
+typedef struct
+{
+	unsigned int value;	
+	unsigned int padding[31];
+	// padding to match with 32 byte memory line
+
+} memory32byte;
+
+typedef struct
+{
+	memory32byte result[DeviceWrapper::ADDITION_CELLS_PER_THREAD];
+	unsigned int carry;	
+	// 4 byte carry offsets to another memory bank, which eliminates bank conflicts
+
+} additionSharedMemory;
+
 //parallel multiplication config
 static const int EVEN_EVEN = 0x0;
 static const int EVEN_ODD = 0x1;
@@ -79,24 +95,27 @@ extern "C" __global__ void device_multiply_partial(unsigned int* result, const u
 
 extern "C" __global__ void device_add_partial(unsigned int* result, const unsigned int* x, const unsigned int* y)
 {
-	register const int startIndex = threadIdx.x * DeviceWrapper::ADDITION_CELLS_PER_THREAD;
-	__shared__ unsigned short carries[BigInteger::ARRAY_SIZE + 1];	// todo: bank conflict?
+	register const int resultIndex = threadIdx.x;
+	register const int startIndex = resultIndex * DeviceWrapper::ADDITION_CELLS_PER_THREAD;
 
+	__shared__ additionSharedMemory shared[BigInteger::ARRAY_SIZE / DeviceWrapper::ADDITION_CELLS_PER_THREAD + 1];		
+	
 	register int index;
+
 #pragma unroll
 	for (index = 0; index < DeviceWrapper::ADDITION_CELLS_PER_THREAD - 1; index++)
 	{
 		asm volatile (
 			"addc.cc.u32 %0, %1, %2; \n\t"	// genarate and propagate carry
-			: "=r"(result[startIndex + index])
+			: "=r"(shared[resultIndex].result[index].value)
 			: "r"(x[startIndex + index]), "r"(y[startIndex + index]));		
 	}
 
 	// last iteration generates and stores carry in the array
 	asm volatile (
 		"addc.cc.u32 %0, %2, %3; \n\t"
-		"addc.u16 %1, 0, 0; \n\t"
-		: "=r"(result[startIndex + index]), "=h"(carries[startIndex + 1 + index])
+		"addc.u32 %1, 0, 0; \n\t"
+		: "=r"(shared[resultIndex].result[index].value), "=r"(shared[resultIndex + 1].carry)
 		: "r"(x[startIndex + index]), "r"(y[startIndex + index]));
 
 	__syncthreads();	
@@ -106,12 +125,12 @@ extern "C" __global__ void device_add_partial(unsigned int* result, const unsign
 	for (register int i = 0; i < DeviceWrapper::ADDITION_THREAD_COUNT; i++)
 	{
 		index = 0;
-		carry = carries[startIndex + index];
+		carry = shared[resultIndex].carry;
 
 		// first iteration propagates carry from array
 		asm volatile (
 			"add.cc.u32 %0, %0, %1; \n\t"	//  
-			: "+r"(result[startIndex + index])
+			: "+r"(shared[resultIndex].result[index].value)
 			: "r"(carry));
 
 #pragma unroll
@@ -119,17 +138,25 @@ extern "C" __global__ void device_add_partial(unsigned int* result, const unsign
 		{
 			asm volatile (
 				"addc.cc.u32 %0, %0, 0; \n\t"	//propagate generated carries
-				: "+r"(result[startIndex + index]));
+				: "+r"(shared[resultIndex].result[index].value));
 		}
 
 		// last iteration generates and stores carry in the array
 		asm volatile (
 			"addc.cc.u32 %0, %0, 0; \n\t"
-			"addc.u16 %1, 0, 0; \n\t"
-			: "+r"(result[startIndex + index]), "=h"(carries[startIndex + 1 + index]));
+			"addc.u32 %1, 0, 0; \n\t"
+			: "+r"(shared[resultIndex].result[index].value), "=r"(shared[resultIndex + 1].carry));
 
 		__syncthreads();
 	}	
+
+#pragma unroll
+	for (index = 0; index < DeviceWrapper::ADDITION_CELLS_PER_THREAD; index++)
+	{
+		result[startIndex + index] = shared[resultIndex].result[index].value;
+	}
+
+	__syncthreads();
 }
 
 inline cudaError_t checkCuda(cudaError_t result)
