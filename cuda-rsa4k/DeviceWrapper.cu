@@ -23,10 +23,13 @@ typedef struct
 } additionSharedMemory;
 
 /*
-Mapping to sepcific index value in order to eliminate bank conflicts */
-__host__ __device__ inline unsigned int indexFixup(unsigned int index)
+Mapping to sepcific index value in order to eliminate bank conflicts
+This function adds complexity which result in efficiency loss.
+Index values from 0 to 129 have been tableized in indexFixupTable for each thread separately. 
+Unused*/
+__host__ __device__ inline unsigned int indexFixup(const unsigned int index)
 {
-	return index % 64 * 32 + (index % 64 & 0xfffffffe) / 2 + index / 64 * 64;
+	return index % 64 * 32 + (index % 64 & 0xfffffffe) / 2 + index / 64 * 64;	
 }
 
 //parallel multiplication config
@@ -62,6 +65,8 @@ extern "C" __global__ void device_get_clock(unsigned long long* result)
 
 extern "C" __global__ void device_multiply_partial(unsigned int* result, const unsigned int* x, const unsigned int* y, const int config)
 {
+	const unsigned int indexFixupTable[] {0, 32, 65, 97, 130, 162, 195, 227, 260, 292, 325, 357, 390, 422, 455, 487, 520, 552, 585, 617, 650, 682, 715, 747, 780, 812, 845, 877, 910, 942, 975, 1007, 1040, 1072, 1105, 1137, 1170, 1202, 1235, 1267, 1300, 1332, 1365, 1397, 1430, 1462, 1495, 1527, 1560, 1592, 1625, 1657, 1690, 1722, 1755, 1787, 1820, 1852, 1885, 1917, 1950, 1982, 2015, 2047, 64, 96, 129, 161, 194, 226, 259, 291, 324, 356, 389, 421, 454, 486, 519, 551, 584, 616, 649, 681, 714, 746, 779, 811, 844, 876, 909, 941, 974, 1006, 1039, 1071, 1104, 1136, 1169, 1201, 1234, 1266, 1299, 1331, 1364, 1396, 1429, 1461, 1494, 1526, 1559, 1591, 1624, 1656, 1689, 1721, 1754, 1786, 1819, 1851, 1884, 1916, 1949, 1981, 2014, 2046, 2079, 2111, 128};
+
 	register const int arraySize = BigInteger::ARRAY_SIZE + 1;
 	register const int sharedMemoryLines = DeviceWrapper::MULTIPLICATION_THREAD_COUNT + 2;
 	register const int memoryBanksCount = 32;
@@ -71,10 +76,10 @@ extern "C" __global__ void device_multiply_partial(unsigned int* result, const u
 
 	register const int xIndex = threadIdx.x * 2 + isXodd(config);
 
-	sharedResult[indexFixup(xIndex)] = 0;
-	sharedResult[indexFixup(xIndex + 1)] = 0;
-	carries[indexFixup(xIndex)] = 0;
-	carries[indexFixup(xIndex + 1)] = 0;
+	sharedResult[indexFixupTable[xIndex]] = 0;
+	sharedResult[indexFixupTable[xIndex + 1]] = 0;
+	carries[indexFixupTable[xIndex]] = 0;
+	carries[indexFixupTable[xIndex + 1]] = 0;
 
 #pragma unroll
 	for (register int yIndex = isYodd(config); yIndex < arraySize; yIndex = yIndex + 2)
@@ -82,22 +87,22 @@ extern "C" __global__ void device_multiply_partial(unsigned int* result, const u
 		if (xIndex + yIndex >= arraySize)
 			break;
 
-		register unsigned int carry = carries[indexFixup(xIndex + yIndex)];
-		carries[indexFixup(xIndex + yIndex)] = 0;
+		register unsigned int carry = carries[indexFixupTable[xIndex + yIndex]];
+		carries[indexFixupTable[xIndex + yIndex]] = 0;
 
 		asm volatile (
 			"add.cc.u32 %0, %0, %5; \n\t"
 			"mad.lo.cc.u32 %0, %3, %4, %0; \n\t"
 			"madc.hi.cc.u32 %1, %3, %4, %1; \n\t"
 			"addc.u32 %2, %2, 0; \n\t"
-			: "+r"(sharedResult[indexFixup(xIndex + yIndex)]), "+r"(sharedResult[indexFixup(xIndex + yIndex + 1)]), "+r"(carries[indexFixup(xIndex + yIndex + 2)])
+			: "+r"(sharedResult[indexFixupTable[xIndex + yIndex]]), "+r"(sharedResult[indexFixupTable[xIndex + yIndex + 1]]), "+r"(carries[indexFixupTable[xIndex + yIndex + 2]])
 			: "r"(x[xIndex]), "r"(y[yIndex]), "r"(carry));
 
 		__syncthreads();
 	}
 			
-	result[xIndex] = sharedResult[indexFixup(xIndex)];
-	result[xIndex + 1] = sharedResult[indexFixup(xIndex + 1)];
+	result[xIndex] = sharedResult[indexFixupTable[xIndex]];
+	result[xIndex + 1] = sharedResult[indexFixupTable[xIndex + 1]];
 
 	__syncthreads();
 }
