@@ -22,6 +22,13 @@ typedef struct
 
 } additionSharedMemory;
 
+/*
+Mapping to sepcific index value in order to eliminate bank conflicts */
+__host__ __device__ inline unsigned int indexFixup(unsigned int index)
+{
+	return index % 64 * 32 + (index % 64 & 0xfffffffe) / 2 + index / 64 * 64;
+}
+
 //parallel multiplication config
 static const int EVEN_EVEN = 0x0;
 static const int EVEN_ODD = 0x1;
@@ -56,16 +63,18 @@ extern "C" __global__ void device_get_clock(unsigned long long* result)
 extern "C" __global__ void device_multiply_partial(unsigned int* result, const unsigned int* x, const unsigned int* y, const int config)
 {
 	register const int arraySize = BigInteger::ARRAY_SIZE + 1;
+	register const int sharedMemoryLines = DeviceWrapper::MULTIPLICATION_THREAD_COUNT + 2;
+	register const int memoryBanksCount = 32;
 
-	__shared__ unsigned int sharedResult[arraySize];
-	__shared__ unsigned int carries[arraySize];		// todo: bank conflict?
+	__shared__ unsigned int sharedResult[memoryBanksCount * sharedMemoryLines];
+	__shared__ unsigned int carries[memoryBanksCount * sharedMemoryLines];
 
 	register const int xIndex = threadIdx.x * 2 + isXodd(config);
 
-	sharedResult[xIndex] = 0;
-	sharedResult[xIndex + 1] = 0;
-	carries[xIndex] = 0;
-	carries[xIndex + 1] = 0;
+	sharedResult[indexFixup(xIndex)] = 0;
+	sharedResult[indexFixup(xIndex + 1)] = 0;
+	carries[indexFixup(xIndex)] = 0;
+	carries[indexFixup(xIndex + 1)] = 0;
 
 #pragma unroll
 	for (register int yIndex = isYodd(config); yIndex < arraySize; yIndex = yIndex + 2)
@@ -73,22 +82,22 @@ extern "C" __global__ void device_multiply_partial(unsigned int* result, const u
 		if (xIndex + yIndex >= arraySize)
 			break;
 
-		register unsigned int carry = carries[xIndex + yIndex];
-		carries[xIndex + yIndex] = 0;
+		register unsigned int carry = carries[indexFixup(xIndex + yIndex)];
+		carries[indexFixup(xIndex + yIndex)] = 0;
 
 		asm volatile (
 			"add.cc.u32 %0, %0, %5; \n\t"
 			"mad.lo.cc.u32 %0, %3, %4, %0; \n\t"
 			"madc.hi.cc.u32 %1, %3, %4, %1; \n\t"
 			"addc.u32 %2, %2, 0; \n\t"
-			: "+r"(sharedResult[xIndex + yIndex]), "+r"(sharedResult[xIndex + yIndex + 1]), "+r"(carries[xIndex + yIndex + 2])
+			: "+r"(sharedResult[indexFixup(xIndex + yIndex)]), "+r"(sharedResult[indexFixup(xIndex + yIndex + 1)]), "+r"(carries[indexFixup(xIndex + yIndex + 2)])
 			: "r"(x[xIndex]), "r"(y[yIndex]), "r"(carry));
 
 		__syncthreads();
 	}
 			
-	result[xIndex] = sharedResult[xIndex];
-	result[xIndex + 1] = sharedResult[xIndex + 1];
+	result[xIndex] = sharedResult[indexFixup(xIndex)];
+	result[xIndex + 1] = sharedResult[indexFixup(xIndex + 1)];
 
 	__syncthreads();
 }
