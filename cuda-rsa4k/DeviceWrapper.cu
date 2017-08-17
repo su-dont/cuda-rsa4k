@@ -1,4 +1,5 @@
 #include "DeviceWrapper.h"
+#include "BigInteger.h"
 
 #include <iostream>
 #include <cuda.h>
@@ -204,11 +205,11 @@ unsigned long long DeviceWrapper::getClock(void)
 	return clock;
 }
 
-BigInteger* DeviceWrapper::add(BigInteger& x, BigInteger& y)
+unsigned int* DeviceWrapper::add(const BigInteger& x, const BigInteger& y)
 {
 	//todo: vaildate x,y
 
-	unsigned int* resultArray = new unsigned int[BigInteger::ARRAY_SIZE + 1];	// + 1 to check for overflow
+	unsigned int* resultArray = new unsigned int[BigInteger::ARRAY_SIZE];	
 
 	int size = sizeof(unsigned int) * BigInteger::ARRAY_SIZE;
 	
@@ -216,7 +217,7 @@ BigInteger* DeviceWrapper::add(BigInteger& x, BigInteger& y)
 	unsigned int* device_x;
 	unsigned int* device_y;
 
-	checkCuda(cudaMalloc(&device_result, size + sizeof(unsigned int)));
+	checkCuda(cudaMalloc(&device_result, size + sizeof(unsigned int)));	// + 1 to check for overflow
 	checkCuda(cudaMalloc(&device_x, size));
 	checkCuda(cudaMalloc(&device_y, size));
 	
@@ -225,9 +226,11 @@ BigInteger* DeviceWrapper::add(BigInteger& x, BigInteger& y)
 	
 	device_add << <1, 1 >> > (device_result, device_x, device_y);
 	
-	checkCuda(cudaMemcpy(resultArray, device_result, size + sizeof(unsigned int), cudaMemcpyDeviceToHost));
+	checkCuda(cudaMemcpy(resultArray, device_result, size, cudaMemcpyDeviceToHost));
 
-	unsigned int overflow = resultArray[128];
+	unsigned int overflow;
+	checkCuda(cudaMemcpy(&overflow, device_result + BigInteger::ARRAY_SIZE, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+
 	if (overflow != 0UL)
 	{
 		std::cerr << "ERROR: BigInteger::add overflow!" << endl;
@@ -238,14 +241,14 @@ BigInteger* DeviceWrapper::add(BigInteger& x, BigInteger& y)
 	checkCuda(cudaFree(device_x));
 	checkCuda(cudaFree(device_y));
 	
-	return new BigInteger(resultArray);;
+	return resultArray;
 }
 
-BigInteger* DeviceWrapper::addParallel(BigInteger& x, BigInteger& y)
+unsigned int* DeviceWrapper::addParallel(const BigInteger& x, const BigInteger& y)
 {
 	//todo: vaildate x,y
 
-	unsigned int* resultArray = new unsigned int[BigInteger::ARRAY_SIZE + 1];	// + 1 to check for overflow
+	unsigned int* resultArray = new unsigned int[BigInteger::ARRAY_SIZE];	
 
 	int size = sizeof(unsigned int) * BigInteger::ARRAY_SIZE;
 
@@ -253,7 +256,7 @@ BigInteger* DeviceWrapper::addParallel(BigInteger& x, BigInteger& y)
 	unsigned int* device_x;
 	unsigned int* device_y;
 
-	checkCuda(cudaMalloc(&device_result, size + sizeof(unsigned int)));
+	checkCuda(cudaMalloc(&device_result, size + sizeof(unsigned int))); // + 1 to check for overflow
 	checkCuda(cudaMalloc(&device_x, size));
 	checkCuda(cudaMalloc(&device_y, size));
 
@@ -262,9 +265,11 @@ BigInteger* DeviceWrapper::addParallel(BigInteger& x, BigInteger& y)
 
 	device_add_partial << <1, DeviceWrapper::ADDITION_THREAD_COUNT >> > (device_result, device_x, device_y);
 
-	checkCuda(cudaMemcpy(resultArray, device_result, size + sizeof(unsigned int), cudaMemcpyDeviceToHost));
+	checkCuda(cudaMemcpy(resultArray, device_result, size, cudaMemcpyDeviceToHost));
 
-	unsigned int overflow = resultArray[128];
+	unsigned int overflow;
+	checkCuda(cudaMemcpy(&overflow, device_result + BigInteger::ARRAY_SIZE, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+	
 	if (overflow != 0UL)
 	{
 		std::cerr << "ERROR: BigInteger::add overflow!" << endl;
@@ -275,16 +280,12 @@ BigInteger* DeviceWrapper::addParallel(BigInteger& x, BigInteger& y)
 	checkCuda(cudaFree(device_x));
 	checkCuda(cudaFree(device_y));
 
-	return new BigInteger(resultArray);;
+	return resultArray;
 }
 
-BigInteger* DeviceWrapper::multiply(BigInteger& x, BigInteger& y)
-{
-	//todo: vaildate x,y
-
-	// resultArray twice as long to account for overflow 
-	int resultArraySize = BigInteger::ARRAY_SIZE * 2;
-	unsigned int* resultArray = new unsigned int[resultArraySize];
+unsigned int* DeviceWrapper::multiply(const BigInteger& x, const BigInteger& y)
+{	
+	unsigned int* resultArray = new unsigned int[BigInteger::ARRAY_SIZE];
 	
 	int size = sizeof(unsigned int) * BigInteger::ARRAY_SIZE;
 
@@ -292,7 +293,7 @@ BigInteger* DeviceWrapper::multiply(BigInteger& x, BigInteger& y)
 	unsigned int* device_x;
 	unsigned int* device_y;
 
-	checkCuda(cudaMalloc(&device_result, size * 2));	// resultArray twice as long to account for overflow 
+	checkCuda(cudaMalloc(&device_result, size + sizeof(unsigned int)));	// + 1 to check for overflow
 	checkCuda(cudaMalloc(&device_x, size));
 	checkCuda(cudaMalloc(&device_y, size));
 
@@ -301,13 +302,10 @@ BigInteger* DeviceWrapper::multiply(BigInteger& x, BigInteger& y)
 		
 	device_multiply << <1, 1 >> > (device_result, device_x, device_y);
 
-	checkCuda(cudaMemcpy(resultArray, device_result, size * 2, cudaMemcpyDeviceToHost));
-
-	unsigned int overflow = 0UL;
-	for (int i = resultArraySize - 1; i >= BigInteger::ARRAY_SIZE; i--)
-	{
-		overflow = overflow | resultArray[i];
-	}
+	checkCuda(cudaMemcpy(resultArray, device_result, size, cudaMemcpyDeviceToHost));
+	
+	unsigned int overflow;
+	checkCuda(cudaMemcpy(&overflow, device_result + BigInteger::ARRAY_SIZE, sizeof(unsigned int), cudaMemcpyDeviceToHost));
 
 	if (overflow != 0UL)
 	{
@@ -319,15 +317,15 @@ BigInteger* DeviceWrapper::multiply(BigInteger& x, BigInteger& y)
 	checkCuda(cudaFree(device_x));
 	checkCuda(cudaFree(device_y));
 
-	return new BigInteger(resultArray);;
+	return resultArray;
 }
 
-BigInteger* DeviceWrapper::multiplyParallel(BigInteger& x, BigInteger& y)
+unsigned int* DeviceWrapper::multiplyParallel(const BigInteger& x, const BigInteger& y)
 {
-	unsigned int* resultArray = new unsigned int[BigInteger::ARRAY_SIZE + 1]; // + 1 to check for overflow
-	
+	unsigned int* resultArray = new unsigned int[BigInteger::ARRAY_SIZE];
+
 	int size = sizeof(unsigned int) * BigInteger::ARRAY_SIZE;
-	int resultArraySize = sizeof(unsigned int) * (BigInteger::ARRAY_SIZE + 1);
+	int deviceResultArraySize = size + sizeof(unsigned int);
 
 	unsigned int* device_result_even_even;
 	unsigned int* device_result_even_odd;
@@ -343,15 +341,15 @@ BigInteger* DeviceWrapper::multiplyParallel(BigInteger& x, BigInteger& y)
 	unsigned int* device_y;
 	
 	// device memory allocations
-	checkCuda(cudaMalloc(&device_result_even_even, resultArraySize));
-	checkCuda(cudaMalloc(&device_result_even_odd, resultArraySize));
-	checkCuda(cudaMalloc(&device_result_odd_even, resultArraySize));
-	checkCuda(cudaMalloc(&device_result_odd_odd, resultArraySize));
+	checkCuda(cudaMalloc(&device_result_even_even, deviceResultArraySize));
+	checkCuda(cudaMalloc(&device_result_even_odd, deviceResultArraySize));
+	checkCuda(cudaMalloc(&device_result_odd_even, deviceResultArraySize));
+	checkCuda(cudaMalloc(&device_result_odd_odd, deviceResultArraySize));
 
-	checkCuda(cudaMalloc(&device_result_even, resultArraySize));
-	checkCuda(cudaMalloc(&device_result_odd, resultArraySize));
+	checkCuda(cudaMalloc(&device_result_even, deviceResultArraySize));
+	checkCuda(cudaMalloc(&device_result_odd, deviceResultArraySize));
 	
-	checkCuda(cudaMalloc(&device_result, resultArraySize));
+	checkCuda(cudaMalloc(&device_result, deviceResultArraySize));
 
 	checkCuda(cudaMalloc(&device_x, size));
 	checkCuda(cudaMalloc(&device_y, size));
@@ -381,13 +379,15 @@ BigInteger* DeviceWrapper::multiplyParallel(BigInteger& x, BigInteger& y)
 	device_add_partial << <1, DeviceWrapper::ADDITION_THREAD_COUNT >> > (device_result, device_result_even, device_result_odd);
 	
 	// copy result to the host
-	checkCuda(cudaMemcpy(resultArray, device_result, resultArraySize, cudaMemcpyDeviceToHost));
+	checkCuda(cudaMemcpy(resultArray, device_result, size, cudaMemcpyDeviceToHost));
 
 	// kill streams
 	checkCuda(cudaStreamDestroy(evenStream));
 	checkCuda(cudaStreamDestroy(oddStream));
 	
-	unsigned int overflow = resultArray[128];
+	unsigned int overflow;
+	checkCuda(cudaMemcpy(&overflow, device_result + BigInteger::ARRAY_SIZE, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+
 	if (overflow != 0UL)
 	{
 		std::cerr << "ERROR: BigInteger::multiply overflow!" << endl;
@@ -408,14 +408,9 @@ BigInteger* DeviceWrapper::multiplyParallel(BigInteger& x, BigInteger& y)
 	checkCuda(cudaFree(device_x));
 	checkCuda(cudaFree(device_y));
 
-	BigInteger* result = new BigInteger(resultArray);
-	if (result->getLength() < x.getLength() || result->getLength() < y.getLength())
-	{
-		std::cerr << "ERROR: BigInteger::multiply overflow!" << endl;
-		//throw std::overflow_error("BigInteger::multiply overflow");
-	}
+	// todo overflow?
 
-	return result;
+	return resultArray;
 }
 
 

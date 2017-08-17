@@ -1,46 +1,30 @@
 #include "BigInteger.h"
-#include "DeviceWrapper.h"
 #include <iostream>
 
 using namespace std;
 
-
-// constructor
 BigInteger::BigInteger()
 {
-	length = 0;
+	magnitude = new unsigned int[ARRAY_SIZE + 1];
+	deviceWrapper = new DeviceWrapper();
+	
+	// todo: necessary?
 	for (int i = 0; i < ARRAY_SIZE; i++)
 	{
 		magnitude[i] ^= magnitude[i];	// clear
 	}
 }
 
-// magnitude must be ARRAY_SIZE allocated
-BigInteger::BigInteger(const unsigned int* magnitude)
-{
-	int i = ARRAY_SIZE - 1;
-	for (; i >= 0; i--)
-	{
-		this->magnitude[i] = magnitude[i];
-		if (magnitude[i] != 0UL)
-		{
-			length = i + 1;
-			break;
-		}
-	}
-	for (; i >= 0; i--)
-		this->magnitude[i] = magnitude[i];
-}
-
-// destuctor
 BigInteger::~BigInteger()
 {
+	delete[] magnitude;
+	delete deviceWrapper;
 }
 
 // public
-BigInteger BigInteger::fromHexString(const char* string)
+BigInteger* BigInteger::fromHexString(const char* string)
 {
-	BigInteger integer;	
+	BigInteger* integer = new BigInteger();	
 	int length = strlen(string);
 	char temp[9];
 	int i = length - 8;
@@ -49,7 +33,7 @@ BigInteger BigInteger::fromHexString(const char* string)
 	{
 		strncpy(temp, string + i, 8);
 		temp[8] = '\0';
-		integer.magnitude[j++] = parseUnsignedInt(temp);
+		integer->magnitude[j++] = parseUnsignedInt(temp);
 	}
 	if (i < 0)
 	{
@@ -58,17 +42,18 @@ BigInteger BigInteger::fromHexString(const char* string)
 		strncpy(temp, string, 8 + i);
 		temp[index] = '\0';
 		unsigned int value = parseUnsignedInt(temp);
-		integer.magnitude[j] = value;		
+		integer->magnitude[j] = value;		
 		if (value > 0UL) 
 			j++;
 	}
-	integer.length = j;
 	return integer;
 }
 
 void BigInteger::leftShift(int n)
 {
-	if (n == 0) 
+	// to be done
+
+	/*if (n == 0) 
 		return;
 
 	int ints = n >> 5;
@@ -101,84 +86,61 @@ void BigInteger::leftShift(int n)
 			lowBits = highBits;
 		}			
 	}	
-	length = newLength;
+	length = newLength;*/
 }
 
-void BigInteger::add(BigInteger x)
-{	
-	BigInteger* result = DeviceWrapper::add(*this, x);
-	
-	for (int i = 0; i < ARRAY_SIZE; i++)
-	{
-		magnitude[i] = result->getMagnitudeArray()[i];
-	}
-	length = result->getLength();
-
-	delete result;
-}
-
-void BigInteger::addParallel(BigInteger x)
+void BigInteger::add(const BigInteger* x)
 {
-	BigInteger* result = DeviceWrapper::addParallel(*this, x);
-
-	for (int i = 0; i < ARRAY_SIZE; i++)
-	{
-		magnitude[i] = result->getMagnitudeArray()[i];
-	}
-	length = result->getLength();
-
-	delete result;
+	unsigned int* result = deviceWrapper->add(*this, *x);
+	delete[] magnitude;
+	magnitude = result;
 }
 
-void BigInteger::multiply(BigInteger x)
+void BigInteger::addParallel(const BigInteger* x)
 {
-	BigInteger* result = DeviceWrapper::multiply(*this, x);
-
-	for (int i = 0; i < ARRAY_SIZE; i++)
-	{
-		magnitude[i] = result->getMagnitudeArray()[i];
-	}
-	length = result->getLength();
-
-	delete result;
+	unsigned int* result = deviceWrapper->addParallel(*this, *x);
+	delete[] magnitude;
+	magnitude = result;
 }
 
-void BigInteger::multiplyParallel(BigInteger x)
+void BigInteger::multiply(const BigInteger* x)
 {
-	BigInteger* result = DeviceWrapper::multiplyParallel(*this, x);	 
-
-	for (int i = 0; i < ARRAY_SIZE; i++)
-	{
-		magnitude[i] = result->getMagnitudeArray()[i];
-	}
-	length = result->getLength();
-
-	delete result;
+	unsigned int* result = deviceWrapper->multiply(*this, *x);
+	delete[] magnitude;
+	magnitude = result;
 }
 
-unsigned int* BigInteger::getMagnitudeArray(void)
+void BigInteger::multiplyParallel(const BigInteger* x)
+{
+	unsigned int* result = deviceWrapper->multiplyParallel(*this, *x);
+	delete[] magnitude;
+	magnitude = result;
+}
+
+unsigned int* BigInteger::getMagnitudeArray(void) const
 {
 	return magnitude;
 }
 
-int BigInteger::getLength(void)
+// constant time execution resistant to timing attacks
+bool BigInteger::equals(const BigInteger& value) const
 {
-	return length;
-}
-
-bool BigInteger::equals(BigInteger& value) const
-{
-	if (length != value.getLength())
-		return false;
-	for (int i = 0; i < length; i++)
-	{
+	bool equals = true;
+	bool dummy = true;
+	for (int i = 0; i < ARRAY_SIZE; i++)
+	{		
 		if (magnitude[i] != value.getMagnitudeArray()[i])
-			return false;
+		{			
+			if (equals)
+				equals = false;
+			else
+				dummy = false;
+		}
 	}
-	return true;
+	return equals;
 }
 
-char* BigInteger::toHexString(void)
+char* BigInteger::toHexString(void) const
 {
 	char* buffer = (char*) malloc(ARRAY_SIZE * 8 + 1);
 	for (int i = ARRAY_SIZE - 1, j = 0; i >= 0; i--)
@@ -195,10 +157,9 @@ char* BigInteger::toHexString(void)
 	return buffer + i;
 }
 
-void BigInteger::print(const char* title)
+void BigInteger::print(const char* title) const
 {
 	cout << title << endl;
-	cout << "Length: " << length << endl;
 	cout << "Mag: " << toHexString() << endl;
 	cout << "MagLength: " << strlen(toHexString()) << endl;
 }
