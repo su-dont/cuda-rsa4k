@@ -161,7 +161,7 @@ long long Test::testMultiply(bool print)
 	
 	if (print || !ok)
 	{
-		if (ok)
+		if (!ok)
 		{
 			bigInteger->print("bigInteger:");
 			result->print("result");

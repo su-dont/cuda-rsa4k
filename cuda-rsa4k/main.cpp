@@ -8,7 +8,7 @@ using namespace std;
 int main()
 {
 	Test test;
-	test.testMultiply(true);
+	test.runAll(true);
 	
 	cudaDeviceSynchronize();	
 	
