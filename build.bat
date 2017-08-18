@@ -22,7 +22,9 @@ cd bin
 "%CSC%" /out:WindowsBatchConverter.exe .\..\WindowsBatchConverter.cs
 "%nvcc%" %flags% --keep -v -dc .\..\DeviceWrapper.cu -o device.obj > device_warpper_run
 REM or edit
-copy .\..\DeviceWrapper.ptx .\DeviceWrapper.ptx
+
+REM uncomment for ptx edits:
+REM copy .\..\DeviceWrapper.ptx .\DeviceWrapper.ptx
 call .\WindowsBatchConverter.exe device_warpper_run > .\windows_device_build.bat
 call .\windows_device_build.bat
 "%nvcc%" %flags% -I.\..\ -ccbin "%CCBIN%" -dc .\..\BigInteger.cpp -o .\BigInteger.obj
