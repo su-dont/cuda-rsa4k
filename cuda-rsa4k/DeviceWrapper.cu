@@ -50,17 +50,19 @@ extern "C" __global__ void device_get_clock(unsigned long long* result)
 	// todo	
 }
 
-// x and y must (128 + 1) unsigned ints allocated to account for overflow
+// x and y must 128 unsigned ints allocated
 // result return in x
 extern "C" __global__ void device_add_partial(unsigned int* x, unsigned int* y)
 {
-	x = x + blockIdx.x * 2 * (BigInteger::ARRAY_SIZE + 1);
-	y = y + blockIdx.x * 2 * (BigInteger::ARRAY_SIZE + 1);
+	// offsets to next 'row' of flatten array
+	x = x + blockIdx.x * 256;
+	y = y + blockIdx.x * 256;
 
 	register const int resultIndex = threadIdx.x;
 	register const int startIndex = resultIndex * DeviceWrapper::ADDITION_CELLS_PER_THREAD;
 
-	__shared__ additionSharedMemory shared[BigInteger::ARRAY_SIZE / DeviceWrapper::ADDITION_CELLS_PER_THREAD + 1];
+	// 32 threads + 1 to avoid out of bounds exception
+	__shared__ additionSharedMemory shared[33];
 
 	register int index;
 
@@ -124,15 +126,14 @@ extern "C" __global__ void device_add_partial(unsigned int* x, unsigned int* y)
 
 extern "C" __global__ void device_multiply_partial(unsigned int* result, const unsigned int* x, const unsigned int* y)
 {
-	register const int arraySize = BigInteger::ARRAY_SIZE + 1;
-	register const int sharedMemoryLines = DeviceWrapper::MULTIPLICATION_THREAD_COUNT + 2;
-	register const int memoryBanksCount = 32;
+	register const int arraySize = BigInteger::ARRAY_SIZE;
 
-	__shared__ unsigned int sharedResult[memoryBanksCount * sharedMemoryLines];
-	__shared__ unsigned int carries[memoryBanksCount * sharedMemoryLines];
+	// memory banks(32) * (threads(64) + padding(2)) = 2112
+	__shared__ unsigned int sharedResult[2112];
+	__shared__ unsigned int carries[2112];
 
 	// offesets to proper result array index
-	result = result + blockIdx.x * (BigInteger::ARRAY_SIZE + 1);	
+	result = result + blockIdx.x * arraySize;
 
 	register const int xIndex = threadIdx.x * 2 + isXodd(blockIdx.x);
 
@@ -162,7 +163,8 @@ extern "C" __global__ void device_multiply_partial(unsigned int* result, const u
 	}
 			
 	result[xIndex] = sharedResult[deviceIndexFixupTable[xIndex]];
-	result[xIndex + 1] = sharedResult[deviceIndexFixupTable[xIndex + 1]];
+	if (xIndex + 1 < 128)
+		result[xIndex + 1] = sharedResult[deviceIndexFixupTable[xIndex + 1]];
 
 	__syncthreads();
 }
@@ -212,8 +214,8 @@ unsigned int* DeviceWrapper::addParallel(const BigInteger& x, const BigInteger& 
 	unsigned int* device_x;
 	unsigned int* device_y;
 
-	checkCuda(cudaMalloc(&device_x, size + sizeof(unsigned int)));	// + 1 to check for overflow
-	checkCuda(cudaMalloc(&device_y, size + sizeof(unsigned int)));
+	checkCuda(cudaMalloc(&device_x, size));
+	checkCuda(cudaMalloc(&device_y, size));
 
 	cudaEvent_t event;
 	checkCuda(cudaEventCreate(&event));
@@ -232,22 +234,41 @@ unsigned int* DeviceWrapper::addParallel(const BigInteger& x, const BigInteger& 
 
 	checkCuda(cudaEventDestroy(event));
 
-	checkCuda(cudaMemcpyAsync(resultArray, device_x, size, cudaMemcpyDeviceToHost, mainStream));
-
-	unsigned int overflow;
-	checkCuda(cudaMemcpyAsync(&overflow, device_x + BigInteger::ARRAY_SIZE, sizeof(unsigned int), cudaMemcpyDeviceToHost, memoryCopyStream));	
-	cudaStreamSynchronize(memoryCopyStream);
-	if (overflow != 0UL)
-	{
-		if (DEBUG) 
-			std::cerr << "ERROR: BigInteger::add overflow!" << endl;
-		else
-			throw std::overflow_error("BigInteger::add overflow");
-	}
+	checkCuda(cudaMemcpyAsync(resultArray, device_x, size, cudaMemcpyDeviceToHost, mainStream));	
 	checkCuda(cudaFree(device_y));	
 
 	cudaStreamSynchronize(mainStream);
 	checkCuda(cudaFree(device_x));	
+
+	if (DEBUG)
+	{
+		// analizing result's length with inputs' lengths
+		// to detect possible overflow
+		int resultLength = 128, xLength = 128, yLength = 128;
+		bool resultSet = false, xSet = false, ySet = false;
+		for (int i = 127; i >= 0; i--)
+		{
+			if (x.getMagnitudeArray()[i] == 0UL && !xSet)
+				xLength--;
+			else
+				xSet = true;
+
+			if (y.getMagnitudeArray()[i] == 0UL && !ySet)
+				yLength--;
+			else
+				ySet = true;
+
+			if (resultArray[i] == 0UL && !resultSet)
+				resultLength--;
+			else
+				resultSet = true;
+		}
+
+		if (resultLength < xLength || resultLength < yLength)
+		{
+			std::cerr << "ERROR: BigInteger::add overflow! -- length difference" << endl;
+		}
+	}
 
 	return resultArray;
 }
@@ -257,14 +278,13 @@ unsigned int* DeviceWrapper::multiplyParallel(const BigInteger& x, const BigInte
 	unsigned int* resultArray = new unsigned int[BigInteger::ARRAY_SIZE];
 
 	int size = sizeof(unsigned int) * BigInteger::ARRAY_SIZE;
-	int deviceResultArraySize = size + sizeof(unsigned int);
 
 	unsigned int* device_result;
 	unsigned int* device_x;
 	unsigned int* device_y;
 
 	// device memory allocations
-	checkCuda(cudaMalloc(&device_result, deviceResultArraySize * 4));	// 4 times for every block
+	checkCuda(cudaMalloc(&device_result, size * 4));	// 4 times for every block
 	checkCuda(cudaMalloc(&device_x, size));
 	checkCuda(cudaMalloc(&device_y, size));
 
@@ -288,26 +308,15 @@ unsigned int* DeviceWrapper::multiplyParallel(const BigInteger& x, const BigInte
 	// reduction
 	blocks.x = 2;
 	threads.x = DeviceWrapper::ADDITION_THREAD_COUNT;
-	device_add_partial << <blocks, threads, 0, mainStream >> > (device_result, device_result + 129);
+	device_add_partial << <blocks, threads, 0, mainStream >> > (device_result, device_result + 128);
 
 	// reduction
 	blocks.x = 1;
-	device_add_partial << <blocks, threads, 0, mainStream >> > (device_result, device_result + 258);
+	device_add_partial << <blocks, threads, 0, mainStream >> > (device_result, device_result + 256);
 	
 	// copy result to the host
 	checkCuda(cudaMemcpyAsync(resultArray, device_result, size, cudaMemcpyDeviceToHost, mainStream));
 	
-	unsigned int overflow;
-	checkCuda(cudaMemcpyAsync(&overflow, device_result + BigInteger::ARRAY_SIZE, sizeof(unsigned int), cudaMemcpyDeviceToHost, memoryCopyStream));
-	cudaStreamSynchronize(memoryCopyStream);
-	if (overflow != 0UL)
-	{
-		if (DEBUG)
-			std::cerr << "ERROR: BigInteger::multiply overflow!" << endl;
-		else
-			throw std::overflow_error("BigInteger::multiply overflow");
-	}
-
 	// clear memory
 	checkCuda(cudaFree(device_x));
 	checkCuda(cudaFree(device_y));
