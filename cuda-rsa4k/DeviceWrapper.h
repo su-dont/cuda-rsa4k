@@ -22,6 +22,7 @@ public:
 
 	// two warps
 	static const int MULTIPLICATION_THREAD_COUNT = 64;
+	static const int MULTIPLICATION_BLOCKS_COUNT = 4;
 
 	// one warp
 	static const int ADDITION_THREAD_COUNT = 32;
@@ -32,9 +33,6 @@ public:
 
 	static unsigned long long getClock(void);
 
-	unsigned int* add(const BigInteger& x, const BigInteger& y);
 	unsigned int* addParallel(const BigInteger& x, const BigInteger& y);
-
-	unsigned int* multiply(const BigInteger& x, const BigInteger& y);
 	unsigned int* multiplyParallel(const BigInteger& x, const BigInteger& y);
 };

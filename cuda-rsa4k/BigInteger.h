@@ -29,9 +29,7 @@ public:
 	static BigInteger* fromHexString(const char* string);
 
 	void leftShift(int bits);
-	void add(const BigInteger* x);
 	void addParallel(const BigInteger* x);
-	void multiply(const BigInteger* x);
 	void multiplyParallel(const BigInteger* x);
 
 	unsigned int* getMagnitudeArray(void) const;

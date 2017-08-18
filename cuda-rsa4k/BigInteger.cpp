@@ -89,23 +89,10 @@ void BigInteger::leftShift(int n)
 	length = newLength;*/
 }
 
-void BigInteger::add(const BigInteger* x)
-{
-	unsigned int* result = deviceWrapper->add(*this, *x);
-	delete[] magnitude;
-	magnitude = result;
-}
 
 void BigInteger::addParallel(const BigInteger* x)
 {
 	unsigned int* result = deviceWrapper->addParallel(*this, *x);
-	delete[] magnitude;
-	magnitude = result;
-}
-
-void BigInteger::multiply(const BigInteger* x)
-{
-	unsigned int* result = deviceWrapper->multiply(*this, *x);
 	delete[] magnitude;
 	magnitude = result;
 }
