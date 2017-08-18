@@ -1,4 +1,5 @@
 #pragma once
+#include <cuda_runtime.h>
 
 class BigInteger;	// forward declaration
 
@@ -17,6 +18,12 @@ private:
 		389, 421, 454, 486, 519, 551, 584, 616, 649, 681, 714, 746, 779, 811, 844, 876, 909, 941, 974, 1006, 1039, 1071,
 		1104, 1136, 1169, 1201, 1234, 1266, 1299, 1331, 1364, 1396, 1429, 1461, 1494, 1526, 1559, 1591, 1624, 1656, 1689,
 		1721, 1754, 1786, 1819, 1851, 1884, 1916, 1949, 1981, 2014, 2046, 2079, 2111, 128 };
+
+	// main stream for kernel launches
+	cudaStream_t mainStream;
+	
+	// addtional stream for async memory copy
+	cudaStream_t memoryCopyStream;
 
 public:
 

@@ -26,9 +26,8 @@ void Test::testBigInteger(bool print)
 	cout << "Testing BigInteger..." << endl;
 	
 	testParsing(print);
-	testLeftShift(print);
-	testAddParallel(print);
-	testMultiplyParallel(print);
+	testAdd(print);
+	testMultiply(print);
 }
 
 void Test::testParsing(bool print)
@@ -56,35 +55,7 @@ void Test::testParsing(bool print)
 	delete bigInteger;
 }
 
-void Test::testLeftShift(bool print)
-{
-	// test left shift
-	BigInteger* bigInteger = BigInteger::fromHexString("1243abc312def391acd89897ad987f789868091243abc312def391acd8989"
-														"7ad987f75436486afcdf232f6f4ffd9012340198354abcdef");
-
-	bigInteger->leftShift(492);
-	bool ok = _stricmp(bigInteger->toHexString(), "1243abc312def391acd89897ad987f789868091243abc312def391acd"
-							"89897ad987f75436486afcdf232f6f4ffd9012340198354abcdef00000"
-							"00000000000000000000000000000000000000000000000000000000000"
-							"00000000000000000000000000000000000000000000000000000000000") == 0;
-
-	if (print || !ok)
-	{
-		
-		if (ok)
-		{
-			cout << "BigInteger::leftShift... SUCCESS" << endl;
-		}
-		else
-		{
-			cout << "BigInteger::leftShift... FAILED" << endl;
-		}
-	}	
-
-	delete bigInteger;
-}
-
-long long Test::testAddParallel(bool print)
+long long Test::testAdd(bool print)
 {
 	// test add parallel
 	BigInteger* bigInteger = BigInteger::fromHexString("fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
@@ -119,7 +90,7 @@ long long Test::testAddParallel(bool print)
 													"000000000000000000000000000000000000000000000000000000000000000");
 
 	auto start = get_time::now();
-	bigInteger->addParallel(added);
+	bigInteger->add(added);
 	auto end = get_time::now();
 	auto diff = end - start;
 	bool ok = bigInteger->equals(*result);
@@ -149,7 +120,7 @@ long long Test::testAddParallel(bool print)
 	return chrono::duration_cast<ns>(diff).count();
 }
 
-long long Test::testMultiplyParallel(bool print)
+long long Test::testMultiply(bool print)
 {
 	// test multiply parallel
 	BigInteger* bigInteger = BigInteger::fromHexString("3e2bf9b23b2e1be1891e7fe032a06c2752abdfbd947a7edddbd9b980d26547f16ef4068e"
@@ -183,14 +154,14 @@ long long Test::testMultiplyParallel(bool print)
 												  "8e67768c755ba7fd360f0806b97af222123027b39d587d427");
 
 	auto start = get_time::now();
-	bigInteger->multiplyParallel(multiplied);
+	bigInteger->multiply(multiplied);
 	auto end = get_time::now();
 	auto diff = end - start;
 	bool ok = bigInteger->equals(*result);
 	
 	if (print || !ok)
 	{
-		if (!ok)
+		if (ok)
 		{
 			bigInteger->print("bigInteger:");
 			result->print("result");

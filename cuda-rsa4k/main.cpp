@@ -8,9 +8,9 @@ using namespace std;
 int main()
 {
 	Test test;
-	test.runAll(true);
+	test.testMultiply(true);
 	
-	cudaDeviceSynchronize();
+	cudaDeviceSynchronize();	
 	
 	int exit;
 	cin >> exit;

@@ -8,7 +8,6 @@ BigInteger::BigInteger()
 	magnitude = new unsigned int[ARRAY_SIZE + 1];
 	deviceWrapper = new DeviceWrapper();
 	
-	// todo: necessary?
 	for (int i = 0; i < ARRAY_SIZE; i++)
 	{
 		magnitude[i] ^= magnitude[i];	// clear
@@ -49,55 +48,14 @@ BigInteger* BigInteger::fromHexString(const char* string)
 	return integer;
 }
 
-void BigInteger::leftShift(int n)
-{
-	// to be done
-
-	/*if (n == 0) 
-		return;
-
-	int ints = n >> 5;
-	int bits = n & 0x1f;
-	int newLength = length + ints;
-
-	if (newLength >= ARRAY_SIZE)
-	{
-		throw std::overflow_error("BigInteger::leftShift newLength >= ARRAY_SIZE");
-		return;
-	}
-
-	for (int i = newLength - 1; i >= ints; i--)		
-		magnitude[i] = magnitude[i-ints];
-		
-	for (int i = 0; i < ints; i++)
-		magnitude[i] = 0UL;
-		
-	if (bits != 0)
-	{		
-		newLength++;
-        int remainingBits = 32 - bits;
-        int highBits;
-		int lowBits = 0;
-
-		for (int i = ints; i < newLength; i++)
-		{
-			highBits = magnitude[i] >> remainingBits;
-			magnitude[i] = magnitude[i] << bits | lowBits;
-			lowBits = highBits;
-		}			
-	}	
-	length = newLength;*/
-}
-
-
-void BigInteger::addParallel(const BigInteger* x)
+void BigInteger::add(const BigInteger* x)
 {
 	unsigned int* result = deviceWrapper->addParallel(*this, *x);
 	delete[] magnitude;
 	magnitude = result;
 }
 
-void BigInteger::multiplyParallel(const BigInteger* x)
+void BigInteger::multiply(const BigInteger* x)
 {
 	unsigned int* result = deviceWrapper->multiplyParallel(*this, *x);
 	delete[] magnitude;
