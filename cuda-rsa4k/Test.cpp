@@ -29,6 +29,7 @@ void Test::testBigInteger(bool print)
 	testEquals(print);
 	testCompare(print);
 	testAdd(print);
+	testSubtract(print);
 	testMultiply(print);
 }
 
@@ -136,8 +137,8 @@ long long Test::testCompare(bool print)
 
 	auto start = get_time::now();
 	bool ok = bigInteger->compare(*same) == 0;
-	ok = ok & bigInteger->compare(*greater) == 1;
-	ok = ok & bigInteger->compare(*lower) == -1;
+	ok = ok && bigInteger->compare(*greater) == 1;
+	ok = ok && bigInteger->compare(*lower) == -1;
 	auto end = get_time::now();
 	auto diff = end - start;	
 
@@ -210,17 +211,82 @@ long long Test::testAdd(bool print)
 		}
 		if (ok)
 		{
-			cout << "BigInteger::addParallel... SUCCESS elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::add... SUCCESS elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
 		}
 		else
 		{
-			cout << "BigInteger::addParallel... FAILED elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::add... FAILED elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
 		}
 	}	
 
 
 	delete bigInteger;
 	delete added;
+	delete result;
+
+	return chrono::duration_cast<ns>(diff).count();
+}
+
+long long Test::testSubtract(bool print)
+{
+	// test subtract parallel
+	BigInteger* bigInteger = BigInteger::fromHexString("100000000000000000000000000000000000000000000000000000000000000000000000000000000"
+														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+														"000000000000000000000000000000000000000000000000000000000000000");
+
+	BigInteger* subtracted = BigInteger::fromHexString("1");
+
+	BigInteger* result = BigInteger::fromHexString("fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+													"ffffffffffffffffffffffffffffffffff");
+
+	auto start = get_time::now();
+	bigInteger->subtract(subtracted);
+	auto end = get_time::now();
+	auto diff = end - start;
+	bool ok = bigInteger->equals(*result);
+
+	if (print || !ok)
+	{
+		if (!ok)
+		{
+			bigInteger->print("bigInteger:");
+			result->print("result");
+		}
+		if (ok)
+		{
+			cout << "BigInteger::subtract... SUCCESS elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+		}
+		else
+		{
+			cout << "BigInteger::subtract... FAILED elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+		}
+	}
+
+
+	delete bigInteger;
+	delete subtracted;
 	delete result;
 
 	return chrono::duration_cast<ns>(diff).count();
@@ -274,11 +340,11 @@ long long Test::testMultiply(bool print)
 		}
 		if (ok)
 		{
-			cout << "BigInteger::multiplyParallel... SUCCESS elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::multiply... SUCCESS elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
 		}
 		else
 		{
-			cout << "BigInteger::multiplyParallel... FAILED elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::multiply... FAILED elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
 		}
 	}	
 

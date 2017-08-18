@@ -29,6 +29,7 @@ public:
 	static BigInteger* fromHexString(const char* string);
 
 	void add(const BigInteger* x);
+	void subtract(const BigInteger* x);
 	void multiply(const BigInteger* x);
 
 	unsigned int* getMagnitudeArray(void) const;

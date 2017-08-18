@@ -7,11 +7,14 @@ using namespace std;
 
 int main()
 {
+	cudaDeviceReset();
+
 	Test test;
 	test.runAll(true);
-	
+
 	cudaDeviceSynchronize();	
-	
+	cudaDeviceReset();
+
 	int exit;
 	cin >> exit;
     return 0;

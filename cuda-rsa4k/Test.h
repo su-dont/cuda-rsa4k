@@ -13,6 +13,7 @@ public:
 	long long testEquals(bool print);	
 	long long testCompare(bool print);
 	long long testAdd(bool print);
+	long long testSubtract(bool print);
 	long long testMultiply(bool print);
 };
 

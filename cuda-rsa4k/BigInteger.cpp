@@ -55,6 +55,13 @@ void BigInteger::add(const BigInteger* x)
 	magnitude = result;
 }
 
+void BigInteger::subtract(const BigInteger* x)
+{
+	unsigned int* result = deviceWrapper->subtractParallel(*this, *x);
+	delete[] magnitude;
+	magnitude = result;
+}
+
 void BigInteger::multiply(const BigInteger* x)
 {
 	unsigned int* result = deviceWrapper->multiplyParallel(*this, *x);

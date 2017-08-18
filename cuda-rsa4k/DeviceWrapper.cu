@@ -25,6 +25,14 @@ typedef struct
 
 } additionSharedMemory;
 
+typedef struct
+{
+	memory32byte result[DeviceWrapper::ADDITION_CELLS_PER_THREAD];
+	unsigned int borrow;
+	// 4 byte borrow offsets to another memory bank, which eliminates bank conflicts
+
+} subtractionSharedMemory;
+
 //Mapping to sepcific indices of shared memory in order to eliminate bank conflicts in device_multiply_partial
 //Dependency: 
 // return index % 64 * 32 + (index % 64 & 0xfffffffe) / 2 + index / 64 * 64;
@@ -46,7 +54,7 @@ __host__ __device__ inline int isYodd(int config)
 	return ((0xFFFFFFFE | config) == 0xFFFFFFFF) ? 1 : 0;
 }
 
-extern "C" __global__ void device_get_clock(unsigned long long* result)
+extern "C" __global__ void device_get_clock(unsigned int* result)
 {
 	// todo	
 }
@@ -65,29 +73,41 @@ extern "C" __global__ void device_add_partial(unsigned int* x, unsigned int* y)
 	// 32 threads + 1 to avoid out of bounds exception
 	__shared__ additionSharedMemory shared[33];
 
-	register int index;
+	register int index = 0;
 
-#pragma unroll
-	for (index = 0; index < DeviceWrapper::ADDITION_CELLS_PER_THREAD - 1; index++)
-	{
-		asm volatile (
-			"addc.cc.u32 %0, %1, %2; \n\t"	// genarate and propagate carry
-			: "=r"(shared[resultIndex].result[index].value)
-			: "r"(x[startIndex + index]), "r"(y[startIndex + index]));
-	}
+	asm volatile (
+		"add.cc.u32 %0, %1, %2; \n\t"	// first iteration - only genarate carry
+		: "=r"(shared[resultIndex].result[index].value)
+		: "r"(x[startIndex + index]), "r"(y[startIndex + index]) : "memory");
+
+	index++;
+
+	asm volatile (
+		"addc.cc.u32 %0, %1, %2; \n\t"	// propagate and genarate carry
+		: "=r"(shared[resultIndex].result[index].value)
+		: "r"(x[startIndex + index]), "r"(y[startIndex + index]) : "memory");
+
+	index++;
+
+	asm volatile (
+		"addc.cc.u32 %0, %1, %2; \n\t"	// propagate and genarate carry
+		: "=r"(shared[resultIndex].result[index].value)
+		: "r"(x[startIndex + index]), "r"(y[startIndex + index]) : "memory");
+
+	index++;
 
 	// last iteration generates and stores carry in the array
 	asm volatile (
 		"addc.cc.u32 %0, %2, %3; \n\t"
 		"addc.u32 %1, 0, 0; \n\t"
 		: "=r"(shared[resultIndex].result[index].value), "=r"(shared[resultIndex + 1].carry)
-		: "r"(x[startIndex + index]), "r"(y[startIndex + index]));
+		: "r"(x[startIndex + index]), "r"(y[startIndex + index]) : "memory");
 
 	__syncthreads();
 
 	register unsigned int carry;
 #pragma unroll
-	for (register int i = 0; i < DeviceWrapper::ADDITION_THREAD_COUNT; i++)
+	for (register int i = 0; i < DeviceWrapper::ONE_WARP; i++)
 	{
 		index = 0;
 		carry = shared[resultIndex].carry;
@@ -96,25 +116,116 @@ extern "C" __global__ void device_add_partial(unsigned int* x, unsigned int* y)
 		asm volatile (
 			"add.cc.u32 %0, %0, %1; \n\t"	//  
 			: "+r"(shared[resultIndex].result[index].value)
-			: "r"(carry));
+			: "r"(carry) : "memory");
 
 #pragma unroll
 		for (index = 1; index < DeviceWrapper::ADDITION_CELLS_PER_THREAD - 1; index++)
 		{
 			asm volatile (
 				"addc.cc.u32 %0, %0, 0; \n\t"	//propagate generated carries
-				: "+r"(shared[resultIndex].result[index].value));
+				: "+r"(shared[resultIndex].result[index].value) :: "memory");
 		}
 
 		// last iteration generates and stores carry in the array
 		asm volatile (
 			"addc.cc.u32 %0, %0, 0; \n\t"
 			"addc.u32 %1, 0, 0; \n\t"
-			: "+r"(shared[resultIndex].result[index].value), "=r"(shared[resultIndex + 1].carry));
+			: "+r"(shared[resultIndex].result[index].value), "=r"(shared[resultIndex + 1].carry) :: "memory");
 
 		__syncthreads();
 	}
 
+#pragma unroll
+	for (index = 0; index < DeviceWrapper::ADDITION_CELLS_PER_THREAD; index++)
+	{
+		// store result in x
+		x[startIndex + index] = shared[resultIndex].result[index].value;
+	}
+
+	__syncthreads();
+}
+
+// x and y must 128 unsigned ints allocated
+// result return in x
+extern "C" __global__ void device_subtract_partial(unsigned int* x, unsigned int* y)
+{
+	// offsets to next 'row' of flatten array
+	x = x + blockIdx.x * 256;
+	y = y + blockIdx.x * 256;
+
+	register const int resultIndex = threadIdx.x;
+	register const int startIndex = resultIndex * DeviceWrapper::ADDITION_CELLS_PER_THREAD;
+
+	// 32 threads + 1 to avoid out of bounds exception
+	__shared__ subtractionSharedMemory shared[33];
+
+	register int index = 0;
+
+	asm volatile (
+		"sub.cc.u32 %0, %1, %2; \n\t"	//first interation - only genarate borrow out
+		: "=r"(shared[resultIndex].result[index].value)
+		: "r"(x[startIndex + index]), "r"(y[startIndex + index]) : "memory");
+
+	index++;
+		
+	asm volatile (
+		"subc.cc.u32 %0, %1, %2; \n\t"	// genarate and propagate borrow out
+		: "=r"(shared[resultIndex].result[index].value)
+		: "r"(x[startIndex + index]), "r"(y[startIndex + index]) : "memory");
+
+	index++;
+
+	asm volatile (
+		"subc.cc.u32 %0, %1, %2; \n\t"	// genarate and propagate borrow out
+		: "=r"(shared[resultIndex].result[index].value)
+		: "r"(x[startIndex + index]), "r"(y[startIndex + index]) : "memory");
+		
+	index++;
+
+	// last iteration generates and stores borrow in the array
+	asm volatile (
+		"subc.cc.u32 %0, %2, %3; \n\t"
+		"subc.u32 %1, 1, 0; \n\t"	// if borrow out than %1 has 0 (1-0-1=0), else %1 has 1 (1-0-0=1)
+		"xor.b32 %1, %1, 1; \n\t"	// invert 1-->0 and 0-->1
+		: "=r"(shared[resultIndex].result[index].value), "+r"(shared[resultIndex + 1].borrow)
+		: "r"(x[startIndex + index]), "r"(y[startIndex + index]) : "memory");
+
+	__syncthreads();
+
+	register unsigned int borrow;
+#pragma unroll
+	for (register int i = 0; i < DeviceWrapper::ONE_WARP; i++)
+	{
+		index = 0;
+		borrow = shared[resultIndex].borrow;
+
+		// first iteration propagates borrow from array
+		asm volatile (
+			"sub.cc.u32 %0, %0, %1; \n\t"
+			: "+r"(shared[resultIndex].result[index].value)
+			: "r"(borrow) : "memory");
+
+#pragma unroll
+		for (index = 1; index < DeviceWrapper::ADDITION_CELLS_PER_THREAD - 1; index++)
+		{
+			asm volatile (
+				"subc.cc.u32 %0, %0, 0; \n\t"	//propagate generated borrows
+				: "+r"(shared[resultIndex].result[index].value) :: "memory");
+		}
+
+		__syncthreads();
+
+		// last iteration generates and stores borrow in the array
+		asm volatile (
+			"subc.cc.u32 %0, %0, 0; \n\t"
+			"subc.u32 %1, 1, 0; \n\t"
+			"xor.b32 %1, %1, 1; \n\t"	// invert 1-->0 and 0-->1
+			: "+r"(shared[resultIndex].result[index].value), "+r"(shared[resultIndex + 1].borrow) :: "memory");
+
+		__syncthreads();
+	}
+
+	
 #pragma unroll
 	for (index = 0; index < DeviceWrapper::ADDITION_CELLS_PER_THREAD; index++)
 	{
@@ -158,7 +269,7 @@ extern "C" __global__ void device_multiply_partial(unsigned int* result, const u
 			"madc.hi.cc.u32 %1, %3, %4, %1; \n\t"
 			"addc.u32 %2, %2, 0; \n\t"
 			: "+r"(sharedResult[deviceIndexFixupTable[xIndex + yIndex]]), "+r"(sharedResult[deviceIndexFixupTable[xIndex + yIndex + 1]]), "+r"(carries[deviceIndexFixupTable[xIndex + yIndex + 2]])
-			: "r"(x[xIndex]), "r"(y[yIndex]), "r"(carry));
+			: "r"(x[xIndex]), "r"(y[yIndex]), "r"(carry) : "memory");
 
 		__syncthreads();
 	}
@@ -182,13 +293,16 @@ inline cudaError_t checkCuda(cudaError_t result)
 
 DeviceWrapper::DeviceWrapper()
 {
-	cudaStreamCreate(&mainStream);
-	cudaStreamCreate(&memoryCopyStream);
+	checkCuda(cudaStreamCreate(&mainStream));
+	checkCuda(cudaStreamCreate(&memoryCopyStream));
 }
 
 DeviceWrapper::~DeviceWrapper()
 {
+	checkCuda(cudaStreamSynchronize(mainStream));
 	checkCuda(cudaStreamDestroy(mainStream));
+
+	checkCuda(cudaStreamSynchronize(memoryCopyStream));
 	checkCuda(cudaStreamDestroy(memoryCopyStream));
 }
 
@@ -198,7 +312,7 @@ unsigned long long DeviceWrapper::getClock(void)
 	unsigned long long* deviceClock;
 	checkCuda(cudaMalloc(&deviceClock, sizeof(unsigned long long)));
 	
-	device_get_clock << <1, 1>> > (deviceClock);
+//	device_get_clock << <1, 1>> > (deviceClock);
 
 	checkCuda(cudaMemcpy(&clock, deviceClock, sizeof(unsigned long long), cudaMemcpyDeviceToHost));
 	checkCuda(cudaFree(deviceClock));
@@ -206,7 +320,7 @@ unsigned long long DeviceWrapper::getClock(void)
 	return clock;
 }
 
-unsigned int* DeviceWrapper::addParallel(const BigInteger& x, const BigInteger& y)
+unsigned int* DeviceWrapper::addParallel(const BigInteger& x, const BigInteger& y) const
 {
 	unsigned int* resultArray = new unsigned int[BigInteger::ARRAY_SIZE];	
 
@@ -228,7 +342,7 @@ unsigned int* DeviceWrapper::addParallel(const BigInteger& x, const BigInteger& 
 
 	// launch config
 	dim3 blocks(1);
-	dim3 threads(DeviceWrapper::ADDITION_THREAD_COUNT);
+	dim3 threads(DeviceWrapper::ONE_WARP);
 
 	checkCuda(cudaStreamWaitEvent(mainStream, event, 0));	// wait for x,y to finish
 	device_add_partial << <blocks, threads, 0, mainStream >> > (device_x, device_y);
@@ -238,7 +352,7 @@ unsigned int* DeviceWrapper::addParallel(const BigInteger& x, const BigInteger& 
 	checkCuda(cudaMemcpyAsync(resultArray, device_x, size, cudaMemcpyDeviceToHost, mainStream));	
 	checkCuda(cudaFree(device_y));	
 
-	cudaStreamSynchronize(mainStream);
+	checkCuda(cudaStreamSynchronize(mainStream));
 	checkCuda(cudaFree(device_x));	
 
 	if (DEBUG)
@@ -274,7 +388,53 @@ unsigned int* DeviceWrapper::addParallel(const BigInteger& x, const BigInteger& 
 	return resultArray;
 }
 
-unsigned int* DeviceWrapper::multiplyParallel(const BigInteger& x, const BigInteger& y)
+unsigned int* DeviceWrapper::subtractParallel(const BigInteger& x, const BigInteger& y) const
+{
+	if (DEBUG)
+	{
+		if (x.compare(y) != -1) // if y isn't lower
+		{
+			std::cerr << "ERROR: BigInteger::subtract - negitve output" << endl;
+		}
+	}
+
+	unsigned int* resultArray = new unsigned int[BigInteger::ARRAY_SIZE];
+
+	int size = sizeof(unsigned int) * BigInteger::ARRAY_SIZE;
+
+	unsigned int* device_x;
+	unsigned int* device_y;
+
+	checkCuda(cudaMalloc(&device_x, size));
+	checkCuda(cudaMalloc(&device_y, size));
+
+	cudaEvent_t event;
+	checkCuda(cudaEventCreate(&event));
+
+	// async memory copy
+	checkCuda(cudaMemcpyAsync(device_x, x.getMagnitudeArray(), size, cudaMemcpyHostToDevice, memoryCopyStream));
+	checkCuda(cudaEventRecord(event, memoryCopyStream));	// record x copy finish
+	checkCuda(cudaMemcpyAsync(device_y, y.getMagnitudeArray(), size, cudaMemcpyHostToDevice, mainStream));
+
+	// launch config
+	dim3 blocks(1);
+	dim3 threads(DeviceWrapper::ONE_WARP);
+
+	checkCuda(cudaStreamWaitEvent(mainStream, event, 0));	// wait for x,y to finish
+	device_subtract_partial << <blocks, threads, 0, mainStream >> > (device_x, device_y);
+
+	checkCuda(cudaEventDestroy(event));
+
+	checkCuda(cudaMemcpyAsync(resultArray, device_x, size, cudaMemcpyDeviceToHost, mainStream));
+	checkCuda(cudaFree(device_y));
+
+	checkCuda(cudaStreamSynchronize(mainStream));
+	checkCuda(cudaFree(device_x));
+
+	return resultArray;
+}
+
+unsigned int* DeviceWrapper::multiplyParallel(const BigInteger& x, const BigInteger& y) const
 {
 	unsigned int* resultArray = new unsigned int[BigInteger::ARRAY_SIZE];
 
@@ -299,7 +459,7 @@ unsigned int* DeviceWrapper::multiplyParallel(const BigInteger& x, const BigInte
 
 	// launch config
 	dim3 blocks(DeviceWrapper::MULTIPLICATION_BLOCKS_COUNT);
-	dim3 threads(DeviceWrapper::MULTIPLICATION_THREAD_COUNT);
+	dim3 threads(DeviceWrapper::TWO_WARPS);
 
 	checkCuda(cudaStreamWaitEvent(mainStream, event, 0));	// wait for x,y to finish
 	device_multiply_partial << <blocks, threads, 0, mainStream>> > (device_result, device_x, device_y);
@@ -308,7 +468,7 @@ unsigned int* DeviceWrapper::multiplyParallel(const BigInteger& x, const BigInte
 
 	// reduction
 	blocks.x = 2;
-	threads.x = DeviceWrapper::ADDITION_THREAD_COUNT;
+	threads.x = DeviceWrapper::ONE_WARP;
 	device_add_partial << <blocks, threads, 0, mainStream >> > (device_result, device_result + 128);
 
 	// reduction
@@ -322,7 +482,7 @@ unsigned int* DeviceWrapper::multiplyParallel(const BigInteger& x, const BigInte
 	checkCuda(cudaFree(device_x));
 	checkCuda(cudaFree(device_y));
 
-	cudaStreamSynchronize(mainStream);
+	checkCuda(cudaStreamSynchronize(mainStream));
 	checkCuda(cudaFree(device_result));	
 
 	if (DEBUG)
