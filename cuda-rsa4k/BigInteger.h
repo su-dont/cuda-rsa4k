@@ -34,6 +34,7 @@ public:
 	unsigned int* getMagnitudeArray(void) const;
 
 	bool equals(const BigInteger& value) const;
+	int compare(const BigInteger& value) const;
 	char* toHexString(void) const;
 	void print(const char* title) const;
 

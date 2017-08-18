@@ -85,6 +85,32 @@ bool BigInteger::equals(const BigInteger& value) const
 	return equals;
 }
 
+// constant time execution resistant to timing attacks
+// returns:
+// 0 if value is the same with this
+// 1 if value is greater than this
+// -1 if value is lower than this
+int BigInteger::compare(const BigInteger& value) const
+{
+	bool equals = true;
+	bool greater = true;
+	bool dummy = true;
+
+	for (int i = 0; i < ARRAY_SIZE; i++)
+	{
+		if (magnitude[i] != value.getMagnitudeArray()[i])
+		{
+			if (equals)
+				equals = false;
+			else
+				dummy = false;
+
+			greater = magnitude[i] < value.getMagnitudeArray()[i];
+		}
+	}
+	return equals ? 0 : greater ? 1 : -1;
+}
+
 char* BigInteger::toHexString(void) const
 {
 	char* buffer = (char*) malloc(ARRAY_SIZE * 8 + 1);

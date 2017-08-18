@@ -8,6 +8,7 @@
 
 using namespace std;
 
+// shared memory stuctures
 typedef struct
 {
 	unsigned int value;	
@@ -128,7 +129,7 @@ extern "C" __global__ void device_multiply_partial(unsigned int* result, const u
 {
 	register const int arraySize = BigInteger::ARRAY_SIZE;
 
-	// memory banks(32) * (threads(64) + padding(2)) = 2112
+	// memory banks(32) * (threads(64) + padding(2)) = 32 * 66 = 2112
 	__shared__ unsigned int sharedResult[2112];
 	__shared__ unsigned int carries[2112];
 
@@ -161,9 +162,9 @@ extern "C" __global__ void device_multiply_partial(unsigned int* result, const u
 
 		__syncthreads();
 	}
-			
+			 
 	result[xIndex] = sharedResult[deviceIndexFixupTable[xIndex]];
-	if (xIndex + 1 < 128)
+	if (xIndex + 1 < 128)	
 		result[xIndex + 1] = sharedResult[deviceIndexFixupTable[xIndex + 1]];
 
 	__syncthreads();
