@@ -64,11 +64,11 @@ extern "C" __global__ void device_get_clock(unsigned int* result)
 extern "C" __global__ void device_add_partial(unsigned int* x, unsigned int* y)
 {
 	// offsets to next 'row' of flatten array
-	x = x + blockIdx.x * 256;
-	y = y + blockIdx.x * 256;
+	x = x + (blockIdx.x << 8);
+	y = y + (blockIdx.x << 8);	
 
 	register const int resultIndex = threadIdx.x;
-	register const int startIndex = resultIndex * DeviceWrapper::ADDITION_CELLS_PER_THREAD;
+	register const int startIndex = resultIndex << 2;	// * DeviceWrapper::ADDITION_CELLS_PER_THREAD;
 
 	// 32 threads + 1 to avoid out of bounds exception
 	__shared__ additionSharedMemory shared[33];
@@ -150,11 +150,11 @@ extern "C" __global__ void device_add_partial(unsigned int* x, unsigned int* y)
 extern "C" __global__ void device_subtract_partial(unsigned int* x, unsigned int* y)
 {
 	// offsets to next 'row' of flatten array
-	x = x + blockIdx.x * 256;
-	y = y + blockIdx.x * 256;
+	x = x + (blockIdx.x << 8);	// * 128 * 2
+	y = y + (blockIdx.x << 8);
 
 	register const int resultIndex = threadIdx.x;
-	register const int startIndex = resultIndex * DeviceWrapper::ADDITION_CELLS_PER_THREAD;
+	register const int startIndex = resultIndex << 2; // * DeviceWrapper::ADDITION_CELLS_PER_THREAD;
 
 	// 32 threads + 1 to avoid out of bounds exception
 	__shared__ subtractionSharedMemory shared[33];
@@ -245,9 +245,9 @@ extern "C" __global__ void device_multiply_partial(unsigned int* result, const u
 	__shared__ unsigned int carries[2112];
 
 	// offesets to proper result array index
-	result = result + blockIdx.x * arraySize;
+	result = result + (blockIdx.x << 7); // * arraySize;
 
-	register const int xIndex = threadIdx.x * 2 + isXodd(blockIdx.x);
+	register const int xIndex = (threadIdx.x << 1) + isXodd(blockIdx.x);
 
 	sharedResult[deviceIndexFixupTable[xIndex]] = 0;
 	sharedResult[deviceIndexFixupTable[xIndex + 1]] = 0;
@@ -324,7 +324,7 @@ unsigned int* DeviceWrapper::addParallel(const BigInteger& x, const BigInteger& 
 {
 	unsigned int* resultArray = new unsigned int[BigInteger::ARRAY_SIZE];	
 
-	int size = sizeof(unsigned int) * BigInteger::ARRAY_SIZE;	
+	int size = sizeof(unsigned int) << 7;	// * BigInteger::ARRAY_SIZE;
 
 	unsigned int* device_x;
 	unsigned int* device_y;
@@ -400,7 +400,7 @@ unsigned int* DeviceWrapper::subtractParallel(const BigInteger& x, const BigInte
 
 	unsigned int* resultArray = new unsigned int[BigInteger::ARRAY_SIZE];
 
-	int size = sizeof(unsigned int) * BigInteger::ARRAY_SIZE;
+	int size = sizeof(unsigned int) << 7; // * BigInteger::ARRAY_SIZE;
 
 	unsigned int* device_x;
 	unsigned int* device_y;
@@ -430,7 +430,7 @@ unsigned int* DeviceWrapper::subtractParallel(const BigInteger& x, const BigInte
 
 	checkCuda(cudaStreamSynchronize(mainStream));
 	checkCuda(cudaFree(device_x));
-
+	
 	return resultArray;
 }
 
@@ -438,14 +438,14 @@ unsigned int* DeviceWrapper::multiplyParallel(const BigInteger& x, const BigInte
 {
 	unsigned int* resultArray = new unsigned int[BigInteger::ARRAY_SIZE];
 
-	int size = sizeof(unsigned int) * BigInteger::ARRAY_SIZE;
+	int size = sizeof(unsigned int) << 7; // * BigInteger::ARRAY_SIZE;
 
 	unsigned int* device_result;
 	unsigned int* device_x;
 	unsigned int* device_y;
 
 	// device memory allocations
-	checkCuda(cudaMalloc(&device_result, size * 4));	// 4 times for every block
+	checkCuda(cudaMalloc(&device_result, (size << 2)));	// 4 times for every block
 	checkCuda(cudaMalloc(&device_x, size));
 	checkCuda(cudaMalloc(&device_y, size));
 

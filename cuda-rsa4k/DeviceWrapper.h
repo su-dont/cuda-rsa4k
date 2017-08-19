@@ -29,6 +29,5 @@ public:
 
 	unsigned int* addParallel(const BigInteger& x, const BigInteger& y) const;
 	unsigned int* subtractParallel(const BigInteger& x, const BigInteger& y) const;
-	unsigned int* multiplyParallel(const BigInteger& x, const BigInteger& y) const;
-	
+	unsigned int* multiplyParallel(const BigInteger& x, const BigInteger& y) const;	
 };

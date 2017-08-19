@@ -1,4 +1,5 @@
 #include "BigInteger.h"
+#include "BuildConfig.h"
 #include <iostream>
 
 using namespace std;
@@ -6,9 +7,10 @@ using namespace std;
 BigInteger::BigInteger()
 {
 	magnitude = new unsigned int[ARRAY_SIZE + 1];
+	dummyMagnitude = new unsigned int[ARRAY_SIZE + 1];
 	deviceWrapper = new DeviceWrapper();
 	
-	for (int i = 0; i < ARRAY_SIZE; i++)
+	for (int i = 0; i <= ARRAY_SIZE; i++)
 	{
 		magnitude[i] ^= magnitude[i];	// clear
 	}
@@ -17,6 +19,7 @@ BigInteger::BigInteger()
 BigInteger::~BigInteger()
 {
 	delete[] magnitude;
+	delete[] dummyMagnitude;
 	delete deviceWrapper;
 }
 
@@ -69,6 +72,117 @@ void BigInteger::multiply(const BigInteger* x)
 	magnitude = result;
 }
 
+// constant time execution resistant to timing attacks
+void BigInteger::shiftLeft(int n)
+{
+	if (n == 0)
+		return;
+
+	int ints = n >> 5;
+	int bits = n & 0x1f;
+		
+	int index;
+	for (int i = 127; i >= 0; i--)
+	{
+		index = i - ints;
+		if (index >= 0)
+			magnitude[i] = magnitude[index];
+		else
+			magnitude[i] = 0UL;
+	}	
+
+	unsigned int* array;
+	if (bits != 0)
+		array = magnitude;
+	else
+		array = dummyMagnitude;
+
+
+	int remainingBits = 32 - bits;
+	int highBits;
+	int lowBits = 0;
+
+	for (int i = 0; i < 128; i++)
+	{
+		highBits = array[i] >> remainingBits;
+		array[i] = array[i] << bits | lowBits;
+		lowBits = highBits;
+	}	
+}
+
+// constant time execution resistant to timing attacks
+void BigInteger::shiftRight(int n)
+{
+	if (n == 0)
+		return;
+
+	int ints = n >> 5;
+	int bits = n & 0x1f;
+
+	int index;
+	for (int i = 0; i < 128; i++)
+	{
+		index = i + ints;
+		if (index < 128)
+			magnitude[i] = magnitude[index];
+		else
+			magnitude[i] = 0UL;
+	}
+
+	unsigned int* array;
+	if (bits != 0)
+		array = magnitude;
+	else
+		array = dummyMagnitude;
+	
+	int remainingBits = 32 - bits;
+	int highBits = 0;
+	int lowBits;
+
+	for (int i = 127; i >= 0; i--)
+	{
+		lowBits = array[i] << remainingBits;
+		array[i] = array[i] >> bits | highBits;
+		highBits = lowBits;
+	}
+}
+
+void BigInteger::mod(BigInteger* x)
+{	
+	int compareValue = compare(*x);
+	if (compareValue != -1)
+	{
+		if (DEBUG)
+		{
+			cout << "Trying to reduce modulo a greater or the same integer" << endl;
+		}
+		return;
+	}
+
+	unsigned int* result;
+
+	int bitwiseDifference = getBitwiseLengthDiffrence(*x);
+	x->shiftLeft(bitwiseDifference);
+
+	while (bitwiseDifference >= 0)
+	{
+		if (compare(*x) == -1)	// this > x
+		{			
+			result = deviceWrapper->subtractParallel(*this, *x);
+			delete[] magnitude;
+			magnitude = result;
+		}
+		else // this <= x
+		{				
+			x->shiftRight(1);
+			bitwiseDifference--;
+		}
+	}	
+
+	if (bitwiseDifference > 0)
+		x->shiftRight(bitwiseDifference);	// restore x to previous value	
+}
+
 unsigned int* BigInteger::getMagnitudeArray(void) const
 {
 	return magnitude;
@@ -116,6 +230,52 @@ int BigInteger::compare(const BigInteger& value) const
 		}
 	}
 	return equals ? 0 : greater ? 1 : -1;
+}
+
+// value must not be greater than this
+int BigInteger::getBitwiseLengthDiffrence(const BigInteger& value) const
+{
+	int thisInts;
+	int valueInts;
+	bool thisSet = false;
+	bool valueSet = false;
+	for (int i = 127; i >= 0; i--)
+	{
+		if (magnitude[i] != 0UL && !thisSet)
+		{
+			thisInts = i;		
+			thisSet = true;
+		}
+
+		if (value.getMagnitudeArray()[i] != 0UL && !valueSet)
+		{
+			valueInts = i;
+			valueSet = true;
+		}
+	}	
+	if (valueInts > thisInts)
+	{
+		cerr << "ERROR: BigInteger::getBitwiseLengthDiffrence - provided value is greater than this!" << endl;
+	}
+
+	int thisBits = 0;
+	int valueBits = 0;
+	unsigned int thisValue = magnitude[thisInts];
+	unsigned int valueValue = value.getMagnitudeArray()[valueInts];
+	for (int i = 1; i < 32; i++)
+	{
+		if (thisValue >> i == 1)
+			thisBits = i + 1;
+		if (valueValue >> i == 1)
+			valueBits = i + 1;
+	}
+	
+	if (valueInts == thisInts && valueBits > thisBits)
+	{
+		cerr << "ERROR: BigInteger::getBitwiseLengthDiffrence - provided value is greater than this!" << endl;
+	}
+
+	return 32 * (thisInts - valueInts) + thisBits - valueBits;
 }
 
 char* BigInteger::toHexString(void) const
