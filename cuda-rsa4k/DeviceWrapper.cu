@@ -59,6 +59,36 @@ extern "C" __global__ void device_get_clock(unsigned int* result)
 	// todo	
 }
 
+__host__ __device__ inline bool inBounds128(int index)
+{
+	return index >= 0 && index <= 127;	
+}
+
+extern "C" __global__ void device_shift_left_partial(unsigned int* x, int n)
+{
+	register int index = threadIdx.x;
+	register int ints = n >> 5;		// n / 32
+	register int bits = n & 0x1f;	// n mod 32
+
+	__shared__ unsigned int sharedX[BigInteger::ARRAY_SIZE];
+	__shared__ unsigned int sharedResult[BigInteger::ARRAY_SIZE + 1];
+
+	sharedX[index] = inBounds128(index - ints) ? x[index - ints] : 0;
+
+	__syncthreads();
+
+	register int remainingBits = 32 - bits;
+	sharedResult[index + 1] = sharedX[index] >> remainingBits;
+	__syncthreads();
+	sharedResult[index] = sharedResult[index] | sharedX[index] << bits;
+	__syncthreads();
+
+	if (bits > 0)
+		x[index] = sharedResult[index];
+	else
+		x[index] = sharedX[index];	
+}
+
 // x and y must 128 unsigned ints allocated
 // result return in x
 extern "C" __global__ void device_add_partial(unsigned int* x, unsigned int* y)
@@ -318,6 +348,30 @@ unsigned long long DeviceWrapper::getClock(void)
 	checkCuda(cudaFree(deviceClock));
 	
 	return clock;
+}
+
+unsigned int* DeviceWrapper::shiftLeft(const BigInteger& x, const int bits) const
+{
+	unsigned int* resultArray = new unsigned int[BigInteger::ARRAY_SIZE];
+
+	int size = sizeof(unsigned int) << 7;	// * BigInteger::ARRAY_SIZE;
+
+	unsigned int* device_x;
+	checkCuda(cudaMalloc(&device_x, size));
+	checkCuda(cudaMemcpyAsync(device_x, x.getMagnitudeArray(), size, cudaMemcpyHostToDevice, mainStream));
+
+	// launch config
+	dim3 blocks(1);
+	dim3 threads(BigInteger::ARRAY_SIZE);	// 128
+
+	device_shift_left_partial << <blocks, threads, 0, mainStream >> > (device_x, bits);
+
+	checkCuda(cudaMemcpyAsync(resultArray, device_x, size, cudaMemcpyDeviceToHost, mainStream));
+
+	checkCuda(cudaStreamSynchronize(mainStream));
+	checkCuda(cudaFree(device_x));
+
+	return resultArray;
 }
 
 unsigned int* DeviceWrapper::addParallel(const BigInteger& x, const BigInteger& y) const

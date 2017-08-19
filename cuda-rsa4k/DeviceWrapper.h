@@ -27,6 +27,10 @@ public:
 
 	static unsigned long long getClock(void);
 
+	// logics
+	unsigned int* shiftLeft(const BigInteger& y, const int bits) const;
+
+	// arithmetics
 	unsigned int* addParallel(const BigInteger& x, const BigInteger& y) const;
 	unsigned int* subtractParallel(const BigInteger& x, const BigInteger& y) const;
 	unsigned int* multiplyParallel(const BigInteger& x, const BigInteger& y) const;	

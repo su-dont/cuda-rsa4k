@@ -35,10 +35,12 @@ public:
 	// arithmetics
 	void add(const BigInteger* x);
 	void subtract(const BigInteger* x);
-	void multiply(const BigInteger* x);
+	void multiply(const BigInteger* x);	
+	void mod(BigInteger* x);
+
+	// logics
 	void shiftLeft(int bits);
 	void shiftRight(int bits);
-	void mod(BigInteger* x);
 
 	// getters setters
 	unsigned int* getMagnitudeArray(void) const;

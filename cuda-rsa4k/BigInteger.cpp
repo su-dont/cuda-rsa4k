@@ -72,42 +72,11 @@ void BigInteger::multiply(const BigInteger* x)
 	magnitude = result;
 }
 
-// constant time execution resistant to timing attacks
 void BigInteger::shiftLeft(int n)
 {
-	if (n == 0)
-		return;
-
-	int ints = n >> 5;
-	int bits = n & 0x1f;
-		
-	int index;
-	for (int i = 127; i >= 0; i--)
-	{
-		index = i - ints;
-		if (index >= 0)
-			magnitude[i] = magnitude[index];
-		else
-			magnitude[i] = 0UL;
-	}	
-
-	unsigned int* array;
-	if (bits != 0)
-		array = magnitude;
-	else
-		array = dummyMagnitude;
-
-
-	int remainingBits = 32 - bits;
-	int highBits;
-	int lowBits = 0;
-
-	for (int i = 0; i < 128; i++)
-	{
-		highBits = array[i] >> remainingBits;
-		array[i] = array[i] << bits | lowBits;
-		lowBits = highBits;
-	}	
+	unsigned int* result = deviceWrapper->shiftLeft(*this, n);
+	delete[] magnitude;
+	magnitude = result;
 }
 
 // constant time execution resistant to timing attacks
@@ -164,7 +133,7 @@ void BigInteger::mod(BigInteger* x)
 	int bitwiseDifference = getBitwiseLengthDiffrence(*x);
 	x->shiftLeft(bitwiseDifference);
 
-	while (bitwiseDifference >= 0)
+	while (bitwiseDifference >= 0) // TODO: side channel vulnerability
 	{
 		if (compare(*x) == -1)	// this > x
 		{			
