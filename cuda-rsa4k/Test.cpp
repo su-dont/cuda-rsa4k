@@ -39,6 +39,7 @@ void Test::testBigInteger(bool print)
 	testSubtract(print);
 	testMultiply(print);
 	testMod(print);	
+	testPowerMod(print);
 }
 
 void Test::testParsing(bool print)
@@ -445,7 +446,7 @@ long long Test::testShiftLeft(bool print)
 
 long long Test::testShiftRight(bool print)
 {
-	// test reight shift
+	// test right shift
 	BigInteger* bigInteger = BigInteger::fromHexString("1243abc312def391acd89897ad987f789868091243b45ac0"
 														"7773FFAA83d19a3b3549937cfcF8a3dB9931254639186109"
 														"ba3e70688a2f49CC67ff1dcfFF254639DF186BC109ADDE8c"
@@ -547,6 +548,47 @@ long long Test::testMod(bool print)
 	}
 
 	delete bigInteger;
+	delete mod;
+	delete result;
+
+	return chrono::duration_cast<ns>(diff).count();
+}
+
+
+long long Test::testPowerMod(bool print)
+{
+	// test modular exponentiation 
+	BigInteger* bigInteger = BigInteger::fromHexString("7a334766a93261c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f14f9f9f1471c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f14b731c173249387351c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f1473d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f142624a11c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f14c1732493873573d8ff96ae257a334766326f9fa9326f9f9f148c727a334766a9326f9f9f147b732624a8c7230c2137a507a334766326f9fa9326f9f9f130c2137a507a334766326f9fa9326f9f9f1");
+	BigInteger* exponent = BigInteger::fromHexString("7");
+	BigInteger* mod = BigInteger::fromHexString("1c1732493873573d8ff96a1c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f14e257a33476631c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f1421c173249381c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f1473573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f14");	
+
+	BigInteger* result = BigInteger::fromHexString("179804bc47fd5bb216e37871d9f6fdcb91921a9e2f4b634c5a5190c2e0a238dfdfb6b4c61a75c9be8697c3531d2a5c17f1b46bb2c1d2f8ea924113debed4529d9d59ea67465098cda1dd06b6feba5eb16fba7fcfaff50dc12b7b390c5355a89a193904ca7d1e63891c86f0f1cfc1aa87de0405d6bddb06c5b667dfc610459a4b363d3a436ccf94c93ccdd7d52456b1984d08898c025009ebb3a1b392d114b9be80d3f1ba6451cc9bb22363a66f57d6ccf01412371dea10bf25929231736f1464635a15ed6a4bf1e87ea5970d");
+
+	auto start = get_time::now();
+	bigInteger->powerMod(*exponent, *mod);
+	auto end = get_time::now();
+	auto diff = end - start;
+	bool ok = bigInteger->equals(*result);
+
+	if (print || !ok)
+	{
+		if (!ok)
+		{
+			bigInteger->print("bigInteger:");
+			result->print("result");
+		}
+		if (ok)
+		{
+			cout << "BigInteger::powerMod... SUCCESS elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+		}
+		else
+		{
+			cout << "BigInteger::powerMod... FAILED elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+		}
+	}
+
+	delete bigInteger;
+	delete exponent;
 	delete mod;
 	delete result;
 

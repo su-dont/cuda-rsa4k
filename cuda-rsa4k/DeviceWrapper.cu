@@ -64,6 +64,12 @@ __host__ __device__ inline bool inBounds128(int index)
 	return index >= 0 && index <= 127;	
 }
 
+extern "C" __global__ void device_clear_partial(unsigned int* x)
+{
+	register int index = threadIdx.x;
+	x[index] = x[index] ^ x[index];
+}
+
 extern "C" __global__ void device_shift_left_partial(unsigned int* x, int n)
 {
 	register int index = threadIdx.x;
@@ -222,6 +228,9 @@ extern "C" __global__ void device_subtract_partial(unsigned int* x, unsigned int
 
 	// 32 threads + 1 to avoid out of bounds exception
 	__shared__ subtractionSharedMemory shared[33];
+
+	shared[resultIndex].borrow = 0UL;
+	__syncthreads();
 
 	register int index = 0;
 
@@ -384,7 +393,27 @@ unsigned long long DeviceWrapper::getClock(void)
 	return clock;
 }
 
-void DeviceWrapper::shiftLeft(BigInteger& x, int bits) const
+void DeviceWrapper::clear(BigInteger& x) const
+{
+	int size = sizeof(unsigned int) << 7;	// * BigInteger::ARRAY_SIZE;
+
+	unsigned int* device_x;
+	checkCuda(cudaMalloc(&device_x, size));
+	checkCuda(cudaMemcpyAsync(device_x, x.magnitude, size, cudaMemcpyHostToDevice, mainStream));
+
+	// launch config
+	dim3 blocks(1);
+	dim3 threads(BigInteger::ARRAY_SIZE);	// 128
+
+	device_clear_partial << <blocks, threads, 0, mainStream >> > (device_x);
+
+	checkCuda(cudaMemcpyAsync(x.magnitude, device_x, size, cudaMemcpyDeviceToHost, mainStream));
+
+	checkCuda(cudaStreamSynchronize(mainStream));
+	checkCuda(cudaFree(device_x));
+}
+
+void DeviceWrapper::shiftLeftParallel(BigInteger& x, int bits) const
 {	
 	int size = sizeof(unsigned int) << 7;	// * BigInteger::ARRAY_SIZE;
 
@@ -404,7 +433,7 @@ void DeviceWrapper::shiftLeft(BigInteger& x, int bits) const
 	checkCuda(cudaFree(device_x));
 }
 
-void DeviceWrapper::shiftRight(BigInteger& x, int bits) const
+void DeviceWrapper::shiftRightParallel(BigInteger& x, int bits) const
 {	
 	int size = sizeof(unsigned int) << 7;	// * BigInteger::ARRAY_SIZE;
 

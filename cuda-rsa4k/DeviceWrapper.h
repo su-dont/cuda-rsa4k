@@ -27,10 +27,11 @@ public:
 
 	// extras
 	static unsigned long long getClock(void);	
+	void clear(BigInteger& x) const;
 
 	// logics
-	void shiftLeft(BigInteger& x, int bits) const;
-	void shiftRight(BigInteger& x, int bits) const;
+	void shiftLeftParallel(BigInteger& x, int bits) const;
+	void shiftRightParallel(BigInteger& x, int bits) const;
 
 	// arithmetics
 	void addParallel(BigInteger& x, const BigInteger& y) const;

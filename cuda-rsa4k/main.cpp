@@ -1,5 +1,6 @@
 #include "BigInteger.h"
 #include "Test.h"
+#include <conio.h>
 #include <iostream>
 #include <cuda_runtime.h>
 
@@ -15,7 +16,6 @@ int main()
 	cudaDeviceSynchronize();	
 	cudaDeviceReset();
 
-	int exit;
-	cin >> exit;
+	getch();	
     return 0;
 }

@@ -8,10 +8,17 @@ BigInteger::BigInteger()
 {
 	magnitude = new unsigned int[ARRAY_SIZE + 1];
 	deviceWrapper = new DeviceWrapper();
-	
+	clear(); // set magnitude to 0	
+}
+
+BigInteger::BigInteger(const BigInteger & x)
+{
+	magnitude = new unsigned int[ARRAY_SIZE + 1];
+	deviceWrapper = new DeviceWrapper();
+
 	for (int i = 0; i <= ARRAY_SIZE; i++)
 	{
-		magnitude[i] ^= magnitude[i];	// clear
+		magnitude[i] = x.magnitude[i];
 	}
 }
 
@@ -49,6 +56,13 @@ BigInteger* BigInteger::fromHexString(const char* string)
 	return integer;
 }
 
+BigInteger* BigInteger::ONE(void)
+{
+	BigInteger* one = new BigInteger();
+	one->magnitude[0] = 1;
+	return one;
+}
+
 void BigInteger::add(const BigInteger& x)
 {
 	deviceWrapper->addParallel(*this, x);	
@@ -69,7 +83,7 @@ void BigInteger::shiftLeft(int n)
 	if (n == 0)
 		return;
 
-	deviceWrapper->shiftLeft(*this, n);
+	deviceWrapper->shiftLeftParallel(*this, n);
 }
 
 void BigInteger::shiftRight(int n)
@@ -77,39 +91,75 @@ void BigInteger::shiftRight(int n)
 	if (n == 0)
 		return;	
 
-	deviceWrapper->shiftRight(*this, n);	
+	deviceWrapper->shiftRightParallel(*this, n);
 }
 
-void BigInteger::mod(BigInteger& x)
+void BigInteger::mod(const BigInteger& modulus)
 {	
-	int compareValue = compare(x);
-	if (compareValue != -1)
+	BigInteger* mod = new BigInteger(modulus);
+
+	int compareValue = compare(*mod);
+	if (compareValue == 1)
 	{
-		if (DEBUG)
-		{
-			cout << "Trying to reduce modulo a greater or the same integer" << endl;
-		}
+		 // Trying to reduce modulo a greater integer		
+		return;
+	}
+	if (compareValue == 0)
+	{
+		// Reducing modulo same integer		
+		clear();
 		return;
 	}
 
-	int bitwiseDifference = getBitwiseLengthDiffrence(x);	
-	x.shiftLeft(bitwiseDifference);
+	int bitwiseDifference = getBitwiseLengthDiffrence(*mod);
+	mod->shiftLeft(bitwiseDifference);
 	
 	while (bitwiseDifference >= 0) // TODO: side channel vulnerability
 	{
-		if (compare(x) == -1)	// this > x
-		{						
-			subtract(x);
+		if (compare(*mod) == -1)	// this > x
+		{		
+			subtract(*mod);
 		}
 		else // this <= x
-		{			
-			x.shiftRight(1);
+		{				
+			mod->shiftRight(1);
 			bitwiseDifference--;
 		}
-	}	
+	}		
 
-	if (bitwiseDifference > 0)
-		x.shiftRight(bitwiseDifference);	// restore x to previous value	
+	delete mod;
+}
+
+void BigInteger::multiplyMod(const BigInteger& x, const BigInteger& modulus)
+{	
+	multiply(x);
+	mod(modulus);
+}
+
+void BigInteger::powerMod(const BigInteger& exponent, const BigInteger& modulus)
+{
+	// Assert :: (modulus - 1) * (modulus - 1) does not overflow base
+
+	BigInteger* base = new BigInteger(*this);
+	
+	// set this to 1
+	clear();
+	magnitude[0] = 1;
+	
+	BigInteger* exp = new BigInteger(exponent);
+	base->mod(modulus);
+
+	int bits = exp->getBitwiseLength();
+	
+	for (int i = 0; i < bits; i++)
+	{		
+		if (exp->getLSB() == 1)
+		{			
+			multiplyMod(*base, modulus);
+		}		
+		exp->shiftRight(1);		
+		base->multiplyMod(*base, modulus);		
+	}	
 }
 
 // constant time execution resistant to timing attacks
@@ -159,6 +209,14 @@ int BigInteger::compare(const BigInteger& value) const
 // value must not be greater than this
 int BigInteger::getBitwiseLengthDiffrence(const BigInteger& value) const
 {
+	if (DEBUG)
+	{
+		if (compare(value) != -1)
+		{
+			cerr << "ERROR: BigInteger::getBitwiseLengthDiffrence - provided value is greater than this!" << endl;
+		}
+	}
+
 	int thisInts;
 	int valueInts;
 	bool thisSet = false;
@@ -200,6 +258,36 @@ int BigInteger::getBitwiseLengthDiffrence(const BigInteger& value) const
 	}
 
 	return 32 * (thisInts - valueInts) + thisBits - valueBits;
+}
+
+int BigInteger::getBitwiseLength(void) const
+{
+	int ints = 0;	
+	bool set = false;
+	for (int i = 127; i >= 0; i--)
+	{
+		if (magnitude[i] != 0UL && !set)
+		{
+			ints = i;
+			set = true;
+		}
+	}
+
+	int bits = 0;	
+	unsigned int value = magnitude[ints];
+	
+	for (int i = 1; i < 32; i++)
+	{
+		if (value >> i == 1)
+			bits = i + 1;
+	}
+	
+	return 32 * ints + bits;
+}
+
+int BigInteger::getLSB(void) const
+{
+	return magnitude[0] & 0x01;
 }
 
 char* BigInteger::toHexString(void) const
@@ -252,4 +340,7 @@ unsigned int BigInteger::parseUnsignedInt(const char* hexString)
 	return chunk;
 }
 
-
+void BigInteger::clear(void)
+{
+	deviceWrapper->clear(*this);	
+}

@@ -16,8 +16,9 @@ public:
 	long long testAdd(bool print);
 	long long testSubtract(bool print);
 	long long testMultiply(bool print);
-	long long  testShiftLeft(bool print);
-	long long  testShiftRight(bool print);
+	long long testShiftLeft(bool print);
+	long long testShiftRight(bool print);
 	long long testMod(bool print);
+	long long testPowerMod(bool print);
 };
 
