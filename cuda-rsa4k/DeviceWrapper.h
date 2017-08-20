@@ -28,6 +28,7 @@ public:
 	// extras
 	static unsigned long long getClock(void);	
 	void clear(BigInteger& x) const;
+	void clone(BigInteger& x, const BigInteger& y) const;
 
 	// logics
 	void shiftLeftParallel(BigInteger& x, int bits) const;

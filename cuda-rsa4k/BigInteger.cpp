@@ -16,10 +16,7 @@ BigInteger::BigInteger(const BigInteger & x)
 	magnitude = new unsigned int[ARRAY_SIZE + 1];
 	deviceWrapper = new DeviceWrapper();
 
-	for (int i = 0; i <= ARRAY_SIZE; i++)
-	{
-		magnitude[i] = x.magnitude[i];
-	}
+	deviceWrapper->clone(*this, x);
 }
 
 BigInteger::~BigInteger()
