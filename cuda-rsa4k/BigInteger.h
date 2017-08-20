@@ -9,16 +9,14 @@ public:
 	// 4096 bits
 	static const int ARRAY_SIZE = 128;	
 
-private:
 
 	// the magnitude array in little endian order
 	// most-significant int is mag[length-1]
 	// least-significant int is mag[0]
 	unsigned int* magnitude;
+	
 
-	// dummy magnitude to provide constant time execution of functions
-	unsigned int* dummyMagnitude;
-
+private:
 	// device wrapper instance diffrent for every integer
 	// to provide parallel execution
 	DeviceWrapper* deviceWrapper;
@@ -33,17 +31,14 @@ public:
 	static BigInteger* fromHexString(const char* string);
 
 	// arithmetics
-	void add(const BigInteger* x);
-	void subtract(const BigInteger* x);
-	void multiply(const BigInteger* x);	
-	void mod(BigInteger* x);
+	void add(const BigInteger& x);
+	void subtract(const BigInteger& x);
+	void multiply(const BigInteger& x);
+	void mod(BigInteger& x);
 
 	// logics
 	void shiftLeft(int bits);
 	void shiftRight(int bits);
-
-	// getters setters
-	unsigned int* getMagnitudeArray(void) const;
 
 	// extras
 	bool equals(const BigInteger& value) const;

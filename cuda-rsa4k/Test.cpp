@@ -230,7 +230,7 @@ long long Test::testAdd(bool print)
 													"000000000000000000000000000000000000000000000000000000000000000");
 
 	auto start = get_time::now();
-	bigInteger->add(added);
+	bigInteger->add(*added);
 	auto end = get_time::now();
 	auto diff = end - start;
 	bool ok = bigInteger->equals(*result);
@@ -295,7 +295,7 @@ long long Test::testSubtract(bool print)
 													"ffffffffffffffffffffffffffffffffff");
 
 	auto start = get_time::now();
-	bigInteger->subtract(subtracted);
+	bigInteger->subtract(*subtracted);
 	auto end = get_time::now();
 	auto diff = end - start;
 	bool ok = bigInteger->equals(*result);
@@ -359,7 +359,7 @@ long long Test::testMultiply(bool print)
 												  "8e67768c755ba7fd360f0806b97af222123027b39d587d427");
 
 	auto start = get_time::now();
-	bigInteger->multiply(multiplied);
+	bigInteger->multiply(*multiplied);
 	auto end = get_time::now();
 	auto diff = end - start;
 	bool ok = bigInteger->equals(*result);
@@ -406,8 +406,8 @@ void Test::testShiftLeft(bool print)
 													"00000000000000000000000000000000000000000000000000000"
 													"00000000000000000000000000000000000000000000000000000"
 													"0000000000000000000000000000000000000000000000000000000000000");
-
-		
+			
+	
 	bigInteger->shiftLeft(1389);
 	bool ok = bigInteger->equals(*result);
 	if (print || !ok)
@@ -426,7 +426,7 @@ void Test::testShiftLeft(bool print)
 			cout << "BigInteger::shiftLeft... FAILED" << endl;
 		}
 	}
-
+	
 	delete bigInteger;
 	delete result;
 }
@@ -505,7 +505,7 @@ long long Test::testMod(bool print)
 													"3d0094819f1efe");
 
 	auto start = get_time::now();
-	bigInteger->mod(mod);
+	bigInteger->mod(*mod);
 	auto end = get_time::now();
 	auto diff = end - start;
 	bool ok = bigInteger->equals(*result);

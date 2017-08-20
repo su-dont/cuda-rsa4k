@@ -7,7 +7,6 @@ using namespace std;
 BigInteger::BigInteger()
 {
 	magnitude = new unsigned int[ARRAY_SIZE + 1];
-	dummyMagnitude = new unsigned int[ARRAY_SIZE + 1];
 	deviceWrapper = new DeviceWrapper();
 	
 	for (int i = 0; i <= ARRAY_SIZE; i++)
@@ -19,7 +18,6 @@ BigInteger::BigInteger()
 BigInteger::~BigInteger()
 {
 	delete[] magnitude;
-	delete[] dummyMagnitude;
 	delete deviceWrapper;
 }
 
@@ -51,74 +49,40 @@ BigInteger* BigInteger::fromHexString(const char* string)
 	return integer;
 }
 
-void BigInteger::add(const BigInteger* x)
+void BigInteger::add(const BigInteger& x)
 {
-	unsigned int* result = deviceWrapper->addParallel(*this, *x);
-	delete[] magnitude;
-	magnitude = result;
+	deviceWrapper->addParallel(*this, x);	
 }
 
-void BigInteger::subtract(const BigInteger* x)
+void BigInteger::subtract(const BigInteger& x)
 {
-	unsigned int* result = deviceWrapper->subtractParallel(*this, *x);
-	delete[] magnitude;
-	magnitude = result;
+	deviceWrapper->subtractParallel(*this, x);
 }
 
-void BigInteger::multiply(const BigInteger* x)
+void BigInteger::multiply(const BigInteger& x)
 {
-	unsigned int* result = deviceWrapper->multiplyParallel(*this, *x);
-	delete[] magnitude;
-	magnitude = result;
+	deviceWrapper->multiplyParallel(*this, x);	
 }
 
 void BigInteger::shiftLeft(int n)
 {
-	unsigned int* result = deviceWrapper->shiftLeft(*this, n);
-	delete[] magnitude;
-	magnitude = result;
-}
-
-// constant time execution resistant to timing attacks
-void BigInteger::shiftRight(int n)
-{
 	if (n == 0)
 		return;
 
-	int ints = n >> 5;
-	int bits = n & 0x1f;
-
-	int index;
-	for (int i = 0; i < 128; i++)
-	{
-		index = i + ints;
-		if (index < 128)
-			magnitude[i] = magnitude[index];
-		else
-			magnitude[i] = 0UL;
-	}
-
-	unsigned int* array;
-	if (bits != 0)
-		array = magnitude;
-	else
-		array = dummyMagnitude;
-	
-	int remainingBits = 32 - bits;
-	int highBits = 0;
-	int lowBits;
-
-	for (int i = 127; i >= 0; i--)
-	{
-		lowBits = array[i] << remainingBits;
-		array[i] = array[i] >> bits | highBits;
-		highBits = lowBits;
-	}
+	deviceWrapper->shiftLeft(*this, n);
 }
 
-void BigInteger::mod(BigInteger* x)
+void BigInteger::shiftRight(int n)
+{
+	if (n == 0)
+		return;	
+
+	deviceWrapper->shiftRight(*this, n);	
+}
+
+void BigInteger::mod(BigInteger& x)
 {	
-	int compareValue = compare(*x);
+	int compareValue = compare(x);
 	if (compareValue != -1)
 	{
 		if (DEBUG)
@@ -128,33 +92,24 @@ void BigInteger::mod(BigInteger* x)
 		return;
 	}
 
-	unsigned int* result;
-
-	int bitwiseDifference = getBitwiseLengthDiffrence(*x);
-	x->shiftLeft(bitwiseDifference);
-
+	int bitwiseDifference = getBitwiseLengthDiffrence(x);	
+	x.shiftLeft(bitwiseDifference);
+	
 	while (bitwiseDifference >= 0) // TODO: side channel vulnerability
 	{
-		if (compare(*x) == -1)	// this > x
-		{			
-			result = deviceWrapper->subtractParallel(*this, *x);
-			delete[] magnitude;
-			magnitude = result;
+		if (compare(x) == -1)	// this > x
+		{						
+			subtract(x);
 		}
 		else // this <= x
-		{				
-			x->shiftRight(1);
+		{			
+			x.shiftRight(1);
 			bitwiseDifference--;
 		}
 	}	
 
 	if (bitwiseDifference > 0)
-		x->shiftRight(bitwiseDifference);	// restore x to previous value	
-}
-
-unsigned int* BigInteger::getMagnitudeArray(void) const
-{
-	return magnitude;
+		x.shiftRight(bitwiseDifference);	// restore x to previous value	
 }
 
 // constant time execution resistant to timing attacks
@@ -164,7 +119,7 @@ bool BigInteger::equals(const BigInteger& value) const
 	bool dummy = true;
 	for (int i = 0; i < ARRAY_SIZE; i++)
 	{		
-		if (magnitude[i] != value.getMagnitudeArray()[i])
+		if (magnitude[i] != value.magnitude[i])
 		{			
 			if (equals)
 				equals = false;
@@ -188,14 +143,14 @@ int BigInteger::compare(const BigInteger& value) const
 
 	for (int i = 0; i < ARRAY_SIZE; i++)
 	{
-		if (magnitude[i] != value.getMagnitudeArray()[i])
+		if (magnitude[i] != value.magnitude[i])
 		{
 			if (equals)
 				equals = false;
 			else
 				dummy = false;
 
-			greater = magnitude[i] < value.getMagnitudeArray()[i];
+			greater = magnitude[i] < value.magnitude[i];
 		}
 	}
 	return equals ? 0 : greater ? 1 : -1;
@@ -216,7 +171,7 @@ int BigInteger::getBitwiseLengthDiffrence(const BigInteger& value) const
 			thisSet = true;
 		}
 
-		if (value.getMagnitudeArray()[i] != 0UL && !valueSet)
+		if (value.magnitude[i] != 0UL && !valueSet)
 		{
 			valueInts = i;
 			valueSet = true;
@@ -230,7 +185,7 @@ int BigInteger::getBitwiseLengthDiffrence(const BigInteger& value) const
 	int thisBits = 0;
 	int valueBits = 0;
 	unsigned int thisValue = magnitude[thisInts];
-	unsigned int valueValue = value.getMagnitudeArray()[valueInts];
+	unsigned int valueValue = value.magnitude[valueInts];
 	for (int i = 1; i < 32; i++)
 	{
 		if (thisValue >> i == 1)
