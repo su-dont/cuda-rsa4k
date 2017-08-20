@@ -10,14 +10,14 @@ public:
 	void runAll(bool print);
 	void testBigInteger(bool print);
 	void testParsing(bool print);
-	void testbitwiseLengthDiffrence(bool print);
+	long long  testbitwiseLengthDiffrence(bool print);
 	long long testEquals(bool print);	
 	long long testCompare(bool print);
 	long long testAdd(bool print);
 	long long testSubtract(bool print);
 	long long testMultiply(bool print);
-	void testShiftLeft(bool print);
-	void testShiftRight(bool print);
+	long long  testShiftLeft(bool print);
+	long long  testShiftRight(bool print);
 	long long testMod(bool print);
 };
 
