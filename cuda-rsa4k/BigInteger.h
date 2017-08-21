@@ -14,6 +14,7 @@ public:
 	// most-significant int is mag[length-1]
 	// least-significant int is mag[0]
 	unsigned int* magnitude;
+	unsigned int* device_magnitude;
 	
 private:
 	// device wrapper instance diffrent for every integer

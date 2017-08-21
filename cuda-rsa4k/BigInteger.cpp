@@ -16,7 +16,7 @@ BigInteger::BigInteger(const BigInteger & x)
 	magnitude = new unsigned int[ARRAY_SIZE + 1];
 	deviceWrapper = new DeviceWrapper();
 
-	deviceWrapper->clone(*this, x);
+	deviceWrapper->cloneParallel(*this, x);
 }
 
 BigInteger::~BigInteger()
@@ -177,30 +177,35 @@ bool BigInteger::equals(const BigInteger& value) const
 	return equals;
 }
 
-// constant time execution resistant to timing attacks
 // returns:
 // 0 if value is the same with this
 // 1 if value is greater than this
 // -1 if value is lower than this
 int BigInteger::compare(const BigInteger& value) const
 {
-	bool equals = true;
-	bool greater = true;
-	bool dummy = true;
 
-	for (int i = 0; i < ARRAY_SIZE; i++)
-	{
-		if (magnitude[i] != value.magnitude[i])
-		{
-			if (equals)
-				equals = false;
-			else
-				dummy = false;
 
-			greater = magnitude[i] < value.magnitude[i];
-		}
-	}
-	return equals ? 0 : greater ? 1 : -1;
+	return deviceWrapper->compareParallel(*this, value);
+
+
+	//bool equals = true;
+	//bool greater = true;
+	//bool dummy = true;
+
+	//for (int i = 0; i < ARRAY_SIZE; i++)
+	//{
+	//	if (magnitude[i] != value.magnitude[i])
+	//	{
+	//		if (equals)
+	//			equals = false;
+	//		else
+	//			dummy = false;
+
+	//		greater = magnitude[i] < value.magnitude[i];
+	//	}
+	//}
+
+	//return equals ? 0 : greater ? 1 : -1;
 }
 
 // value must not be greater than this
@@ -339,5 +344,5 @@ unsigned int BigInteger::parseUnsignedInt(const char* hexString)
 
 void BigInteger::clear(void)
 {
-	deviceWrapper->clear(*this);	
+	deviceWrapper->clearParallel(*this);	
 }

@@ -76,6 +76,12 @@ extern "C" __global__ void device_clear_partial(unsigned int* x)
 	x[index] = x[index] ^ x[index];
 }
 
+extern "C" __global__ void device_compare_partial(int* result, unsigned int* x, unsigned int* y)
+{
+	register int index = threadIdx.x;
+	result[index] = x[index] == y[index] ? 0 : (x[index] < y[index] ? 1 : -1);
+}
+
 extern "C" __global__ void device_shift_left_partial(unsigned int* x, int n)
 {
 	register int index = threadIdx.x;
@@ -399,7 +405,7 @@ unsigned long long DeviceWrapper::getClock(void)
 	return clock;
 }
 
-void DeviceWrapper::clear(BigInteger& x) const
+void DeviceWrapper::clearParallel(BigInteger& x) const
 {
 	int size = sizeof(unsigned int) << 7;	// * BigInteger::ARRAY_SIZE;
 
@@ -420,7 +426,7 @@ void DeviceWrapper::clear(BigInteger& x) const
 }
 
 // x := y
-void DeviceWrapper::clone(BigInteger& x, const BigInteger& y) const
+void DeviceWrapper::cloneParallel(BigInteger& x, const BigInteger& y) const
 {
 	int size = sizeof(unsigned int) << 7; // * BigInteger::ARRAY_SIZE;
 
@@ -452,6 +458,61 @@ void DeviceWrapper::clone(BigInteger& x, const BigInteger& y) const
 
 	checkCuda(cudaStreamSynchronize(mainStream));
 	checkCuda(cudaFree(device_x));
+}
+
+// returns:
+// 0 if value is the same with this
+// 1 if value is greater than this
+// -1 if value is lower than this
+int DeviceWrapper::compareParallel(const BigInteger& x, const BigInteger& y) const
+{
+	int* resultArray = new int[BigInteger::ARRAY_SIZE];
+
+	int size = sizeof(unsigned int) << 7; // * BigInteger::ARRAY_SIZE;
+
+	unsigned int* device_x;
+	unsigned int* device_y;
+	int* device_result;
+
+	checkCuda(cudaMalloc(&device_x, size));
+	checkCuda(cudaMalloc(&device_y, size));
+	checkCuda(cudaMalloc(&device_result, size));
+
+	cudaEvent_t event;
+	checkCuda(cudaEventCreate(&event));
+
+	// async memory copy
+	checkCuda(cudaMemcpyAsync(device_x, x.magnitude, size, cudaMemcpyHostToDevice, memoryCopyStream));
+	checkCuda(cudaEventRecord(event, memoryCopyStream));	// record x copy finish
+	checkCuda(cudaMemcpyAsync(device_y, y.magnitude, size, cudaMemcpyHostToDevice, mainStream));
+
+	// launch config
+	dim3 blocks(1);
+	dim3 threads(BigInteger::ARRAY_SIZE);	//128
+
+	checkCuda(cudaStreamWaitEvent(mainStream, event, 0));	// wait for x,y to finish
+	device_compare_partial << <blocks, threads, 0, mainStream >> > (device_result, device_x, device_y);
+
+	checkCuda(cudaEventDestroy(event));
+
+	checkCuda(cudaMemcpyAsync(resultArray, device_result, size, cudaMemcpyDeviceToHost, mainStream));
+	checkCuda(cudaFree(device_y));
+
+	checkCuda(cudaStreamSynchronize(mainStream));
+	checkCuda(cudaFree(device_x));
+
+	int result = 0;
+	bool set = false;
+	for (int i = 127; i >= 0; i--)
+	{
+		if (resultArray[i] != 0 && !set)
+		{
+			result = resultArray[i];
+			set = true;
+		}
+	}
+	delete resultArray;
+	return result;
 }
 
 void DeviceWrapper::shiftLeftParallel(BigInteger& x, int bits) const
