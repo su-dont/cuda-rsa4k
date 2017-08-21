@@ -9,7 +9,7 @@ using namespace std;
 int main()
 {
 	cudaDeviceReset();
-
+	
 	Test test;		
 	test.runAll(true);
 

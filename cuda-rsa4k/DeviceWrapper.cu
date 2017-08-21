@@ -567,8 +567,9 @@ bool DeviceWrapper::equalsParallel(const int* device_x, const int* device_y) con
 int DeviceWrapper::getLSB(const int* device_x) const
 {
 	unsigned int result;
-	checkCuda(cudaMemcpyAsync(&result, device_x + 127, sizeof(unsigned int), cudaMemcpyDeviceToHost, mainStream));
+	checkCuda(cudaMemcpyAsync(&result, device_x, sizeof(unsigned int), cudaMemcpyDeviceToHost, mainStream));
 	checkCuda(cudaStreamSynchronize(mainStream));
+	
 	return result & 0x01;
 }
 
