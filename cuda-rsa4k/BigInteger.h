@@ -9,15 +9,15 @@ public:
 	// 4096 bits
 	static const int ARRAY_SIZE = 128;	
 
-
-	// the magnitude array in little endian order
-	// most-significant int is mag[length-1]
-	// least-significant int is mag[0]
-	unsigned int* magnitude;
-	unsigned int* device_magnitude;
-	
 private:
-	// device wrapper instance diffrent for every integer
+public:
+	// Magnitude array in little endian order.
+	// Most-significant int is mag[length-1].
+	// Least-significant int is mag[0].
+	// Allocated on the device.
+	int* deviceMagnitude;	
+public:
+	// Device wrapper instance diffrent for every integer
 	// to provide parallel execution
 	DeviceWrapper* deviceWrapper;
 
@@ -26,11 +26,15 @@ public:
 	
 	BigInteger();
 	BigInteger(const BigInteger& x);
+	BigInteger(unsigned int value);
 	~BigInteger();
-	
+
 	// factory
 	static BigInteger* fromHexString(const char* string);
-	static BigInteger* ONE(void);
+
+	// setters, getters
+	void set(const BigInteger& x);	
+	int* getDeviceMagnitude(void) const;
 
 	// arithmetics
 	void add(const BigInteger& x);
@@ -52,9 +56,11 @@ public:
 	int getLSB(void) const;
 	char* toHexString(void) const;
 	void print(const char* title) const;
-	void clear(void);
-
+	
 private:
+
+	void setMagnitude(const unsigned int* magnitude);
+	void clear(void);
 
 	/*
 	Parses hex string to unsigned int type.

@@ -4,30 +4,44 @@
 
 using namespace std;
 
+static const BigInteger* ONE = new BigInteger(1);
+
 BigInteger::BigInteger()
 {
-	magnitude = new unsigned int[ARRAY_SIZE + 1];
 	deviceWrapper = new DeviceWrapper();
-	clear(); // set magnitude to 0	
+	deviceMagnitude = deviceWrapper->init(ARRAY_SIZE);
 }
 
 BigInteger::BigInteger(const BigInteger & x)
 {
-	magnitude = new unsigned int[ARRAY_SIZE + 1];
 	deviceWrapper = new DeviceWrapper();
+	deviceMagnitude = deviceWrapper->init(ARRAY_SIZE, x.getDeviceMagnitude());
+}
 
-	deviceWrapper->cloneParallel(*this, x);
+BigInteger::BigInteger(unsigned int value)
+{
+	deviceWrapper = new DeviceWrapper();
+	deviceMagnitude = deviceWrapper->init(ARRAY_SIZE);
+	unsigned int* magnitude = new unsigned int[ARRAY_SIZE];
+	for (int i = 0; i < ARRAY_SIZE; i++)
+		magnitude[i] ^= magnitude[i];
+	magnitude[0] = value;
+	setMagnitude(magnitude);
+	delete[] magnitude;
 }
 
 BigInteger::~BigInteger()
 {
-	delete[] magnitude;
-	delete deviceWrapper;
+	deviceWrapper->free(deviceMagnitude);
+	delete deviceWrapper;	
 }
 
-// public
 BigInteger* BigInteger::fromHexString(const char* string)
 {
+	// todo: fix +1
+	unsigned int* magnitude = new unsigned int[ARRAY_SIZE + 1];
+	for (int i = 0; i < 128; i++)
+		magnitude[i] ^= magnitude[i];
 	BigInteger* integer = new BigInteger();	
 	int length = strlen(string);
 	char temp[9];
@@ -37,7 +51,7 @@ BigInteger* BigInteger::fromHexString(const char* string)
 	{
 		strncpy(temp, string + i, 8);
 		temp[8] = '\0';
-		integer->magnitude[j++] = parseUnsignedInt(temp);
+		magnitude[j++] = parseUnsignedInt(temp);
 	}
 	if (i < 0)
 	{
@@ -46,49 +60,51 @@ BigInteger* BigInteger::fromHexString(const char* string)
 		strncpy(temp, string, 8 + i);
 		temp[index] = '\0';
 		unsigned int value = parseUnsignedInt(temp);
-		integer->magnitude[j] = value;		
+		magnitude[j] = value;		
 		if (value > 0UL) 
 			j++;
 	}
+
+	integer->setMagnitude(magnitude);
+
+	delete[] magnitude;
+
 	return integer;
 }
 
-BigInteger* BigInteger::ONE(void)
+void BigInteger::set(const BigInteger& x)
 {
-	BigInteger* one = new BigInteger();
-	one->magnitude[0] = 1;
-	return one;
+	deviceWrapper->cloneParallel(deviceMagnitude, x.getDeviceMagnitude());
+}
+
+int* BigInteger::getDeviceMagnitude(void) const
+{
+	return deviceMagnitude;
 }
 
 void BigInteger::add(const BigInteger& x)
 {
-	deviceWrapper->addParallel(*this, x);	
+	deviceWrapper->addParallel(deviceMagnitude, x.getDeviceMagnitude());	
 }
 
 void BigInteger::subtract(const BigInteger& x)
 {
-	deviceWrapper->subtractParallel(*this, x);
+	deviceWrapper->subtractParallel(deviceMagnitude, x.getDeviceMagnitude());
 }
 
 void BigInteger::multiply(const BigInteger& x)
 {
-	deviceWrapper->multiplyParallel(*this, x);	
+	deviceWrapper->multiplyParallel(deviceMagnitude, x.getDeviceMagnitude());	
 }
 
 void BigInteger::shiftLeft(int n)
 {
-	if (n == 0)
-		return;
-
-	deviceWrapper->shiftLeftParallel(*this, n);
+	deviceWrapper->shiftLeftParallel(deviceMagnitude, n);
 }
 
 void BigInteger::shiftRight(int n)
 {
-	if (n == 0)
-		return;	
-
-	deviceWrapper->shiftRightParallel(*this, n);
+	deviceWrapper->shiftRightParallel(deviceMagnitude, n);
 }
 
 void BigInteger::mod(const BigInteger& modulus)
@@ -140,8 +156,7 @@ void BigInteger::powerMod(const BigInteger& exponent, const BigInteger& modulus)
 	BigInteger* base = new BigInteger(*this);
 	
 	// set this to 1
-	clear();
-	magnitude[0] = 1;
+	set(*ONE);
 	
 	BigInteger* exp = new BigInteger(exponent);
 	base->mod(modulus);
@@ -159,22 +174,9 @@ void BigInteger::powerMod(const BigInteger& exponent, const BigInteger& modulus)
 	}	
 }
 
-// constant time execution resistant to timing attacks
 bool BigInteger::equals(const BigInteger& value) const
-{
-	bool equals = true;
-	bool dummy = true;
-	for (int i = 0; i < ARRAY_SIZE; i++)
-	{		
-		if (magnitude[i] != value.magnitude[i])
-		{			
-			if (equals)
-				equals = false;
-			else
-				dummy = false;
-		}
-	}
-	return equals;
+{	
+	return (deviceWrapper->compareParallel(deviceMagnitude, value.getDeviceMagnitude()) == 0);
 }
 
 // returns:
@@ -185,7 +187,7 @@ int BigInteger::compare(const BigInteger& value) const
 {
 
 
-	return deviceWrapper->compareParallel(*this, value);
+	return deviceWrapper->compareParallel(deviceMagnitude, value.getDeviceMagnitude());
 
 
 	//bool equals = true;
@@ -219,7 +221,17 @@ int BigInteger::getBitwiseLengthDiffrence(const BigInteger& value) const
 		}
 	}
 
-	int thisInts;
+	int thisLength = getBitwiseLength();
+	int valueLength = value.getBitwiseLength();
+
+	if (thisLength < valueLength)
+	{
+		cerr << "ERROR: BigInteger::getBitwiseLengthDiffrence - provided value is greater than this!" << endl;
+	}
+
+	return thisLength - valueLength;
+
+	/*int thisInts;
 	int valueInts;
 	bool thisSet = false;
 	bool valueSet = false;
@@ -259,11 +271,16 @@ int BigInteger::getBitwiseLengthDiffrence(const BigInteger& value) const
 		cerr << "ERROR: BigInteger::getBitwiseLengthDiffrence - provided value is greater than this!" << endl;
 	}
 
-	return 32 * (thisInts - valueInts) + thisBits - valueBits;
+	return 32 * (thisInts - valueInts) + thisBits - valueBits;*/
 }
 
 int BigInteger::getBitwiseLength(void) const
 {
+	// TODO: parallel
+
+	unsigned int* magnitude = new unsigned int[ARRAY_SIZE];
+	deviceWrapper->updateHost(magnitude, deviceMagnitude, ARRAY_SIZE);
+
 	int ints = 0;	
 	bool set = false;
 	for (int i = 127; i >= 0; i--)
@@ -289,11 +306,14 @@ int BigInteger::getBitwiseLength(void) const
 
 int BigInteger::getLSB(void) const
 {
-	return magnitude[0] & 0x01;
+	return deviceWrapper->getLSB(deviceMagnitude);
 }
 
 char* BigInteger::toHexString(void) const
 {
+	unsigned int* magnitude = new unsigned int[ARRAY_SIZE];
+	deviceWrapper->updateHost(magnitude, deviceMagnitude, ARRAY_SIZE);
+
 	char* buffer = (char*) malloc(ARRAY_SIZE * 8 + 1);
 	for (int i = ARRAY_SIZE - 1, j = 0; i >= 0; i--)
 	{
@@ -342,7 +362,12 @@ unsigned int BigInteger::parseUnsignedInt(const char* hexString)
 	return chunk;
 }
 
+void BigInteger::setMagnitude(const unsigned int* magnitude)
+{
+	deviceWrapper->updateDevice(deviceMagnitude, magnitude, ARRAY_SIZE);
+}
+
 void BigInteger::clear(void)
 {
-	deviceWrapper->clearParallel(*this);	
+	deviceWrapper->clearParallel(deviceMagnitude);	
 }
