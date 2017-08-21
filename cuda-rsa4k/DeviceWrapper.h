@@ -39,6 +39,7 @@ public:
 	void clearParallel(int* device_x) const;
 	void cloneParallel(int* device_x, const int* device_y) const;
 	int compareParallel(const int* device_x, const int* device_y) const;
+	bool equalsParallel(const int* device_x, const int* device_y) const;
 	int getLSB(const int* device_x) const;
 
 	// logics

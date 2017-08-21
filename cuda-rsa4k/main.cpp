@@ -16,6 +16,6 @@ int main()
 	cudaDeviceSynchronize();	
 	cudaDeviceReset();
 
-	getch();	
+	_getch();	
     return 0;
 }

@@ -176,7 +176,7 @@ void BigInteger::powerMod(const BigInteger& exponent, const BigInteger& modulus)
 
 bool BigInteger::equals(const BigInteger& value) const
 {	
-	return (deviceWrapper->compareParallel(deviceMagnitude, value.getDeviceMagnitude()) == 0);
+	return deviceWrapper->equalsParallel(deviceMagnitude, value.getDeviceMagnitude());
 }
 
 // returns:
@@ -185,29 +185,7 @@ bool BigInteger::equals(const BigInteger& value) const
 // -1 if value is lower than this
 int BigInteger::compare(const BigInteger& value) const
 {
-
-
-	return deviceWrapper->compareParallel(deviceMagnitude, value.getDeviceMagnitude());
-
-
-	//bool equals = true;
-	//bool greater = true;
-	//bool dummy = true;
-
-	//for (int i = 0; i < ARRAY_SIZE; i++)
-	//{
-	//	if (magnitude[i] != value.magnitude[i])
-	//	{
-	//		if (equals)
-	//			equals = false;
-	//		else
-	//			dummy = false;
-
-	//		greater = magnitude[i] < value.magnitude[i];
-	//	}
-	//}
-
-	//return equals ? 0 : greater ? 1 : -1;
+	return deviceWrapper->compareParallel(deviceMagnitude, value.getDeviceMagnitude());	
 }
 
 // value must not be greater than this

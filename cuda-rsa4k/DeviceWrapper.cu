@@ -76,10 +76,55 @@ extern "C" __global__ void device_clear_partial(int* x)
 	x[index] = x[index] ^ x[index];
 }
 
+__host__ __device__ inline int merge(int x, int y)
+{
+	return x == 0 ? y : x;
+}
+
+extern "C" __global__ void device_equals_partial(int* result, const int* x, const int* y)
+{
+	register int index = threadIdx.x;
+	register int globalIndex = index << 1;
+
+	__shared__ int shared[7][256];
+
+	shared[0][index] = x[index] ^ y[index];
+	__syncthreads();
+	
+#pragma unroll
+	for (int i = 1; i < 7; i++)
+	{
+		if (1 << (7 - i) > index)	// todo: 6 bank conflicts left
+			shared[i][index] = shared[i - 1][globalIndex + 1] | shared[i - 1][globalIndex];
+		__syncthreads();
+	}
+	if (index == 0)
+	{
+		*result = shared[6][globalIndex + 1] | shared[6][globalIndex];
+	}
+}
+
 extern "C" __global__ void device_compare_partial(int* result, const int* x, const int* y)
 {
 	register int index = threadIdx.x;
-	result[index] = x[index] == y[index] ? 0 : (x[index] < y[index] ? 1 : -1);
+	register int globalIndex = index << 1;
+
+	__shared__ int shared[7][256];
+
+	shared[0][index] = x[index] == y[index] ? 0 : (x[index] < y[index] ? 1 : -1);
+	__syncthreads();
+
+#pragma unroll
+	for (int i = 1; i < 7; i++)
+	{
+		if (1 << (7 - i) > index)	// todo: 6 bank conflicts left
+			shared[i][index] = merge(shared[i - 1][globalIndex + 1], shared[i - 1][globalIndex]);
+		__syncthreads();
+	}
+	if (index == 0)
+	{
+		*result = merge(shared[6][globalIndex + 1], shared[6][globalIndex]);
+	}
 }
 
 extern "C" __global__ void device_shift_left_partial(int* x, int n)
@@ -479,17 +524,10 @@ void DeviceWrapper::cloneParallel(int* device_x, const int* device_y) const
 // -1 if value is lower than this
 int DeviceWrapper::compareParallel(const int* device_x, const int* device_y) const
 {
-
-	// TODO: fix
-
-
-	int* resultArray = new int[BigInteger::ARRAY_SIZE];
-
-	int size = sizeof(unsigned int) << 7; // * BigInteger::ARRAY_SIZE;
-		
+	int result;		
 	int* device_result;
 
-	checkCuda(cudaMalloc(&device_result, size));
+	checkCuda(cudaMalloc(&device_result, sizeof(int)));
 	
 	// launch config
 	dim3 blocks(1);
@@ -497,29 +535,39 @@ int DeviceWrapper::compareParallel(const int* device_x, const int* device_y) con
 
 	device_compare_partial << <blocks, threads, 0, mainStream >> > (device_result, device_x, device_y);
 
-	checkCuda(cudaMemcpyAsync(resultArray, device_result, size, cudaMemcpyDeviceToHost, mainStream));
+	checkCuda(cudaMemcpyAsync(&result, device_result, sizeof(int), cudaMemcpyDeviceToHost, mainStream));
 	
 	checkCuda(cudaStreamSynchronize(mainStream));
 	checkCuda(cudaFree(device_result));
 
-	int result = 0;
-	bool set = false;
-	for (int i = 127; i >= 0; i--)
-	{
-		if (resultArray[i] != 0 && !set)
-		{
-			result = resultArray[i];
-			set = true;
-		}
-	}
-	delete resultArray;
 	return result;
+}
+
+bool DeviceWrapper::equalsParallel(const int* device_x, const int* device_y) const
+{
+	int result;
+	int* device_result;
+
+	checkCuda(cudaMalloc(&device_result, sizeof(int)));
+
+	// launch config
+	dim3 blocks(1);
+	dim3 threads(BigInteger::ARRAY_SIZE);	//128
+
+	device_equals_partial << <blocks, threads, 0, mainStream >> > (device_result, device_x, device_y);
+
+	checkCuda(cudaMemcpyAsync(&result, device_result, sizeof(int), cudaMemcpyDeviceToHost, mainStream));
+
+	checkCuda(cudaStreamSynchronize(mainStream));
+	checkCuda(cudaFree(device_result));
+
+	return result == 0;
 }
 
 int DeviceWrapper::getLSB(const int* device_x) const
 {
 	unsigned int result;
-	checkCuda(cudaMemcpyAsync(&result, device_x, sizeof(unsigned int), cudaMemcpyDeviceToHost, mainStream));
+	checkCuda(cudaMemcpyAsync(&result, device_x + 127, sizeof(unsigned int), cudaMemcpyDeviceToHost, mainStream));
 	checkCuda(cudaStreamSynchronize(mainStream));
 	return result & 0x01;
 }
