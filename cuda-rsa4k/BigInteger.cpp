@@ -90,7 +90,7 @@ BigInteger* BigInteger::createRandom(int bitLength)
 	}
 	if (bitLength <= 0)
 	{
-		cout << "ERROR: BigInteger::createRandom No bits!" << endl;
+		cout << "ERROR: BigInteger::createRandom No bits!: bitLength:" << bitLength << endl;
 		return nullptr;
 	}
 

@@ -7,11 +7,21 @@ public:
 	Test();
 	~Test();
 
-	void runAll(bool print, int bits);
-	
-	void testBigInteger(bool print);
-	void testBigIntegerTimes(int bits);
+	void runAll(bool print, int minBits, int maxBits, int step, int repeats);
+	void testBigIntegerCorrectness(bool print);
+	void testBigIntegerTimes(int minBits, int maxBits, int step, int repeats);
 
+	void testEqualsTimings(int minBits, int maxBits, int step, int repeats);
+	void testCompareTimings(int minBits, int maxBits, int step, int repeats);
+	void testShiftLeftTimings(int minBits, int maxBits, int step, int repeats);
+	void testShiftRightTimings(int minBits, int maxBits, int step, int repeats);
+	void testAddTimings(int minBits, int maxBits, int step, int repeats);
+	void testSubtractTimings(int minBits, int maxBits, int step, int repeats);
+	void testMultiplyTimings(int minBits, int maxBits, int step, int repeats);
+	void testModTimings(int minBits, int maxBits, int step, int repeats);
+	void testPowerModTimings(int minBits, int maxBits, int step, int repeats);
+
+private:
 	unsigned long long testBitwiseLengthDiffrenceTime(int bits);
 	unsigned long long testEqualsTime(int bits);
 	unsigned long long testCompareTime(int bits);
@@ -23,7 +33,7 @@ public:
 	unsigned long long testModTime(int bits);
 	unsigned long long testPowerModTime(int bits);
 
-
+public:
 	void testParsing(bool print);
 	void testCreateRandom(bool print);
 	unsigned long long testBitwiseLengthDiffrence(bool print);

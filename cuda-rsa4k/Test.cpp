@@ -13,15 +13,15 @@ Test::~Test()
 {
 }
 
-void Test::runAll(bool print, int bits)
+void Test::runAll(bool print, int minBits, int maxBits, int step, int repeats)
 {
-	testBigInteger(print);
-	testBigIntegerTimes(bits);
+	testBigIntegerCorrectness(print);	
+	testBigIntegerTimes(minBits, maxBits, step, repeats);
 }
 
-void Test::testBigInteger(bool print)
+void Test::testBigIntegerCorrectness(bool print)
 {
-	cout << "Testing BigInteger..." << endl;
+	cout << "Testing BigInteger correctnes" << endl;
 		
 	testParsing(print);
 	testCreateRandom(print);
@@ -41,24 +41,140 @@ void Test::testBigInteger(bool print)
 	testPowerMod(print);
 }
 
-void Test::testBigIntegerTimes(int bits)
+void Test::testBigIntegerTimes(int minBits, int maxBits, int step, int repeats)
 {
 	cout << "\n\nTesting BigInteger execution times..." << endl;
 
-	testBitwiseLengthDiffrenceTime(bits);
-	testEqualsTime(bits);
-	testCompareTime(bits);
+	testEqualsTimings(minBits, maxBits, step, repeats);
+	testCompareTimings(minBits, maxBits, step, repeats);
 
 	cout << "logics..." << endl;
-	testShiftLeftTime(bits, bits / 3);
-	testShiftRightTime(bits, bits / 3);
+	testShiftLeftTimings(minBits, maxBits, step, repeats);
+	testShiftRightTimings(minBits, maxBits, step, repeats);
 
 	cout << "arithmetics..." << endl;
-	testAddTime(bits);
-	testSubtractTime(bits);
-	testMultiplyTime(bits);	
-	testModTime(bits);
-	testPowerModTime(bits);
+	testAddTimings(minBits, maxBits, step, repeats);
+	testSubtractTimings(minBits, maxBits, step, repeats);
+	testMultiplyTimings(minBits, maxBits, step, repeats);
+	testModTimings(minBits, maxBits, step, repeats);
+	testPowerModTimings(minBits, maxBits, step, repeats);
+}
+
+void Test::testEqualsTimings(int minBits, int maxBits, int step, int repeats)
+{
+	unsigned long long sum = 0ULL;
+	for (int bits = minBits; bits <= maxBits; bits = bits + step)
+	{
+		for (int i = 0; i < repeats; i++)
+		{
+			sum = testEqualsTime(bits);
+		}
+		cout << "Test equals: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
+	}
+}
+
+void Test::testCompareTimings(int minBits, int maxBits, int step, int repeats)
+{
+	unsigned long long sum = 0ULL;
+	for (int bits = minBits; bits <= maxBits; bits = bits + step)
+	{
+		for (int i = 0; i < repeats; i++)
+		{
+			sum = testCompareTime(bits);
+		}
+		cout << "Test compare: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
+	}
+}
+
+void Test::testShiftLeftTimings(int minBits, int maxBits, int step, int repeats)
+{
+	unsigned long long sum = 0ULL;
+	for (int bits = minBits; bits <= maxBits; bits = bits + step)
+	{
+		for (int i = 0; i < repeats; i++)
+		{
+			sum = testShiftLeftTime(bits, 5);
+		}
+		cout << "Test shift left: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
+	}
+}
+
+void Test::testShiftRightTimings(int minBits, int maxBits, int step, int repeats)
+{
+	unsigned long long sum = 0ULL;
+	for (int bits = minBits; bits <= maxBits; bits = bits + step)
+	{
+		for (int i = 0; i < repeats; i++)
+		{
+			sum = testShiftRightTime(bits, 3);
+		}
+		cout << "Test shift right: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
+	}
+}
+
+void Test::testAddTimings(int minBits, int maxBits, int step, int repeats)
+{
+	unsigned long long sum = 0ULL;
+	for (int bits = minBits; bits <= maxBits; bits = bits + step)
+	{
+		for (int i = 0; i < repeats; i++)
+		{
+			sum = testAddTime(bits);
+		}
+		cout << "Test add: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
+	}
+}
+
+void Test::testSubtractTimings(int minBits, int maxBits,  int step, int repeats)
+{
+	unsigned long long sum = 0ULL;
+	for (int bits = minBits; bits <= maxBits; bits = bits + step)
+	{
+		for (int i = 0; i < repeats; i++)
+		{
+			sum = testSubtractTime(bits);
+		}
+		cout << "Test subtract: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
+	}
+}
+
+void Test::testMultiplyTimings(int minBits, int maxBits, int step, int repeats)
+{
+	unsigned long long sum = 0ULL;
+	for (int bits = minBits; bits <= maxBits; bits = bits + step)
+	{
+		for (int i = 0; i < repeats; i++)
+		{
+			sum = testMultiplyTime(bits);
+		}
+		cout << "Test multiply: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
+	}
+}
+
+void Test::testModTimings(int minBits, int maxBits, int step, int repeats)
+{
+	unsigned long long sum = 0ULL;
+	for (int bits = minBits; bits <= maxBits; bits = bits + step)
+	{
+		for (int i = 0; i < repeats; i++)
+		{
+			sum = testModTime(bits);
+		}
+		cout << "Test mod: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
+	}
+}
+
+void Test::testPowerModTimings(int minBits, int maxBits, int step, int repeats)
+{
+	unsigned long long sum = 0ULL;
+	for (int bits = minBits; bits <= maxBits; bits = bits + step)
+	{
+		for (int i = 0; i < repeats; i++)
+		{
+			sum = testPowerModTime(bits);
+		}
+		cout << "Test power mod: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
+	}
 }
 
 unsigned long long Test::testBitwiseLengthDiffrenceTime(int bits)
@@ -67,8 +183,7 @@ unsigned long long Test::testBitwiseLengthDiffrenceTime(int bits)
 	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
 	bigInteger->startTimer();
 	bigInteger->getBitwiseLengthDiffrence(*bigInteger2);
-	unsigned long long time = bigInteger->stopTimer();
-	cout << "Test::testBitwiseLengthDiffrenceTime: " << bits << " bits, " << time << " cycles" << endl;
+	unsigned long long time = bigInteger->stopTimer();	
 	delete bigInteger;
 	delete bigInteger2;
 	return time;
@@ -81,7 +196,6 @@ unsigned long long Test::testEqualsTime(int bits)
 	bigInteger->startTimer();
 	bigInteger->equals(*bigInteger2);
 	unsigned long long time = bigInteger->stopTimer();
-	cout << "Test::testEqualsTime: " << bits << " bits, " << time << " cycles" << endl;
 	delete bigInteger;
 	delete bigInteger2;
 	return time;
@@ -94,7 +208,6 @@ unsigned long long Test::testCompareTime(int bits)
 	bigInteger->startTimer();
 	bigInteger->compare(*bigInteger2);
 	unsigned long long time = bigInteger->stopTimer();
-	cout << "Test::testCompareTime: " << bits << " bits, " << time << " cycles" << endl;
 	delete bigInteger;
 	delete bigInteger2;
 	return time;
@@ -107,7 +220,6 @@ unsigned long long Test::testAddTime(int bits)
 	bigInteger->startTimer();
 	bigInteger->add(*bigInteger2);
 	unsigned long long time = bigInteger->stopTimer();
-	cout << "Test::testAddTime: " << bits << " bits, " << time << " cycles" << endl;
 	delete bigInteger;
 	delete bigInteger2;
 	return time;
@@ -120,7 +232,6 @@ unsigned long long Test::testSubtractTime(int bits)
 	bigInteger->startTimer();
 	bigInteger->subtract(*bigInteger2);
 	unsigned long long time = bigInteger->stopTimer();
-	cout << "Test::testSubtractTime: " << bits << " bits, " << time << " cycles" << endl;
 	delete bigInteger;
 	delete bigInteger2;
 	return time;
@@ -133,7 +244,6 @@ unsigned long long Test::testMultiplyTime(int bits)
 	bigInteger->startTimer();
 	bigInteger->multiply(*bigInteger2);
 	unsigned long long time = bigInteger->stopTimer();
-	cout << "Test::testMultiplyTime: " << bits << " bits, " << time << " cycles" << endl;
 	delete bigInteger;
 	delete bigInteger2;
 	return time;
@@ -145,7 +255,6 @@ unsigned long long Test::testShiftLeftTime(int bits, int n)
 	bigInteger->startTimer();
 	bigInteger->shiftLeft(n);
 	unsigned long long time = bigInteger->stopTimer();
-	cout << "Test::testShiftLeftTime: " << bits << " bits, " << time << " cycles" << endl;
 	delete bigInteger;
 	return time;
 }
@@ -156,7 +265,6 @@ unsigned long long Test::testShiftRightTime(int bits, int n)
 	bigInteger->startTimer();
 	bigInteger->shiftRight(n);
 	unsigned long long time = bigInteger->stopTimer();
-	cout << "Test::testShiftRightTime: " << bits << " bits, " << time << " cycles" << endl;
 	delete bigInteger;
 	return time;
 }
@@ -168,7 +276,6 @@ unsigned long long Test::testModTime(int bits)
 	bigInteger->startTimer();
 	bigInteger->mod(*bigInteger2);
 	unsigned long long time = bigInteger->stopTimer();
-	cout << "Test::testModTime: " << bits << " bits, " << time << " cycles" << endl;
 	delete bigInteger;
 	delete bigInteger2;
 	return time;
@@ -182,7 +289,6 @@ unsigned long long Test::testPowerModTime(int bits)
 	bigInteger->startTimer();
 	bigInteger->powerMod(*bigInteger2, *bigInteger3);
 	unsigned long long time = bigInteger->stopTimer();
-	cout << "Test::testPowerModTime: " << bits << " bits, " << time << " cycles" << endl;
 	delete bigInteger;
 	delete bigInteger2;
 	delete bigInteger3;
