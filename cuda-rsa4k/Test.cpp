@@ -13,9 +13,10 @@ Test::~Test()
 {
 }
 
-void Test::runAll(bool print)
+void Test::runAll(bool print, int bits)
 {
 	testBigInteger(print);
+	testBigIntegerTimes(bits);
 }
 
 void Test::testBigInteger(bool print)
@@ -26,7 +27,7 @@ void Test::testBigInteger(bool print)
 	testCreateRandom(print);
 	testEquals(print);
 	testCompare(print);
-	testbitwiseLengthDiffrence(print);
+	testBitwiseLengthDiffrence(print);
 
 	cout << "logics..." << endl;
 	testShiftLeft(print);
@@ -39,6 +40,155 @@ void Test::testBigInteger(bool print)
 	testMod(print);	
 	testPowerMod(print);
 }
+
+void Test::testBigIntegerTimes(int bits)
+{
+	cout << "\n\nTesting BigInteger execution times..." << endl;
+
+	testBitwiseLengthDiffrenceTime(bits);
+	testEqualsTime(bits);
+	testCompareTime(bits);
+
+	cout << "logics..." << endl;
+	testShiftLeftTime(bits, bits / 3);
+	testShiftRightTime(bits, bits / 3);
+
+	cout << "arithmetics..." << endl;
+	testAddTime(bits);
+	testSubtractTime(bits);
+	testMultiplyTime(bits);	
+	testModTime(bits);
+	testPowerModTime(bits);
+}
+
+unsigned long long Test::testBitwiseLengthDiffrenceTime(int bits)
+{
+	BigInteger* bigInteger = BigInteger::createRandom(bits);
+	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
+	bigInteger->startTimer();
+	bigInteger->getBitwiseLengthDiffrence(*bigInteger2);
+	unsigned long long time = bigInteger->stopTimer();
+	cout << "Test::testBitwiseLengthDiffrenceTime: " << bits << " bits, " << time << " cycles" << endl;
+	delete bigInteger;
+	delete bigInteger2;
+	return time;
+}
+
+unsigned long long Test::testEqualsTime(int bits)
+{
+	BigInteger* bigInteger = BigInteger::createRandom(bits);
+	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
+	bigInteger->startTimer();
+	bigInteger->equals(*bigInteger2);
+	unsigned long long time = bigInteger->stopTimer();
+	cout << "Test::testEqualsTime: " << bits << " bits, " << time << " cycles" << endl;
+	delete bigInteger;
+	delete bigInteger2;
+	return time;
+}
+
+unsigned long long Test::testCompareTime(int bits)
+{
+	BigInteger* bigInteger = BigInteger::createRandom(bits);
+	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
+	bigInteger->startTimer();
+	bigInteger->compare(*bigInteger2);
+	unsigned long long time = bigInteger->stopTimer();
+	cout << "Test::testCompareTime: " << bits << " bits, " << time << " cycles" << endl;
+	delete bigInteger;
+	delete bigInteger2;
+	return time;
+}
+
+unsigned long long Test::testAddTime(int bits)
+{
+	BigInteger* bigInteger = BigInteger::createRandom(bits);
+	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
+	bigInteger->startTimer();
+	bigInteger->add(*bigInteger2);
+	unsigned long long time = bigInteger->stopTimer();
+	cout << "Test::testAddTime: " << bits << " bits, " << time << " cycles" << endl;
+	delete bigInteger;
+	delete bigInteger2;
+	return time;
+}
+
+unsigned long long Test::testSubtractTime(int bits)
+{
+	BigInteger* bigInteger = BigInteger::createRandom(bits);
+	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
+	bigInteger->startTimer();
+	bigInteger->subtract(*bigInteger2);
+	unsigned long long time = bigInteger->stopTimer();
+	cout << "Test::testSubtractTime: " << bits << " bits, " << time << " cycles" << endl;
+	delete bigInteger;
+	delete bigInteger2;
+	return time;
+}
+
+unsigned long long Test::testMultiplyTime(int bits)
+{
+	BigInteger* bigInteger = BigInteger::createRandom(bits);
+	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
+	bigInteger->startTimer();
+	bigInteger->multiply(*bigInteger2);
+	unsigned long long time = bigInteger->stopTimer();
+	cout << "Test::testMultiplyTime: " << bits << " bits, " << time << " cycles" << endl;
+	delete bigInteger;
+	delete bigInteger2;
+	return time;
+}
+
+unsigned long long Test::testShiftLeftTime(int bits, int n)
+{
+	BigInteger* bigInteger = BigInteger::createRandom(bits);
+	bigInteger->startTimer();
+	bigInteger->shiftLeft(n);
+	unsigned long long time = bigInteger->stopTimer();
+	cout << "Test::testShiftLeftTime: " << bits << " bits, " << time << " cycles" << endl;
+	delete bigInteger;
+	return time;
+}
+
+unsigned long long Test::testShiftRightTime(int bits, int n)
+{
+	BigInteger* bigInteger = BigInteger::createRandom(bits);
+	bigInteger->startTimer();
+	bigInteger->shiftRight(n);
+	unsigned long long time = bigInteger->stopTimer();
+	cout << "Test::testShiftRightTime: " << bits << " bits, " << time << " cycles" << endl;
+	delete bigInteger;
+	return time;
+}
+
+unsigned long long Test::testModTime(int bits)
+{
+	BigInteger* bigInteger = BigInteger::createRandom(bits);
+	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
+	bigInteger->startTimer();
+	bigInteger->mod(*bigInteger2);
+	unsigned long long time = bigInteger->stopTimer();
+	cout << "Test::testModTime: " << bits << " bits, " << time << " cycles" << endl;
+	delete bigInteger;
+	delete bigInteger2;
+	return time;
+}
+
+unsigned long long Test::testPowerModTime(int bits)
+{
+	BigInteger* bigInteger = BigInteger::createRandom(bits);
+	BigInteger* bigInteger2 = BigInteger::createRandom(bits / 3);
+	BigInteger* bigInteger3 = BigInteger::createRandom(bits / 2);
+	bigInteger->startTimer();
+	bigInteger->powerMod(*bigInteger2, *bigInteger3);
+	unsigned long long time = bigInteger->stopTimer();
+	cout << "Test::testPowerModTime: " << bits << " bits, " << time << " cycles" << endl;
+	delete bigInteger;
+	delete bigInteger2;
+	delete bigInteger3;
+	return time;
+}
+
 
 void Test::testParsing(bool print)
 {
@@ -94,7 +244,7 @@ void Test::testCreateRandom(bool print)
 	delete bigInteger;	
 }
 
-unsigned long long Test::testbitwiseLengthDiffrence(bool print)
+unsigned long long Test::testBitwiseLengthDiffrence(bool print)
 {
 	// test bitwise length diffrence
 	BigInteger* bigInteger = BigInteger::fromHexString("8000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
