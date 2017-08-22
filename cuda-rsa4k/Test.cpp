@@ -2,12 +2,8 @@
 #include "BigInteger.h"
 #include "BuildConfig.h"
 #include <iostream>
-#include <chrono>
 
 using namespace std;
-
-using ns = chrono::nanoseconds;
-using get_time = chrono::steady_clock;
 
 Test::Test()
 {
@@ -73,7 +69,7 @@ void Test::testParsing(bool print)
 	delete bigInteger;
 }
 
-long long Test::testbitwiseLengthDiffrence(bool print)
+unsigned long long Test::testbitwiseLengthDiffrence(bool print)
 {
 	// test bitwise length diffrence
 	BigInteger* bigInteger = BigInteger::fromHexString("8000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
@@ -87,30 +83,29 @@ long long Test::testbitwiseLengthDiffrence(bool print)
 
 	BigInteger* bigInteger2 = BigInteger::fromHexString("1");
 	
-	auto start = get_time::now();
+	bigInteger->startTimer();
 	bool ok = bigInteger->getBitwiseLengthDiffrence(*bigInteger2) == 4095;
-	auto end = get_time::now();
-	auto diff = end - start;
+	unsigned long long time = bigInteger->stopTimer();
 
 	if (print || !ok)
 	{
 		if (ok)
 		{
-			cout << "BigInteger::getBitwiseLengthDiffrence... SUCCESS elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::getBitwiseLengthDiffrence... SUCCESS elapsed time:  " << time << " cycles" << endl;
 		}
 		else
 		{
-			cout << "BigInteger::getBitwiseLengthDiffrence... FAILED elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::getBitwiseLengthDiffrence... FAILED elapsed time:  " << time << " cycles" << endl;
 		}
 	}
 
 	delete bigInteger;
 	delete bigInteger2;
 
-	return chrono::duration_cast<ns>(diff).count();
+	return time;
 }
 
-long long Test::testEquals(bool print)
+unsigned long long Test::testEquals(bool print)
 {
 	// test equals
 	BigInteger* bigInteger = BigInteger::fromHexString("3e2bf9b23b2e1be1891e7fe032a06c2752abdfbd947a7edddbd9b980d26547f16ef4068e"
@@ -137,30 +132,29 @@ long long Test::testEquals(bool print)
 														"82b3cdb0be24af1bb42de45906956ce0c4cca117a20a519df37e0a02ed1ed20a0f2ba8ca"
 														"1a2ad347cabcdaeefee446f07d6753964e8e37394442fc0a9a3e7dea75d64aad8298ace7");	
 
-	auto start = get_time::now();
+	bigInteger->startTimer();
 	bool ok = bigInteger->equals(*bigInteger2);
-	auto end = get_time::now();
-	auto diff = end - start;
+	unsigned long long time = bigInteger->stopTimer();
 	
 	if (print || !ok)
 	{
 		if (ok)
 		{
-			cout << "BigInteger::equals... SUCCESS elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::equals... SUCCESS elapsed time:  " << time << " cycles" << endl;
 		}
 		else
 		{
-			cout << "BigInteger::equals... FAILED elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::equals... FAILED elapsed time:  " << time << " cycles" << endl;
 		}
 	}
 
 	delete bigInteger;
 	delete bigInteger2;
 
-	return chrono::duration_cast<ns>(diff).count();
+	return time;
 }
 
-long long Test::testCompare(bool print)
+unsigned long long Test::testCompare(bool print)
 {
 	// test equals
 	BigInteger* bigInteger = BigInteger::fromHexString("8000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
@@ -192,22 +186,21 @@ long long Test::testCompare(bool print)
 
 	BigInteger* lower = BigInteger::fromHexString("1");
 
-	auto start = get_time::now();
+	bigInteger->startTimer();
 	bool ok = bigInteger->compare(*same) == 0;
 	ok = ok && bigInteger->compare(*lower) == 1;
-	ok = ok && bigInteger->compare(*greater) == -1;	
-	auto end = get_time::now();
-	auto diff = end - start;	
+	ok = ok && bigInteger->compare(*greater) == -1;
+	unsigned long long time = bigInteger->stopTimer();
 
 	if (print || !ok)
 	{
 		if (ok)
 		{
-			cout << "BigInteger::compare... SUCCESS elapsed time:  " << chrono::duration_cast<ns>(diff).count() / 3 << " ns" << endl;
+			cout << "BigInteger::compare... SUCCESS elapsed time:  " << time / 3 << " cycles" << endl;
 		}
 		else
 		{
-			cout << "BigInteger::compare... FAILED elapsed time:  " << chrono::duration_cast<ns>(diff).count() / 3 << " ns" << endl;
+			cout << "BigInteger::compare... FAILED elapsed time:  " << time / 3 << " cycles" << endl;
 		}
 	}
 
@@ -216,10 +209,10 @@ long long Test::testCompare(bool print)
 	delete greater;
 	delete lower;
 
-	return chrono::duration_cast<ns>(diff).count() / 3;
+	return time / 3;
 }
 
-long long Test::testAdd(bool print)
+unsigned long long Test::testAdd(bool print)
 {
 	// test add parallel
 	BigInteger* bigInteger = BigInteger::fromHexString("7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
@@ -242,10 +235,10 @@ long long Test::testAdd(bool print)
 		"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
 
-	auto start = get_time::now();
+	bigInteger->startTimer();
 	bigInteger->add(*added);
-	auto end = get_time::now();
-	auto diff = end - start;
+	unsigned long long time = bigInteger->stopTimer();
+
 	bool ok;
 	if (ERROR_CHECKING)
 	{
@@ -265,11 +258,11 @@ long long Test::testAdd(bool print)
 		}
 		if (ok)
 		{
-			cout << "BigInteger::add... SUCCESS elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::add... SUCCESS elapsed time:  " << time << " cycles" << endl;
 		}
 		else
 		{
-			cout << "BigInteger::add... FAILED elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::add... FAILED elapsed time:  " << time << " cycles" << endl;
 		}
 	}	
 
@@ -278,10 +271,10 @@ long long Test::testAdd(bool print)
 	delete added;
 	delete result;
 
-	return chrono::duration_cast<ns>(diff).count();
+	return time;
 }
 
-long long Test::testSubtract(bool print)
+unsigned long long Test::testSubtract(bool print)
 {
 	// test subtract parallel
 	BigInteger* bigInteger = BigInteger::fromHexString("800000000000000000000000000000000000000000000000000000000000000000000000000000000000"
@@ -306,10 +299,10 @@ long long Test::testSubtract(bool print)
 		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
 		"fffffffffffffffffff");
 
-	auto start = get_time::now();
+	bigInteger->startTimer();
 	bigInteger->subtract(*subtracted);
-	auto end = get_time::now();
-	auto diff = end - start;
+	unsigned long long time = bigInteger->stopTimer();
+
 	bool ok = bigInteger->equals(*result);
 
 	if (print || !ok)
@@ -321,11 +314,11 @@ long long Test::testSubtract(bool print)
 		}
 		if (ok)
 		{
-			cout << "BigInteger::subtract... SUCCESS elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::subtract... SUCCESS elapsed time:  " << time << " cycles" << endl;
 		}
 		else
 		{
-			cout << "BigInteger::subtract... FAILED elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::subtract... FAILED elapsed time:  " << time << " cycles" << endl;
 		}
 	}
 
@@ -334,10 +327,10 @@ long long Test::testSubtract(bool print)
 	delete subtracted;
 	delete result;
 
-	return chrono::duration_cast<ns>(diff).count();
+	return time;
 }
 
-long long Test::testMultiply(bool print)
+unsigned long long Test::testMultiply(bool print)
 {
 	// test multiply parallel
 	BigInteger* bigInteger = BigInteger::fromHexString("2c0e41230c57595c64c958967841e13167bc85f4ff6311edfff0bb1fa595f8f7efe6da5354ca2dd4fdf06a"
@@ -360,10 +353,10 @@ long long Test::testMultiply(bool print)
 		"9a7981022488acada7d08527a8d3c069524c86799ba7ebba98ffe0fd9b03807243ae25d151641a42c4c2c5107c856f1f113c6e90191c2bd0f2f6ae66aa4d5be43fbeb529");
 
 
-	auto start = get_time::now();
+	bigInteger->startTimer();
 	bigInteger->multiply(*multiplied);
-	auto end = get_time::now();
-	auto diff = end - start;
+	unsigned long long time = bigInteger->stopTimer();
+
 	bool ok = bigInteger->equals(*result);
 	
 	if (print || !ok)
@@ -376,11 +369,11 @@ long long Test::testMultiply(bool print)
 		
 		if (ok)
 		{
-			cout << "BigInteger::multiply... SUCCESS elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::multiply... SUCCESS elapsed time:  " << time << " cycles" << endl;
 		}
 		else
 		{
-			cout << "BigInteger::multiply... FAILED elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::multiply... FAILED elapsed time:  " << time << " cycles" << endl;
 		}
 	}	
 
@@ -388,11 +381,11 @@ long long Test::testMultiply(bool print)
 	delete multiplied;
 	delete result;
 
-	return chrono::duration_cast<ns>(diff).count();
+	return time;
 }
 
 
-long long Test::testShiftLeft(bool print)
+unsigned long long Test::testShiftLeft(bool print)
 {
 	// test left shift
 	BigInteger* bigInteger = BigInteger::fromHexString("7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
@@ -413,10 +406,10 @@ long long Test::testShiftLeft(bool print)
 		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
 		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe");
 			
-	auto start = get_time::now();
+	bigInteger->startTimer();
 	bigInteger->shiftLeft(1);
-	auto end = get_time::now();
-	auto diff = end - start;
+	unsigned long long time = bigInteger->stopTimer();
+
 	bool ok = bigInteger->equals(*result);
 
 	if (print || !ok)
@@ -428,22 +421,22 @@ long long Test::testShiftLeft(bool print)
 		}
 		if (ok)
 		{
-			cout << "BigInteger::shiftLeft... SUCCESS elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::shiftLeft... SUCCESS elapsed time:  " << time << " cycles" << endl;
 		}
 		else
 		{
-			cout << "BigInteger::shiftLeft... FAILED elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::shiftLeft... FAILED elapsed time:  " << time << " cycles" << endl;
 		}
 	}
 	
 	delete bigInteger;
 	delete result;
 
-	return chrono::duration_cast<ns>(diff).count();
+	return time;
 }
 
 
-long long Test::testShiftRight(bool print)
+unsigned long long Test::testShiftRight(bool print)
 {
 	// test right shift
 	BigInteger* bigInteger = BigInteger::fromHexString("1243abc312def391acd89897ad987f789868091243b45ac0"
@@ -454,10 +447,9 @@ long long Test::testShiftRight(bool print)
 	BigInteger* result = BigInteger::fromHexString("921d5e1896f79c8d66c4c4bd6cc3fbc4c34048921da2d603bb9ffd541");
 	
 
-	auto start = get_time::now();
+	bigInteger->startTimer();
 	bigInteger->shiftRight(537);
-	auto end = get_time::now();
-	auto diff = end - start;
+	unsigned long long time = bigInteger->stopTimer();
 
 	bool ok = bigInteger->equals(*result);
 
@@ -470,21 +462,21 @@ long long Test::testShiftRight(bool print)
 		}
 		if (ok)
 		{
-			cout << "BigInteger::shiftRight... SUCCESS elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::shiftRight... SUCCESS elapsed time:  " << time << " cycles" << endl;
 		}
 		else
 		{
-			cout << "BigInteger::shiftRight... FAILED elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::shiftRight... FAILED elapsed time:  " << time << " cycles" << endl;
 		}
 	}
 
 	delete bigInteger;
 	delete result;
 
-	return chrono::duration_cast<ns>(diff).count();
+	return time;
 }
 
-long long Test::testMod(bool print)
+unsigned long long Test::testMod(bool print)
 {
 	// test reduction modulo
 	BigInteger* bigInteger = BigInteger::fromHexString("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
@@ -508,10 +500,10 @@ long long Test::testMod(bool print)
 		"ffa03c0609604e66bde510e2b33161f0bc355bcb51cb68261ffc5f24e645e1a73b3af4d40354e61d5955018ec3c51abc0449131def3344aaacbcd427bcc88ace3e587a8"
 		"71d3c0dc0de14b7bf61de744d053018883fe2f8c450bb4a6f95094a574a4df0036f18dd9fe7268c6d255f9f680cc8a3e8b666a5bd8f966177983efd771b32e577af4757b7fb");
 
-	auto start = get_time::now();
+	bigInteger->startTimer();
 	bigInteger->mod(*mod);
-	auto end = get_time::now();
-	auto diff = end - start;
+	unsigned long long time = bigInteger->stopTimer();
+
 	bool ok = bigInteger->equals(*result);
 
 	if (print || !ok)
@@ -523,11 +515,11 @@ long long Test::testMod(bool print)
 		}
 		if (ok)
 		{
-			cout << "BigInteger::mod... SUCCESS elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::mod... SUCCESS elapsed time:  " << time << " cycles" << endl;
 		}
 		else
 		{
-			cout << "BigInteger::mod... FAILED elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::mod... FAILED elapsed time:  " << time << " cycles" << endl;
 		}
 	}
 
@@ -535,11 +527,11 @@ long long Test::testMod(bool print)
 	delete mod;
 	delete result;
 
-	return chrono::duration_cast<ns>(diff).count();
+	return time;
 }
 
 
-long long Test::testPowerMod(bool print)
+unsigned long long Test::testPowerMod(bool print)
 {
 	// test modular exponentiation 
 	BigInteger* bigInteger = BigInteger::fromHexString("7a334766a93261c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9"
@@ -559,10 +551,10 @@ long long Test::testPowerMod(bool print)
 		"5d6bddb06c5b667dfc610459a4b363d3a436ccf94c93ccdd7d52456b1984d08898c025009ebb3a1b392d114b9be80d3f1ba6451cc9bb22363a66f57d6ccf01412371dea1"
 		"0bf25929231736f1464635a15ed6a4bf1e87ea5970d");
 
-	auto start = get_time::now();
+	bigInteger->startTimer();
 	bigInteger->powerMod(*exponent, *mod);
-	auto end = get_time::now();
-	auto diff = end - start;
+	unsigned long long time = bigInteger->stopTimer();
+
 	bool ok = bigInteger->equals(*result);
 
 	if (print || !ok)
@@ -574,11 +566,11 @@ long long Test::testPowerMod(bool print)
 		}
 		if (ok)
 		{
-			cout << "BigInteger::powerMod... SUCCESS elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::powerMod... SUCCESS elapsed time:  " << time << " cycles" << endl;
 		}
 		else
 		{
-			cout << "BigInteger::powerMod... FAILED elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::powerMod... FAILED elapsed time:  " << time << " cycles" << endl;
 		}
 	}
 
@@ -587,5 +579,5 @@ long long Test::testPowerMod(bool print)
 	delete mod;
 	delete result;
 
-	return chrono::duration_cast<ns>(diff).count();
+	return time;
 }

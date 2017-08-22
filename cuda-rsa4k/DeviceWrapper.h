@@ -13,8 +13,7 @@ public:
 	static const int ONE_WARP = 32;
 	// both addition and subtraction
 	static const int ADDITION_CELLS_PER_THREAD = 4;	// BigInteger::ARRAY_SIZE / ONE_WARP
-
-
+	
 private:
 
 	// main stream for kernel launches
@@ -23,14 +22,14 @@ private:
 	int* deviceOneWord;
 	int* device4arrays;
 
+	unsigned long long* deviceStartTime;
+	unsigned long long* deviceStopTime;
+
 public:
 
 	DeviceWrapper();
 	~DeviceWrapper();
-
-	// statics
-	static unsigned long long getClock(void);	
-
+	
 	// sync
 	int* init(int size) const;
 	int* init(int size, const int* initial) const;
@@ -45,6 +44,10 @@ public:
 	bool equalsParallel(const int* device_x, const int* device_y) const;
 	int getLSB(const int* device_x) const;
 	int getBitLength(const int* device_x) const;
+
+	// measure time
+	void startClock(void);
+	unsigned long long stopClock(void);
 
 	// logics
 	void shiftLeftParallel(int* device_x, int bits) const;

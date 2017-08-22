@@ -44,9 +44,11 @@ __constant__ unsigned int deviceIndexFixupTable[] { 0, 32, 65, 97, 130, 162, 195
 1331, 1364, 1396, 1429, 1461, 1494, 1526, 1559, 1591, 1624, 1656, 1689, 1721, 1754, 1786, 1819, 1851, 1884, 1916, 1949,
 1981, 2014, 2046, 2079, 2111, 128 };
 
-extern "C" __global__ void device_get_clock(int* result)
+extern "C" __global__ void device_get_clock(unsigned long long* time)
 {
-	// todo	
+	asm volatile (
+		"mov.u64 %0, %%clock64; \n\t"
+		: "=l"(*time) :: "memory");
 }
 
 extern "C" __global__ void device_clone_partial(int* x, const int* y)
@@ -464,12 +466,16 @@ DeviceWrapper::DeviceWrapper()
 	checkCuda(cudaStreamCreate(&mainStream));
 	checkCuda(cudaMalloc(&deviceOneWord, sizeof(int)));
 	checkCuda(cudaMalloc(&device4arrays, sizeof(int) * 128 * 4));
+	checkCuda(cudaMalloc(&deviceStartTime, sizeof(unsigned long long)));
+	checkCuda(cudaMalloc(&deviceStopTime, sizeof(unsigned long long)));
 }
 
 DeviceWrapper::~DeviceWrapper()
 {		
 	checkCuda(cudaFree(deviceOneWord));
 	checkCuda(cudaFree(device4arrays));
+	checkCuda(cudaFree(deviceStartTime));
+	checkCuda(cudaFree(deviceStopTime));
 
 	checkCuda(cudaStreamSynchronize(mainStream));
 	checkCuda(cudaStreamDestroy(mainStream));
@@ -522,20 +528,6 @@ void DeviceWrapper::updateHost(unsigned int* host_array, const int* device_array
 void DeviceWrapper::free(int* device_x) const
 {
 	checkCuda(cudaFree(device_x));
-}
-
-unsigned long long DeviceWrapper::getClock(void)
-{
-	unsigned long long clock;
-	unsigned long long* deviceClock;
-	checkCuda(cudaMalloc(&deviceClock, sizeof(unsigned long long)));
-	
-//	device_get_clock << <1, 1>> > (deviceClock);
-
-	checkCuda(cudaMemcpy(&clock, deviceClock, sizeof(unsigned long long), cudaMemcpyDeviceToHost));
-	checkCuda(cudaFree(deviceClock));
-	
-	return clock;
 }
 
 void DeviceWrapper::clearParallel(int* device_x) const
@@ -623,6 +615,26 @@ int DeviceWrapper::getBitLength(const int* device_x) const
 	checkCuda(cudaStreamSynchronize(mainStream));
 
 	return result;
+}
+
+void DeviceWrapper::startClock(void)
+{
+	device_get_clock << <1, 1, 0, mainStream >> > (deviceStartTime);
+	checkCuda(cudaStreamSynchronize(mainStream));
+
+}
+
+unsigned long long DeviceWrapper::stopClock(void)
+{
+	device_get_clock << <1, 1, 0, mainStream >> > (deviceStopTime);
+	checkCuda(cudaStreamSynchronize(mainStream));
+	unsigned long long start;
+	unsigned long long stop;
+	checkCuda(cudaMemcpyAsync(&start, deviceStartTime, sizeof(unsigned long long), cudaMemcpyDeviceToHost, mainStream));
+	checkCuda(cudaMemcpyAsync(&stop, deviceStopTime, sizeof(unsigned long long), cudaMemcpyDeviceToHost, mainStream));
+	checkCuda(cudaStreamSynchronize(mainStream));
+
+	return stop - start;
 }
 
 void DeviceWrapper::shiftLeftParallel(int* device_x, int bits) const

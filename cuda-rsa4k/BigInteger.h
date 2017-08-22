@@ -55,6 +55,10 @@ public:
 	int getLSB(void) const;
 	char* toHexString(void) const;
 	void print(const char* title) const;
+
+	//timer
+	void startTimer(void);
+	unsigned long long stopTimer(void);
 	
 private:
 

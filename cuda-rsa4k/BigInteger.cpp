@@ -241,6 +241,16 @@ void BigInteger::print(const char* title) const
 	cout << "MagLength: " << strlen(toHexString()) << endl;
 }
 
+void BigInteger::startTimer(void)
+{
+	deviceWrapper->startClock();
+}
+
+unsigned long long BigInteger::stopTimer(void)
+{
+	return deviceWrapper->stopClock();
+}
+
 // private
 unsigned int BigInteger::parseUnsignedInt(const char* hexString)
 {
