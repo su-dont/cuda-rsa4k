@@ -1,6 +1,7 @@
 #include "BigInteger.h"
 #include "BuildConfig.h"
 #include <iostream>
+#include <cmath> 
 
 using namespace std;
 
@@ -38,37 +39,44 @@ BigInteger::~BigInteger()
 
 BigInteger* BigInteger::fromHexString(const char* string)
 {
-	// todo: fix +1
-	unsigned int* magnitude = new unsigned int[ARRAY_SIZE + 1];
+	unsigned int* magnitude = new unsigned int[ARRAY_SIZE];
 	for (int i = 0; i < 128; i++)
 		magnitude[i] ^= magnitude[i];
 	BigInteger* integer = new BigInteger();	
 	int length = strlen(string);
+	if (length == 0)
+	{
+		cerr << "ERROR: Nothing to parse: string length == 0" << endl;
+		return integer;
+	}
+	if (length > 1024)
+	{
+		cerr << "ERROR: Overflow: string length > 1024" << endl;
+		return integer;
+	}
 	char temp[9];
 	int i = length - 8;
 	int j = 0;
 	for (; i >= 0; i -= 8)
 	{
 		strncpy(temp, string + i, 8);
-		temp[8] = '\0';
-		magnitude[j++] = parseUnsignedInt(temp);
-	}
-	if (i < 0)
+		temp[8] = '\0';		
+		magnitude[j] = parseUnsignedInt(temp);
+		j++;		
+	}	
+	if (i < 0 && j < 127)
 	{
 		int index = 8 + i;
 		char* temp = (char*) malloc(index + 1);
 		strncpy(temp, string, 8 + i);
 		temp[index] = '\0';
-		unsigned int value = parseUnsignedInt(temp);
-		magnitude[j] = value;		
-		if (value > 0UL) 
-			j++;
+		unsigned int value = parseUnsignedInt(temp);		
+		magnitude[j] = value;				
 	}
 
 	integer->setMagnitude(magnitude);
 
 	delete[] magnitude;
-
 	return integer;
 }
 
@@ -112,9 +120,9 @@ void BigInteger::mod(const BigInteger& modulus)
 	BigInteger* mod = new BigInteger(modulus);
 
 	int compareValue = compare(*mod);
-	if (compareValue == 1)
+	if (compareValue == -1)
 	{
-		 // Trying to reduce modulo a greater integer		
+		// Trying to reduce modulo a greater integer		
 		return;
 	}
 	if (compareValue == 0)
@@ -129,7 +137,7 @@ void BigInteger::mod(const BigInteger& modulus)
 	
 	while (bitwiseDifference >= 0) // TODO: side channel vulnerability
 	{
-		if (compare(*mod) == -1)	// this > x
+		if (compare(*mod) == 1)	// this > x
 		{		
 			subtract(*mod);
 		}
@@ -180,106 +188,25 @@ bool BigInteger::equals(const BigInteger& value) const
 }
 
 // returns:
-// 0 if value is the same with this
-// 1 if value is greater than this
-// -1 if value is lower than this
+// 0 if this == value
+// 1 if this > value
+// -1 if this < value
 int BigInteger::compare(const BigInteger& value) const
 {
 	return deviceWrapper->compareParallel(deviceMagnitude, value.getDeviceMagnitude());	
 }
 
-// value must not be greater than this
 int BigInteger::getBitwiseLengthDiffrence(const BigInteger& value) const
 {
-	if (DEBUG)
-	{
-		if (compare(value) != -1)
-		{
-			cerr << "ERROR: BigInteger::getBitwiseLengthDiffrence - provided value is greater than this!" << endl;
-		}
-	}
-
 	int thisLength = getBitwiseLength();
 	int valueLength = value.getBitwiseLength();
 
-	if (thisLength < valueLength)
-	{
-		cerr << "ERROR: BigInteger::getBitwiseLengthDiffrence - provided value is greater than this!" << endl;
-	}
-
-	return thisLength - valueLength;
-
-	/*int thisInts;
-	int valueInts;
-	bool thisSet = false;
-	bool valueSet = false;
-	for (int i = 127; i >= 0; i--)
-	{
-		if (magnitude[i] != 0UL && !thisSet)
-		{
-			thisInts = i;		
-			thisSet = true;
-		}
-
-		if (value.magnitude[i] != 0UL && !valueSet)
-		{
-			valueInts = i;
-			valueSet = true;
-		}
-	}	
-	if (valueInts > thisInts)
-	{
-		cerr << "ERROR: BigInteger::getBitwiseLengthDiffrence - provided value is greater than this!" << endl;
-	}
-
-	int thisBits = 0;
-	int valueBits = 0;
-	unsigned int thisValue = magnitude[thisInts];
-	unsigned int valueValue = value.magnitude[valueInts];
-	for (int i = 1; i < 32; i++)
-	{
-		if (thisValue >> i == 1)
-			thisBits = i + 1;
-		if (valueValue >> i == 1)
-			valueBits = i + 1;
-	}
-	
-	if (valueInts == thisInts && valueBits > thisBits)
-	{
-		cerr << "ERROR: BigInteger::getBitwiseLengthDiffrence - provided value is greater than this!" << endl;
-	}
-
-	return 32 * (thisInts - valueInts) + thisBits - valueBits;*/
+	return abs(thisLength - valueLength);	
 }
 
 int BigInteger::getBitwiseLength(void) const
 {
-	// TODO: parallel
-
-	unsigned int* magnitude = new unsigned int[ARRAY_SIZE];
-	deviceWrapper->updateHost(magnitude, deviceMagnitude, ARRAY_SIZE);
-
-	int ints = 0;	
-	bool set = false;
-	for (int i = 127; i >= 0; i--)
-	{
-		if (magnitude[i] != 0UL && !set)
-		{
-			ints = i;
-			set = true;
-		}
-	}
-
-	int bits = 0;	
-	unsigned int value = magnitude[ints];
-	
-	for (int i = 1; i < 32; i++)
-	{
-		if (value >> i == 1)
-			bits = i + 1;
-	}
-	
-	return 32 * ints + bits;
+	return deviceWrapper->getBitLength(deviceMagnitude);
 }
 
 int BigInteger::getLSB(void) const

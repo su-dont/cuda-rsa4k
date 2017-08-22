@@ -1,5 +1,6 @@
 #include "Test.h"
 #include "BigInteger.h"
+#include "BuildConfig.h"
 #include <iostream>
 #include <chrono>
 
@@ -45,12 +46,17 @@ void Test::testBigInteger(bool print)
 void Test::testParsing(bool print)
 {
 	// test parsing
-	const char* string = "1243abc312def391acd89897ad987f789868091243b45ac0"
-							"7773FFAA83d19a3b3549937cfcF8a3dB9931254639186109"
-							"ba3e70688a2f49CC67ff1dcfFF254639DF186BC109ADDE8c"
-							"43ce74e249f9924093cebb70034a32a33ed731574ab50c3b";
+	const char* string = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+
 	BigInteger* bigInteger = BigInteger::fromHexString(string);
-	char* string2 = bigInteger->toHexString();
+	char* string2 = bigInteger->toHexString();	
 	bool ok = _stricmp(string, string2) == 0;
 	if (print || !ok)
 	{
@@ -70,12 +76,19 @@ void Test::testParsing(bool print)
 long long Test::testbitwiseLengthDiffrence(bool print)
 {
 	// test bitwise length diffrence
-	BigInteger* bigInteger = BigInteger::fromHexString("ffffffffffffffffffffffffffffffff");
+	BigInteger* bigInteger = BigInteger::fromHexString("8000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
 
-	BigInteger* bigInteger2 = BigInteger::fromHexString("2000000");
+	BigInteger* bigInteger2 = BigInteger::fromHexString("1");
 	
 	auto start = get_time::now();
-	bool ok = bigInteger->getBitwiseLengthDiffrence(*bigInteger2) == 102;
+	bool ok = bigInteger->getBitwiseLengthDiffrence(*bigInteger2) == 4095;
 	auto end = get_time::now();
 	auto diff = end - start;
 
@@ -87,7 +100,7 @@ long long Test::testbitwiseLengthDiffrence(bool print)
 		}
 		else
 		{
-			cout << "BigInteger::equgetBitwiseLengthDiffrenceals... FAILED elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
+			cout << "BigInteger::getBitwiseLengthDiffrence... FAILED elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
 		}
 	}
 
@@ -101,6 +114,10 @@ long long Test::testEquals(bool print)
 {
 	// test equals
 	BigInteger* bigInteger = BigInteger::fromHexString("3e2bf9b23b2e1be1891e7fe032a06c2752abdfbd947a7edddbd9b980d26547f16ef4068e"
+													"493873573d8ff96ae2a730ecc737a7bd82f27fa482b8346c98e2bacb8f93cf748eb56909"
+													"0c17c3c4d8bc6edc4033d320a45dbfbf14ed8b6fa67c9d45f1368fd272b5b7395c0fed4b"
+													"dd7a61f377c9073a8705b500d8a173cc00085468eb76ba67b5aafc516bd6d71ef2381a4c"
+													"6882398dca52c7372f700fa6fbabc0aec06c8f03389c6be6499d6fed5a84e72ba344ee16"
 													  "493873573d8ff96ae2a730ecc737a7bd82f27fa482b8346c98e2bacb8f93cf748eb56909"
 													  "0c17c3c4d8bc6edc4033d320a45dbfbf14ed8b6fa67c9d45f1368fd272b5b7395c0fed4b"
 													  "dd7a61f377c9073a8705b500d8a173cc00085468eb76ba67b5aafc516bd6d71ef2381a4c"
@@ -109,6 +126,10 @@ long long Test::testEquals(bool print)
 													  "1a2ad347cabcdaeefee446f07d6753964e8e37394442fc0a9a3e7dea75d64aad8298ace7");
 
 	BigInteger* bigInteger2 = BigInteger::fromHexString("3e2bf9b23b2e1be1891e7fe032a06c2752abdfbd947a7edddbd9b980d26547f16ef4068e"
+														"493873573d8ff96ae2a730ecc737a7bd82f27fa482b8346c98e2bacb8f93cf748eb56909"
+														"0c17c3c4d8bc6edc4033d320a45dbfbf14ed8b6fa67c9d45f1368fd272b5b7395c0fed4b"
+														"dd7a61f377c9073a8705b500d8a173cc00085468eb76ba67b5aafc516bd6d71ef2381a4c"
+														"6882398dca52c7372f700fa6fbabc0aec06c8f03389c6be6499d6fed5a84e72ba344ee16"
 														"493873573d8ff96ae2a730ecc737a7bd82f27fa482b8346c98e2bacb8f93cf748eb56909"
 														"0c17c3c4d8bc6edc4033d320a45dbfbf14ed8b6fa67c9d45f1368fd272b5b7395c0fed4b"
 														"dd7a61f377c9073a8705b500d8a173cc00085468eb76ba67b5aafc516bd6d71ef2381a4c"
@@ -142,42 +163,39 @@ long long Test::testEquals(bool print)
 long long Test::testCompare(bool print)
 {
 	// test equals
-	BigInteger* bigInteger = BigInteger::fromHexString("3e2bf9b23b2e1be1891e7fe032a06c2752abdfbd947a7edddbd9b980d26547f16ef4068e"
-														"493873573d8ff96ae2a730ecc737a7bd82f27fa482b8346c98e2bacb8f93cf748eb56909"
-														"0c17c3c4d8bc6edc4033d320a45dbfbf14ed8b6fa67c9d45f1368fd272b5b7395c0fed4b"
-														"dd7a61f377c9073a8705b500d8a173cc00085468eb76ba67b5aafc516bd6d71ef2381a4c"
-														"6882398dca52c7372f700fa6fbabc0aec06c8f03389c6be6499d6fed5a84e72ba344ee16"
-														"82b3cdb0be24af1bb42de45906956ce0c4cca117a20a519df37e0a02ed1ed20a0f2ba8ca"
-														"1a2ad347cabcdaeefee446f07d6753964e8e37394442fc0a9a3e7dea75d64aad8298ace7");
+	BigInteger* bigInteger = BigInteger::fromHexString("8000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
 
-	BigInteger* same = BigInteger::fromHexString("3e2bf9b23b2e1be1891e7fe032a06c2752abdfbd947a7edddbd9b980d26547f16ef4068e"
-													"493873573d8ff96ae2a730ecc737a7bd82f27fa482b8346c98e2bacb8f93cf748eb56909"
-													"0c17c3c4d8bc6edc4033d320a45dbfbf14ed8b6fa67c9d45f1368fd272b5b7395c0fed4b"
-													"dd7a61f377c9073a8705b500d8a173cc00085468eb76ba67b5aafc516bd6d71ef2381a4c"
-													"6882398dca52c7372f700fa6fbabc0aec06c8f03389c6be6499d6fed5a84e72ba344ee16"
-													"82b3cdb0be24af1bb42de45906956ce0c4cca117a20a519df37e0a02ed1ed20a0f2ba8ca"
-													"1a2ad347cabcdaeefee446f07d6753964e8e37394442fc0a9a3e7dea75d64aad8298ace7");
+	BigInteger* same = BigInteger::fromHexString("8000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
 
-	BigInteger* greater = BigInteger::fromHexString("3e2bf9b23b2e1be1891e7fe032a06c2752abdfbd947a7edddbd9b980d26547f16ef4068e"
-													"493873573d8ff96ae2a730ecc737a7bd82f27fa482b8346c98e2bacb8f93cf748eb56909"
-													"1c17c3c4d8bc6edc4033d320a45dbfbf14ed8b6fa67c9d45f1368fd272b5b7395c0fed4b"
-													"dd7a61f377c9073a8705b500d8a173cc00085468eb76ba67b5aafc516bd6d71ef2381a4c"
-													"6882398dca52c7372f700fa6fbabc0aec06c8f03389c6be6499d6fed5a84e72ba344ee16"
-													"82b3cdb0be24af1bb42de45906956ce0c4cca117a20a519df37e0a02ed1ed20a0f2ba8ca"
-													"1a2ad347cabcdaeefee446f07d6753964e8e37394442fc0a9a3e7dea75d64aad8298ace7");
+	BigInteger* greater = BigInteger::fromHexString("8000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001");
 
-	BigInteger* lower = BigInteger::fromHexString("3e2bf9b23b2e1be1891e7fe032a06c2752abdfbd947a7edddbd9b980d26547f16ef4068e"
-													"493873573d8ff96ae2a730ecc737a7bd82f27fa482b8346c98e2bacb8f93cf748eb56909"
-													"0c17c3c4d8bc6edc4033d320a45dbfbf14ed8b6fa67c9d45f1368fd272b5b7395c0fed4b"
-													"dd7a61f377c9073a8705b500d8a173cc00085468eb76ba67b5aafc516bd6d71ef2381a4c"
-													"6882398dca52c7372f700fa6fbabc0aec06c8f03389c6be6499d6fed5a84e72ba344ee16"
-													"82b3cdb0be24af1bb42de45906956ce0c4cca117a20a519df37e0a02ed1ed20a0f2ba8ca"
-													"1a2ad347caacdaeefee446f07d6753964e8e37394442fc0a9a3e7dea75d64aad8298ace7");
+	BigInteger* lower = BigInteger::fromHexString("1");
 
 	auto start = get_time::now();
 	bool ok = bigInteger->compare(*same) == 0;
-	ok = ok && bigInteger->compare(*greater) == 1;
-	ok = ok && bigInteger->compare(*lower) == -1;
+	ok = ok && bigInteger->compare(*lower) == 1;
+	ok = ok && bigInteger->compare(*greater) == -1;	
 	auto end = get_time::now();
 	auto diff = end - start;	
 
@@ -204,42 +222,39 @@ long long Test::testCompare(bool print)
 long long Test::testAdd(bool print)
 {
 	// test add parallel
-	BigInteger* bigInteger = BigInteger::fromHexString("fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffff");
+	BigInteger* bigInteger = BigInteger::fromHexString("7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
 
 	BigInteger* added = BigInteger::fromHexString("1");
 
-	BigInteger* result = BigInteger::fromHexString("100000000000000000000000000000000000000000000000000000000000000000000000000000000"
-													"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-													"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-													"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-													"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-													"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-													"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-													"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-													"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-													"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-													"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-													"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-													"000000000000000000000000000000000000000000000000000000000000000");
+	BigInteger* result = BigInteger::fromHexString("8000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
 
 	auto start = get_time::now();
 	bigInteger->add(*added);
 	auto end = get_time::now();
 	auto diff = end - start;
-	bool ok = bigInteger->equals(*result);
+	bool ok;
+	if (ERROR_CHECKING)
+	{
+		ok= bigInteger->equals(*added);
+	}
+	else
+	{
+		ok = bigInteger->equals(*result);
+	}
 
 	if (print || !ok)
 	{
@@ -269,36 +284,27 @@ long long Test::testAdd(bool print)
 long long Test::testSubtract(bool print)
 {
 	// test subtract parallel
-	BigInteger* bigInteger = BigInteger::fromHexString("100000000000000000000000000000000000000000000000000000000000000000000000000000000"
-														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-														"00000000000000000000000000000000000000000000000000000000000000000000000000000000"
-														"000000000000000000000000000000000000000000000000000000000000000");
+	BigInteger* bigInteger = BigInteger::fromHexString("800000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"00000000000000000000000");
 
 	BigInteger* subtracted = BigInteger::fromHexString("1");
 
-	BigInteger* result = BigInteger::fromHexString("fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-													"ffffffffffffffffffffffffffffffffff");
+	BigInteger* result = BigInteger::fromHexString("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffff");
 
 	auto start = get_time::now();
 	bigInteger->subtract(*subtracted);
@@ -334,35 +340,25 @@ long long Test::testSubtract(bool print)
 long long Test::testMultiply(bool print)
 {
 	// test multiply parallel
-	BigInteger* bigInteger = BigInteger::fromHexString("3e2bf9b23b2e1be1891e7fe032a06c2752abdfbd947a7edddbd9b980d26547f16ef4068e"
-													  "493873573d8ff96ae2a730ecc737a7bd82f27fa482b8346c98e2bacb8f93cf748eb56909"
-													  "0c17c3c4d8bc6edc4033d320a45dbfbf14ed8b6fa67c9d45f1368fd272b5b7395c0fed4b"
-													  "dd7a61f377c9073a8705b500d8a173cc00085468eb76ba67b5aafc516bd6d71ef2381a4c"
-													  "6882398dca52c7372f700fa6fbabc0aec06c8f03389c6be6499d6fed5a84e72ba344ee16"
-													  "82b3cdb0be24af1bb42de45906956ce0c4cca117a20a519df37e0a02ed1ed20a0f2ba8ca"
-													  "1a2ad347cabcdaeefee446f07d6753964e8e37394442fc0a9a3e7dea75d64aad8298ace7"
-													  "6e26f9c3650255a6dc80d273b07cfb13ccac940011188624a029c9b0fdda9b36132b78ca"
-													  "a82ed0d00cb287a0ec2a9ddf52c67dec2edde28f59172c82ad68b5d59600e8ef2f19e9fff");
-	BigInteger* multiplied = BigInteger::fromHexString("41e1c98f1fbf9dce616092207503df412b6abb4e5c351dfe33ce4d4b9382309a2aa9f931"
-													"afbe10435ee11009d1a0d1d78da36539926c10d4ff33ca664c5cc13c6909396c24498bd6"
-													"78f45a5a2de167ea082e71d64ee4a8e39859b9b312bd7859f2616d6ea46cc95623fd5315"
-													"f90edb9ac5e4b4069a3647b5613f606bde716b34faeca5fa147d127359f5dfdf627b455f"
-													"dc4e556d160d8ff72cc800f80592d3809d82ea2f83bae2131702f7a4799a52756870b9a2"
-													"37ebb93e2cdcbd9");
-	BigInteger* result = BigInteger::fromHexString("100000000000000000000000000000000000000000000000000000000000000000000000000"
-												  "000000000000000000000000000000000000000000000000000000000000000000000000000"
-												  "000000000000000000000000000000000000000000000000000000000000000000000000000"
-												  "000000000000000000000000000000000000000000000000000000000000000000000000000"
-												  "000000000000000000000000000000000000000000000000000000000000000000000000000"
-												  "000000000000000000000000000000000000000000000000000000000000000000000000000"
-												  "000000000000000000000000000000000000000000000000000000000000000000000000000"
-												  "000000000000000000000000000000000000000000000000000000000000000000000000000"
-												  "00000000000000000000000000000000000000000000001fa0904b664e9676d28e9fd80bd13"
-												  "12290fb37fa15238e039460194b98ffbd57ecec30e873e2d1469f3c25be3805b50c51c666c9"
-												  "45b76058e87a6093ec72fe3c2575d130af2d730390cf448be26e845a38f33f82668981d1c85"
-												  "92401ad7fe12738a6262ac27a345eebe1b397179522e34749d172c595ed79682c28e76ed90f"
-												  "35d9c1ef0d95d1216efc566123271ec86892dd715ca9f6362f078c6121b2e7788a01a725aea"
-												  "8e67768c755ba7fd360f0806b97af222123027b39d587d427");
+	BigInteger* bigInteger = BigInteger::fromHexString("2c0e41230c57595c64c958967841e13167bc85f4ff6311edfff0bb1fa595f8f7efe6da5354ca2dd4fdf06a"
+		"a1a6da1d3229fe430c945a53abbccaf807c8cdaea43d8790fcfb86647389fc4a96c27e02ee70b3b0a170b7d8ea13e072c71c444096c21308ef5b31635013af224e444"
+		"9675f93e3ac4d13e3fca652fe4e7a5279b33f6a849c294c138e830a0cba3debe66c741d5436ae4cde8dbfd07b154a24a4cba3827bba8e144985a74b0bd73222cfeea4"
+		"9069b1700542e2f0863138faccd5cb241fe9d5f883a13c9a6bb21aad4741004e7c298ada8dbc13cb8c6389c0220deaddd3e6689e1b3aca68700ad560e97c20bd85f60"
+		"2da1355adae3e373139226ddbb3");
+	BigInteger* multiplied = BigInteger::fromHexString("20150673f581db09a09d08f8ea0f0af0555a7cc42aa415001d1385cb634a8d6eb582add30b4a7ff82c9ddc"
+		"ef1ec9a2c5955e593208d3fe8e06b615559b3a88812a350408a6bded1a80911b76cb3fd2d45e126d259fec8c9bef221e847e1f9f5da30143e34905b9866bcf6a46165"
+		"a9eb27c3df5cff9f0e41bbfd3d9249c13f2d705c3dd95e142d2d11a4c9041cfc2051501f687f57106b5b76e2d4ed870bb21363d425363628e8d013c61f3542c8f469a"
+		"80bc322452eec6a1ca98e8e18947af8cba631231e3f86149b8880f06dcd03d35fdd4e984348b25ac0824297a5932fb7bbcc5fc736dbe6926ab644bec0b1cfaf5c6cfb"
+		"bd3520bf2106a0d31e8a69220db3");
+	BigInteger* result = BigInteger::fromHexString("585666c03990095afd8c3c7d0c30fb0a6aa4a782663acb74e6b66fa5ea831018c8bab2924e7e6881f69d8effc5"
+		"9b237a480ea56b26748526311fc692c7b011b91ce5efc3e87d2d0af3a174f4299ec5a4358dbd7e6db0494c60c0580601c2e25f40341c026bd1f4444e9e82eb793ab7b"
+		"1ddf6186f8b63d3a5d5f782033a2f6ea6c8f61954bcf14a75294c7e23ccfd92e3d655501fca1ca5dc2df47739fdf6306e52f1feceea93d130b512232a1ef019054536"
+		"69591dc40a40022e665937780327d785ca628a6fac350c909f940b9a3f767bd6c814da77eb9c09ee7cba650e3e9ee68ba5aef0a535cd338789882928f1f183e3f5f10"
+		"c027931187b0c1098e99bccc5318058355757f833758e611e67a964eb57c7675702dee7f230cddf1b8cc3793c5ed022b210510e6e5f58ebc918852ce4aff954af2add"
+		"453667cb22cee1e3778ee5e78eaa4033c57c99d3452f1d369a968e84bfa818a97678b4f728a7fd8b894dceb344bb4e3f78fa4f41cadecf062e3d4d21b3655e0b9dc3d"
+		"af1b72a224cfdb49b7d85a6d2e32bf50e77dcee10a3b5b47e2b0c3f816a69135d7f51931b84a9c5aef7da5945759f7f5d9b26dd88c7bacd043b44372e949be026b6df"
+		"9a7981022488acada7d08527a8d3c069524c86799ba7ebba98ffe0fd9b03807243ae25d151641a42c4c2c5107c856f1f113c6e90191c2bd0f2f6ae66aa4d5be43fbeb529");
+
 
 	auto start = get_time::now();
 	bigInteger->multiply(*multiplied);
@@ -377,6 +373,7 @@ long long Test::testMultiply(bool print)
 			bigInteger->print("bigInteger:");
 			result->print("result");
 		}
+		
 		if (ok)
 		{
 			cout << "BigInteger::multiply... SUCCESS elapsed time:  " << chrono::duration_cast<ns>(diff).count() << " ns" << endl;
@@ -398,24 +395,26 @@ long long Test::testMultiply(bool print)
 long long Test::testShiftLeft(bool print)
 {
 	// test left shift
-	BigInteger* bigInteger = BigInteger::fromHexString("1243abc312def391acd89897ad987f789868091243b45ac0"
-														"7773FFAA83d19a3b3549937cfcF8a3dB9931254639186109"
-														"ba3e70688a2f49CC67ff1dcfFF254639DF186BC109ADDE8c"
-														"43ce74e249f9924093cebb70034a32a33ed731574ab50c3b");
+	BigInteger* bigInteger = BigInteger::fromHexString("7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
 
-	BigInteger* result = BigInteger::fromHexString("2487578625bde72359b1312f5b30fef130d012248768b580eee7ff"
-													"5507a334766a9326f9f9f147b732624a8c7230c213747ce0d1145"
-													"e9398cffe3b9ffe4a8c73be30d782135bbd18879ce9c493f32481"
-													"279d76e0069465467dae62ae956a1876000000000000000000000"
-													"00000000000000000000000000000000000000000000000000000"
-													"00000000000000000000000000000000000000000000000000000"
-													"00000000000000000000000000000000000000000000000000000"
-													"00000000000000000000000000000000000000000000000000000"
-													"00000000000000000000000000000000000000000000000000000"
-													"0000000000000000000000000000000000000000000000000000000000000");
+	BigInteger* result = BigInteger::fromHexString("fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe");
 			
 	auto start = get_time::now();
-	bigInteger->shiftLeft(1389);
+	bigInteger->shiftLeft(1);
 	auto end = get_time::now();
 	auto diff = end - start;
 	bool ok = bigInteger->equals(*result);
@@ -488,41 +487,26 @@ long long Test::testShiftRight(bool print)
 long long Test::testMod(bool print)
 {
 	// test reduction modulo
-	BigInteger* bigInteger = BigInteger::fromHexString("493873573d8ff96ae2507a334766a9326f9f9f147b732624a8c7230c2137a507a334766326f9fa9326f9f9f1"
-														"47326f9fb732624f9fa8c72c2137730ecc737a7bdf27fa482b8346c9507a334766a9326f9f9f147b732624a"
-														"8c7230c21378e2bacb8f93cf748eb569091c17c3c4d8bc6edc4033d320a45dbfbf14ed8b6fa67c9df1368fd"
-														"272b5b7395c81a4c68823981a4c6882398dca52c732f8dca5c7372f0fed4bdd7a61f3c9073a870b500d8a17"
-														"3cc00085468eb76ba67b5aafc516bd6d71ef2381a4c63981c17326f9f6edc4033d3326f9326f9fffbf14ed8"
-														"507a334766a9326f9f9f326f9f147b732507a33326f9f4766a326f9f9326f9f9f147b73262a8c7232137624"
-														"a8c7230c2137b6fa67c45f1368fd272b5b7395c0fed4bdd7a61f377c9073a8705b50d8a173cc00085468eb7"
-														"6ba67b5aafc5d6d71ef2381a4c6882398dca52c7372f700fa6fbabc0aecc68823981a4c8823906c881a4c68"
-														"823998dca52c73c68823981a4c68823972f881a4c688239c68823981a4c6326f9f882398dca52c732f9f372"
-														"fa52c73706326f9f956c326f9fe0c4cca117a256ce0906956ce0c4cca117a206956ce0c4326f9fcca1326f9"
-														"f17a24e72ba344ee16dca52c7372f700fa6fbabc0aec06c8f03389c6be6499d6fed5a84e72ba344ee1682b3"
-														"cdb0be24af1bb42de45906956ce0c4cca117a20a519df37e0a02ed1ed20a2ba8ca");
+	BigInteger* bigInteger = BigInteger::fromHexString("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
 	BigInteger* mod = BigInteger::fromHexString("1c1732493873573d8ff96ae2507a334766a9326f9f9f147b732624a8c7230c2137a507a334766326f9fa9326f9f9f14"
 												"7326f9fb32624326f9fa8c7230c2137730ecc737bd2f27fa482b8346c907a334766a9326f9f9f147b732624a8c7230c"
 												"21378e2bacb8cf748eb569091c17c3c4d8bc6edc033d320a45dbfbf14ed8b6fa67c91368fd272b5b7395c81a4c68823"
 												"981a4c6882398dca52c7372f8dcc7372f0fed4bdda61f377c9073a8705b500d8173cc00085468eb76ba67b5aafc516b"
 												"d6d71ef2381a4c688239dca52c7372f700fa6fbabc0aec06c8f03389c6be6499d6fed5a84e72ba344ee1682b3cdb0be"
-												"24afb42de45906956ce0c4cca117a20a51370a02ed1d20a0f2ba8ca6f9f6ec4033d3326f9326f9fffbf14ed8507a334"
-												"766a9326f9f9f3f9f147b732507a3326f9f476a326f9f9326f9f9f147b732624a8c7230c2137624a8c7230c2137b6fa"
-												"67c45f1368fd272b5b7395c0fed4bdd7a61f377c9073a87050d8a173cc0008546eb76ba67b5aafc516bd6d71ef2381a"
-												"4c6882398dca52c7372f700fa6fbbc0aecc688281a4c82906c88a4c6823981a4c6882398dca52c73c68823981a4c688"
-												"972f881a4c68239c68823981a4c6326f9f882398dca52c7326ff372fdca52c737906326f9f956c326f9fe0c4cca117a"
+												"24afb42de45906956ce0c4cca117a20a51370a02ed1d20a0f2ba8ca6f9f6ec4033d3326f9326f9fffbf14ed8507a334"												
 												"256ce0906956ce0c4cca117a206956ce0c4326fcca1326f9f17a24e72ba344ee16");
-	BigInteger* result = BigInteger::fromHexString("1318404bc43b47ce2f9c6c14142a0038963413f75d3ce7fbc266439b21dc6f551a1456923081c2df92be7e7e3c87"
-													"0e803dbf46c5151919a2a506f9a619b2ad823cd5f8fbab0049d71003b840c429759f8de7127b7b98d110d8bcca4"
-													"037dccb89bcd09f795949d6bf43a13728c375ed6a5a61fb1292b379e2de6df11477912324a702a14c1770cad88a"
-													"6ae83400e83caf439e3dbe06f3b7ac26695ba7e8412ddca48d7f5f924702317160431f6a72b659c5d1a0def0a9d"
-													"793d0d798576830788869d66d7cd476009442325bbc6de5e0d2c45d0212e856893248dcec7c858b77bed1c89d30"
-													"8d9f60532a17ee43530ff21c5a6001c53ae984d899ec54c962b42b46df6bcb9920681f589cea8ef9da34b8a908d"
-													"aacfb19e1029392d4aa998a0ab3425d0ec2e4d1a1faa796ae4ba5af76ee6a3b0066f7c4f1a6addf3c09b0d82149"
-													"a8b5dd0859f8dee33ec580f31e0a4d6c9f3b5d9dfd58d2221330ab84c7791164a13d40479c2799ea42a3e3759aa"
-													"b675d7c2b88e4d09044c1630036d39ffd5b6774a95915f18e0a019bada9a7d82dddc7f698c845a8e67aa3b52e22"
-													"1cfc65f20fa32d36ce418912e242c4369740524cefece5f85d666043d68daef5f28ca8441d9266628fa41720e62"
-													"465a61577dd4b3e12a8ae80324fd6d5c45a844a4a4e26c2f00b47bec7aeae3beb3ad306d7b0d2b88cbda28cd023"
-													"3d0094819f1efe");
+	BigInteger* result = BigInteger::fromHexString("113268dc7c302b9cd85c2ad2ce15c4dfceaf21c765301af6c06369e4ae7063bc188310089b7d012c94eb91bec251"
+		"74b5f4508dd7e6300d336db817d788728a916f76598b84749d2ffd9f0f12490d94fcc099cd8f6b2579b1dc650d7ade24f2c97febff048fbe4c3515c5517bd2bebbda7c6"
+		"15ee3066e6a34d45b522e397cb4aa9e26d449cf5587cac7795085ff49a9a60ada0fb9d2d4431d38117f9bfdc3eb7b4433c54d8686749bcb3b10deab2cea84da322c9d40"
+		"ffa03c0609604e66bde510e2b33161f0bc355bcb51cb68261ffc5f24e645e1a73b3af4d40354e61d5955018ec3c51abc0449131def3344aaacbcd427bcc88ace3e587a8"
+		"71d3c0dc0de14b7bf61de744d053018883fe2f8c450bb4a6f95094a574a4df0036f18dd9fe7268c6d255f9f680cc8a3e8b666a5bd8f966177983efd771b32e577af4757b7fb");
 
 	auto start = get_time::now();
 	bigInteger->mod(*mod);
@@ -558,11 +542,22 @@ long long Test::testMod(bool print)
 long long Test::testPowerMod(bool print)
 {
 	// test modular exponentiation 
-	BigInteger* bigInteger = BigInteger::fromHexString("7a334766a93261c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f14f9f9f1471c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f14b731c173249387351c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f1473d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f142624a11c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f14c1732493873573d8ff96ae257a334766326f9fa9326f9f9f148c727a334766a9326f9f9f147b732624a8c7230c2137a507a334766326f9fa9326f9f9f130c2137a507a334766326f9fa9326f9f9f1");
+	BigInteger* bigInteger = BigInteger::fromHexString("7a334766a93261c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9"
+		"326f9f9f146f9fa9326f9f9f14f9f9f1471c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f14"
+		"b731c173249387351c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f1473d8ff96ae257a3347"
+		"66321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f142624a11c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae2"
+		"57a334766326f9fa9326f9f9f146f9fa9326f9f9f14c1732493873573d8ff96ae257a334766326f9fa9326f9f9f148c727a334766a9326f9f9f147b732624a8c7230c213"
+		"7a507a334766326f9fa9326f9f9f130c2137a507a334766326f9fa9326f9f9f1");
 	BigInteger* exponent = BigInteger::fromHexString("7");
-	BigInteger* mod = BigInteger::fromHexString("1c1732493873573d8ff96a1c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f14e257a33476631c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f1421c173249381c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f1473573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f14");	
+	BigInteger* mod = BigInteger::fromHexString("1c1732493873573d8ff96a1c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9f"
+		"a9326f9f9f146f9fa9326f9f9f14e257a33476631c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f"
+		"9f9f1421c173249381c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f1473573d8ff96ae257a"
+		"334766326f9fa9326f9f9f146f9fa9326f9f9f14");	
 
-	BigInteger* result = BigInteger::fromHexString("179804bc47fd5bb216e37871d9f6fdcb91921a9e2f4b634c5a5190c2e0a238dfdfb6b4c61a75c9be8697c3531d2a5c17f1b46bb2c1d2f8ea924113debed4529d9d59ea67465098cda1dd06b6feba5eb16fba7fcfaff50dc12b7b390c5355a89a193904ca7d1e63891c86f0f1cfc1aa87de0405d6bddb06c5b667dfc610459a4b363d3a436ccf94c93ccdd7d52456b1984d08898c025009ebb3a1b392d114b9be80d3f1ba6451cc9bb22363a66f57d6ccf01412371dea10bf25929231736f1464635a15ed6a4bf1e87ea5970d");
+	BigInteger* result = BigInteger::fromHexString("179804bc47fd5bb216e37871d9f6fdcb91921a9e2f4b634c5a5190c2e0a238dfdfb6b4c61a75c9be8697c3531d2a5"
+		"c17f1b46bb2c1d2f8ea924113debed4529d9d59ea67465098cda1dd06b6feba5eb16fba7fcfaff50dc12b7b390c5355a89a193904ca7d1e63891c86f0f1cfc1aa87de040"
+		"5d6bddb06c5b667dfc610459a4b363d3a436ccf94c93ccdd7d52456b1984d08898c025009ebb3a1b392d114b9be80d3f1ba6451cc9bb22363a66f57d6ccf01412371dea1"
+		"0bf25929231736f1464635a15ed6a4bf1e87ea5970d");
 
 	auto start = get_time::now();
 	bigInteger->powerMod(*exponent, *mod);

@@ -10,13 +10,12 @@ public:
 	static const int ARRAY_SIZE = 128;	
 
 private:
-public:
 	// Magnitude array in little endian order.
 	// Most-significant int is mag[length-1].
 	// Least-significant int is mag[0].
 	// Allocated on the device.
 	int* deviceMagnitude;	
-public:
+
 	// Device wrapper instance diffrent for every integer
 	// to provide parallel execution
 	DeviceWrapper* deviceWrapper;

@@ -20,6 +20,9 @@ private:
 	// main stream for kernel launches
 	cudaStream_t mainStream;
 	
+	int* deviceOneWord;
+	int* device4arrays;
+
 public:
 
 	DeviceWrapper();
@@ -41,6 +44,7 @@ public:
 	int compareParallel(const int* device_x, const int* device_y) const;
 	bool equalsParallel(const int* device_x, const int* device_y) const;
 	int getLSB(const int* device_x) const;
+	int getBitLength(const int* device_x) const;
 
 	// logics
 	void shiftLeftParallel(int* device_x, int bits) const;
@@ -50,5 +54,8 @@ public:
 	void addParallel(int* device_x, const int* device_y) const;
 	void subtractParallel(int* device_x, const int* device_y) const;
 	void multiplyParallel(int* device_x, const int* device_y) const;
+
+private:
+	void inline addParallel(int* device_x, const int* device_y, dim3 blocks, dim3 threads) const;
 
 };

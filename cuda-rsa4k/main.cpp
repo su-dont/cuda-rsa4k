@@ -10,7 +10,7 @@ int main()
 {
 	cudaDeviceReset();
 	
-	Test test;		
+	Test test;	
 	test.runAll(true);
 
 	cudaDeviceSynchronize();	
