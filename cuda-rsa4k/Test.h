@@ -10,6 +10,7 @@ public:
 	void runAll(bool print);
 	void testBigInteger(bool print);
 	void testParsing(bool print);
+	void testCreateRandom(bool print);
 	unsigned long long testbitwiseLengthDiffrence(bool print);
 	unsigned long long testEquals(bool print);
 	unsigned long long testCompare(bool print);

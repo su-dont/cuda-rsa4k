@@ -2,6 +2,7 @@
 #include "BuildConfig.h"
 #include <iostream>
 #include <cmath> 
+#include <time.h>
 
 using namespace std;
 
@@ -74,6 +75,52 @@ BigInteger* BigInteger::fromHexString(const char* string)
 		magnitude[j] = value;				
 	}
 
+	integer->setMagnitude(magnitude);
+
+	delete[] magnitude;
+	return integer;
+}
+
+BigInteger* BigInteger::createRandom(int bitLength)
+{
+	if (bitLength > 4096)
+	{
+		cout << "ERROR: BigInteger::createRandom Too many bits!" << endl;
+		return nullptr;
+	}
+	if (bitLength <= 0)
+	{
+		cout << "ERROR: BigInteger::createRandom No bits!" << endl;
+		return nullptr;
+	}
+
+	srand(time(NULL));
+	int ints = bitLength >> 5;
+	int bits = bitLength & 0x1f;
+
+	unsigned int* magnitude = new unsigned int[ARRAY_SIZE];
+	int i = 0;
+	for (; i < ints; i++)
+	{
+		magnitude[i] = random32();
+	}
+	for (; i < 128; i++)
+	{
+		magnitude[i] ^= magnitude[i];
+	}
+
+	if (bits > 0)
+	{
+		int msb = 1 << bits - 1;
+		int mask = 0xffffffff << bits;
+		mask = ~mask;
+		int partial = random32();
+		partial = partial & mask;
+		partial = partial | msb;
+		magnitude[ints] = partial;
+	}
+
+	BigInteger* integer = new BigInteger();
 	integer->setMagnitude(magnitude);
 
 	delete[] magnitude;
@@ -285,4 +332,12 @@ void BigInteger::setMagnitude(const unsigned int* magnitude)
 void BigInteger::clear(void)
 {
 	deviceWrapper->clearParallel(deviceMagnitude);	
+}
+
+unsigned int BigInteger::random32(void)
+{
+	unsigned random = (rand() & 0x7FFF);
+	random <<= 15;
+	random |= (rand() & 0x7FFF);
+	return random;
 }

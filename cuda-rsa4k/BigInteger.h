@@ -30,6 +30,7 @@ public:
 
 	// factory
 	static BigInteger* fromHexString(const char* string);
+	static BigInteger* createRandom(int bitLength);
 
 	// setters, getters
 	void set(const BigInteger& x);	
@@ -64,6 +65,7 @@ private:
 
 	void setMagnitude(const unsigned int* magnitude);
 	void clear(void);
+	static unsigned int random32(void);
 
 	/*
 	Parses hex string to unsigned int type.

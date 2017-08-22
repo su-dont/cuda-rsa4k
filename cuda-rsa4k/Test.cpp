@@ -23,6 +23,7 @@ void Test::testBigInteger(bool print)
 	cout << "Testing BigInteger..." << endl;
 		
 	testParsing(print);
+	testCreateRandom(print);
 	testEquals(print);
 	testCompare(print);
 	testbitwiseLengthDiffrence(print);
@@ -67,6 +68,30 @@ void Test::testParsing(bool print)
 	}	
 
 	delete bigInteger;
+}
+
+void Test::testCreateRandom(bool print)
+{
+	int bits = 3194;
+	bool ok = false;
+	BigInteger* bigInteger = BigInteger::createRandom(bits);	
+	if (bigInteger != nullptr)
+	{
+		ok = bits == bigInteger->getBitwiseLength();
+	}
+	if (print || !ok)
+	{
+		if (ok)
+		{
+			cout << "BigInteger::createRandom... SUCCESS" << endl;
+		}
+		else
+		{
+			cout << "BigInteger::createRandom... FAILED" << endl;
+		}
+	}
+
+	delete bigInteger;	
 }
 
 unsigned long long Test::testbitwiseLengthDiffrence(bool print)
