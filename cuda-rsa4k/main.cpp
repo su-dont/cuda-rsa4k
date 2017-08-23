@@ -11,7 +11,7 @@ int main()
 	cudaDeviceReset();
 	
 	Test test;	
-	test.runAll(true, 1, 2001, 1000, 3000);
+	test.runAll(true, 500, 2000, 500, 100);
 
 	cudaDeviceSynchronize();	
 	cudaDeviceReset();

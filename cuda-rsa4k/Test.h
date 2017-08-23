@@ -45,6 +45,7 @@ public:
 	unsigned long long testShiftLeft(bool print);
 	unsigned long long testShiftRight(bool print);
 	unsigned long long testMod(bool print);
+	unsigned long long testMultiplyMod(bool print);
 	unsigned long long testPowerMod(bool print);
 };
 

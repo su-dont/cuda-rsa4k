@@ -88,10 +88,14 @@ BigInteger* BigInteger::createRandom(int bitLength)
 		cout << "ERROR: BigInteger::createRandom Too many bits!" << endl;
 		return nullptr;
 	}
-	if (bitLength <= 0)
+	if (bitLength < 0)
 	{
 		cout << "ERROR: BigInteger::createRandom No bits!: bitLength:" << bitLength << endl;
 		return nullptr;
+	}
+	if (bitLength == 0)
+	{
+		return new BigInteger(*ONE);
 	}
 
 	srand(time(NULL));
@@ -118,6 +122,11 @@ BigInteger* BigInteger::createRandom(int bitLength)
 		partial = partial & mask;
 		partial = partial | msb;
 		magnitude[ints] = partial;
+	}
+	else
+	{
+		int msb = 1 << 31;
+		magnitude[ints - 1] |= msb;
 	}
 
 	BigInteger* integer = new BigInteger();
@@ -169,8 +178,9 @@ void BigInteger::mod(const BigInteger& modulus)
 
 void BigInteger::multiplyMod(const BigInteger& x, const BigInteger& modulus)
 {	
-	multiply(x);
-	mod(modulus);
+	deviceWrapper->multiplyModParallel(deviceMagnitude, x.getDeviceMagnitude(), modulus.getDeviceMagnitude());
+	//multiply(x);
+	//mod(modulus);
 }
 
 void BigInteger::powerMod(const BigInteger& exponent, const BigInteger& modulus)

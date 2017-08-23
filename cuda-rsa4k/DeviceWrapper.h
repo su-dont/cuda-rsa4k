@@ -4,24 +4,17 @@
 class DeviceWrapper
 {
 
-public:
-
-	// statics
-	static const int TWO_WARPS = 64;
-	static const int MULTIPLICATION_BLOCKS_COUNT = 4;
-
-	static const int ONE_WARP = 32;
-	// both addition and subtraction
-	static const int ADDITION_CELLS_PER_THREAD = 4;	// BigInteger::ARRAY_SIZE / ONE_WARP
-	
 private:
 
 	// main stream for kernel launches
 	cudaStream_t mainStream;
-	cudaStream_t auxStream;
-	
-	int* deviceOneWord;
-	int* deviceOneWord2;
+
+	// lauch config
+	dim3 block_1, block_2, block_4;
+	dim3 thread_warp, thread_2_warp, thread_4_warp;
+
+	// 4 ints to help storing results
+	int* deviceWords;	
 	int* device4arrays;
 
 	unsigned long long* deviceStartTime;
@@ -59,9 +52,10 @@ public:
 	void addParallel(int* device_x, const int* device_y) const;
 	void subtractParallel(int* device_x, const int* device_y) const;
 	void multiplyParallel(int* device_x, const int* device_y) const;
-	void modParallel(int* device_x, const int* device_y) const;
+	void modParallel(int* device_x, int* device_m) const;
+	void multiplyModParallel(int* device_x, const int* device_y, const int* device_m) const;
 
 private:
-	void inline addParallel(int* device_x, const int* device_y, dim3 blocks, dim3 threads) const;
+	void inline addParallelWithOverflow(int* device_x, const int* device_y, int blocks) const;
 
 };

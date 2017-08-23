@@ -8,6 +8,9 @@
 
 using namespace std;
 
+const int ADDITION_THREADS = 32;	// ONE_WARP
+const int ADDITION_CELLS_PER_THREAD = 4;	// BigInteger::ARRAY_SIZE / ONE_WARP
+
 // shared memory stuctures
 typedef struct
 {
@@ -19,7 +22,7 @@ typedef struct
 
 typedef struct
 {
-	memory32byte result[DeviceWrapper::ADDITION_CELLS_PER_THREAD];
+	memory32byte result[ADDITION_CELLS_PER_THREAD];
 	unsigned int carry;
 	// 4 byte carry offsets to another memory bank, which eliminates bank conflicts
 
@@ -27,7 +30,7 @@ typedef struct
 
 typedef struct
 {
-	memory32byte result[DeviceWrapper::ADDITION_CELLS_PER_THREAD];
+	memory32byte result[ADDITION_CELLS_PER_THREAD];
 	unsigned int borrow;
 	// 4 byte borrow offsets to another memory bank, which eliminates bank conflicts
 
@@ -44,26 +47,25 @@ __constant__ unsigned int deviceIndexFixupTable[] { 0, 32, 65, 97, 130, 162, 195
 1331, 1364, 1396, 1429, 1461, 1494, 1526, 1559, 1591, 1624, 1656, 1689, 1721, 1754, 1786, 1819, 1851, 1884, 1916, 1949,
 1981, 2014, 2046, 2079, 2111, 128 };
 
-extern "C" __global__ void device_get_clock(unsigned long long* time)
-{
-	asm volatile (
-		"mov.u64 %0, %%clock64; \n\t"
-		: "=l"(*time) :: "memory");
-}
 
-extern "C" __global__ void device_clone_partial(int* x, const int* y)
+////////////////////////////////////
+// DEVICE FUNCTIONS
+///////////////////////////////////
+
+
+extern "C" __device__ inline void device_clone_partial(int* x, const int* y)
 {
 	register int index = threadIdx.x;
 	x[index] = y[index];
 }
 
-extern "C" __global__ void device_clear_partial(int* x)
+extern "C" __device__ inline void device_clear_partial(int* x)
 {
 	register int index = threadIdx.x;
 	x[index] = x[index] ^ x[index];
 }
 
-extern "C" __global__ void device_equals_partial(int* result, const int* x, const int* y)
+extern "C" __device__ inline int device_equals_partial(const int* x, const int* y)
 {
 	register int index = threadIdx.x;
 	register int globalIndex = index << 1;
@@ -72,7 +74,7 @@ extern "C" __global__ void device_equals_partial(int* result, const int* x, cons
 
 	shared[0][index] = x[index] ^ y[index];
 	__syncthreads();
-	
+		
 #pragma unroll
 	for (int i = 1; i < 7; i++)
 	{
@@ -80,13 +82,10 @@ extern "C" __global__ void device_equals_partial(int* result, const int* x, cons
 			shared[i][index] = shared[i - 1][globalIndex + 1] | shared[i - 1][globalIndex];
 		__syncthreads();
 	}
-	if (index == 0)
-	{
-		*result = shared[6][globalIndex + 1] | shared[6][globalIndex];
-	}
+	return shared[6][1] | shared[6][0];
 }
 
-__device__ inline int merge(int x, int y)
+extern "C" __device__ inline int merge(int x, int y)
 {
 	return x == 0 ? y : x;
 }
@@ -95,7 +94,7 @@ __device__ inline int merge(int x, int y)
 // 0 if  x == y
 // 1 if x > y
 // -1 if x < y
-extern "C" __global__ void device_compare_partial(int* result, const int* x, const int* y)
+extern "C" __device__  int inline device_compare_partial(const int* x, const int* y)
 {
 	register int index = threadIdx.x;
 	register int globalIndex = index << 1;
@@ -115,13 +114,10 @@ extern "C" __global__ void device_compare_partial(int* result, const int* x, con
 			shared[i][index] = merge(shared[i - 1][globalIndex + 1], shared[i - 1][globalIndex]);
 		__syncthreads();
 	}
-	if (index == 0)
-	{
-		*result = merge(shared[6][globalIndex + 1], shared[6][globalIndex]);		
-	}
+	return merge(shared[6][1], shared[6][0]);
 }
 
-extern "C" __global__ void device_getbitlength_partial(int* result, const int* x)
+extern "C" __device__  inline int device_getbitlength_partial(const int* x)
 {
 	register int index = threadIdx.x;
 	register unsigned int value = x[index];
@@ -140,28 +136,29 @@ extern "C" __global__ void device_getbitlength_partial(int* result, const int* x
 
 	__syncthreads();
 		
-	if (index == 0)
-	{
-		*result = 0;
-		register int set = 0;
+	register int resultIndex = -1;
+
 #pragma unroll
-		for (int i = 127; i >= 0; i--)
+	for (int i = 0; i < 128; i++)
+	{
+		if (shared[i] != 0)
 		{
-			if (shared[i] != 0 && set == 0)
-			{
-				*result = (i << 5) + shared[i];
-				set = 1;
-			}
-		}		
+			resultIndex = i;			
+		}
 	}
+
+	if (resultIndex > -1)
+		return (resultIndex << 5) + shared[resultIndex];
+	else
+		return 0;	
 }
 
-__device__ inline bool inBounds128(int index)
+extern "C" __device__ inline bool inBounds128(int index)
 {
 	return index >= 0 && index <= 127;
 }
 
-extern "C" __global__ void device_shift_left_partial(int* x, int n)
+extern "C" __device__ inline void device_shift_left_partial(int* x, int n)
 {
 	register int index = threadIdx.x;
 	register int ints = n >> 5;		// n / 32
@@ -184,11 +181,11 @@ extern "C" __global__ void device_shift_left_partial(int* x, int n)
 	if (bits > 0)
 		x[index] = sharedResult[index];
 	else
-		x[index] = sharedX[index];	// dummy store - constant time execution
+		x[index] = sharedX[index];
 	
 }
 
-extern "C" __global__ void device_shift_right_partial(int* x, int n)
+extern "C" __device__ void inline device_shift_right_partial(int* x, int n)
 {
 	register int index = threadIdx.x;
 	register int ints = n >> 5;		// n / 32
@@ -220,12 +217,8 @@ extern "C" __global__ void device_shift_right_partial(int* x, int n)
 
 // x and y must be 128 unsigned ints allocated
 // result return in x
-extern "C" __global__ void device_add_partial(int* x_arg, const int* y_arg)
+extern "C" __device__ inline void device_add_partial(int* x, const int* y)
 {
-	// offsets to next 'row' of flatten array
-	register int* x = x_arg + (blockIdx.x << 8);
-	register const int* y = y_arg + (blockIdx.x << 8);
-
 	register const int resultIndex = threadIdx.x;
 	register const int startIndex = resultIndex << 2;	// * DeviceWrapper::ADDITION_CELLS_PER_THREAD;
 
@@ -268,7 +261,7 @@ extern "C" __global__ void device_add_partial(int* x_arg, const int* y_arg)
 	register unsigned int carry;
 
 #pragma unroll
-	for (register int i = 0; i < DeviceWrapper::ONE_WARP; i++)
+	for (register int i = 0; i < ADDITION_THREADS; i++)
 	{
 		index = 0;
 		carry = shared[resultIndex].carry;
@@ -280,7 +273,7 @@ extern "C" __global__ void device_add_partial(int* x_arg, const int* y_arg)
 			: "r"(carry) : "memory");
 
 #pragma unroll
-		for (index = 1; index < DeviceWrapper::ADDITION_CELLS_PER_THREAD - 1; index++)
+		for (index = 1; index < ADDITION_CELLS_PER_THREAD - 1; index++)
 		{
 			asm volatile (
 				"addc.cc.u32 %0, %0, 0; \n\t"	//propagate generated carries
@@ -297,7 +290,7 @@ extern "C" __global__ void device_add_partial(int* x_arg, const int* y_arg)
 	}
 
 #pragma unroll
-	for (index = 0; index < DeviceWrapper::ADDITION_CELLS_PER_THREAD; index++)
+	for (index = 0; index < ADDITION_CELLS_PER_THREAD; index++)
 	{
 		// store result in x		
 		x[startIndex + index] = shared[resultIndex].result[index].value;
@@ -306,20 +299,14 @@ extern "C" __global__ void device_add_partial(int* x_arg, const int* y_arg)
 
 // x and y must 128 unsigned ints allocated
 // result return in x
-extern "C" __global__ void device_subtract_partial(int* x_arg, const int* y_arg)
+extern "C" __device__ void inline device_subtract_partial(int* x, const int* y)
 {
-	// offsets to next 'row' of flatten array
-	register int* x = x_arg + (blockIdx.x << 8);	// * 128 * 2
-	register const int* y = y_arg + (blockIdx.x << 8);
-
-	register const int resultIndex = threadIdx.x;
+	register const int resultIndex = threadIdx.x & 0x1f;
 	register const int startIndex = resultIndex << 2; // * DeviceWrapper::ADDITION_CELLS_PER_THREAD;
 
 	// 32 threads + 1 to avoid out of bounds exception
 	__shared__ subtractionSharedMemory shared[33];
-
 	shared[resultIndex].borrow = 0UL;
-	__syncthreads();
 
 	register int index = 0;
 
@@ -356,7 +343,7 @@ extern "C" __global__ void device_subtract_partial(int* x_arg, const int* y_arg)
 
 	register unsigned int borrow;
 #pragma unroll
-	for (register int i = 0; i < DeviceWrapper::ONE_WARP; i++)
+	for (register int i = 0; i < ADDITION_THREADS; i++)
 	{
 		index = 0;
 		borrow = shared[resultIndex].borrow;
@@ -368,14 +355,12 @@ extern "C" __global__ void device_subtract_partial(int* x_arg, const int* y_arg)
 			: "r"(borrow) : "memory");
 
 #pragma unroll
-		for (index = 1; index < DeviceWrapper::ADDITION_CELLS_PER_THREAD - 1; index++)
+		for (index = 1; index < ADDITION_CELLS_PER_THREAD - 1; index++)
 		{
 			asm volatile (
 				"subc.cc.u32 %0, %0, 0; \n\t"	//propagate generated borrows
 				: "+r"(shared[resultIndex].result[index].value) :: "memory");
 		}
-
-		__syncthreads();
 
 		// last iteration generates and stores borrow in the array
 		asm volatile (
@@ -389,7 +374,7 @@ extern "C" __global__ void device_subtract_partial(int* x_arg, const int* y_arg)
 
 	
 #pragma unroll
-	for (index = 0; index < DeviceWrapper::ADDITION_CELLS_PER_THREAD; index++)
+	for (index = 0; index < ADDITION_CELLS_PER_THREAD; index++)
 	{
 		// store result in x
 		x[startIndex + index] = shared[resultIndex].result[index].value;
@@ -397,37 +382,34 @@ extern "C" __global__ void device_subtract_partial(int* x_arg, const int* y_arg)
 
 }
 
-__device__ inline int isXodd(int config)
+extern "C" __device__ inline int isXodd(int config)
 {
 	return ((0xFFFFFFFD | config) == 0xFFFFFFFF) ? 1 : 0;
 }
 
-__device__ inline int isYodd(int config)
+extern "C" __device__ inline int isYodd(int config)
 {
 	return ((0xFFFFFFFE | config) == 0xFFFFFFFF) ? 1 : 0;
 }
 
-extern "C" __global__ void device_multiply_partial(int* result_arg, const int* x, const int* y)
+extern "C" __device__ void device_multiply_partial(int* result, const int* x, const int* y)
 {
+	register int block = blockIdx.x;
 	register const int arraySize = BigInteger::ARRAY_SIZE;
-	register int* result = result_arg;
 
 	// memory banks(32) * (threads(64) + padding(2)) = 32 * 66 = 2112
 	__shared__ unsigned int sharedResult[2112];
 	__shared__ unsigned int carries[2112];
-
-	// offesets to proper result array index
-	result = result + (blockIdx.x << 7); // * arraySize;
-
-	register const int xIndex = (threadIdx.x << 1) + isXodd(blockIdx.x);
+	
+	register const int xIndex = (threadIdx.x << 1) + isXodd(block);
 
 	sharedResult[deviceIndexFixupTable[xIndex]] = 0;
 	sharedResult[deviceIndexFixupTable[xIndex + 1]] = 0;
 	carries[deviceIndexFixupTable[xIndex]] = 0;
 	carries[deviceIndexFixupTable[xIndex + 1]] = 0;
-	
+
 #pragma unroll
-	for (register int yIndex = isYodd(blockIdx.x); yIndex < arraySize; yIndex = yIndex + 2)
+	for (register int yIndex = isYodd(block); yIndex < arraySize; yIndex = yIndex + 2)
 	{
 		if (xIndex + yIndex > arraySize + 1)
 			break;
@@ -445,12 +427,235 @@ extern "C" __global__ void device_multiply_partial(int* result_arg, const int* x
 
 		__syncthreads();
 	}
-			 
-	result[xIndex] = sharedResult[deviceIndexFixupTable[xIndex]];
-	if (xIndex + 1 < 128)	
-		result[xIndex + 1] = sharedResult[deviceIndexFixupTable[xIndex + 1]];
 
+	result[xIndex] = sharedResult[deviceIndexFixupTable[xIndex]];
+	if (xIndex + 1 < 128)
+		result[xIndex + 1] = sharedResult[deviceIndexFixupTable[xIndex + 1]];
 }
+
+
+////////////////////////////////////
+// KERNEL LAUNCHES
+///////////////////////////////////
+
+
+extern "C" __global__ void device_get_clock(unsigned long long* time)
+{
+	asm volatile (
+		"mov.u64 %0, %%clock64; \n\t"
+		: "=l"(*time) :: "memory");
+}
+
+__global__ void device_clone_partial_1(int* x, const int* y)
+{
+	device_clone_partial(x, y);
+}
+
+__global__ void device_clear_partial_1(int* x)
+{
+	device_clear_partial(x);
+}
+
+__global__ void device_equals_partial_1(int* result, const int* x, const int* y)
+{
+	*result = device_equals_partial(x, y);
+}
+
+// 0 if  x == y
+// 1 if x > y
+// -1 if x < y
+// output stored in result
+__global__ void device_compare_partial_1(int* result, const int* x, const int* y)
+{
+	*result = device_compare_partial(x, y);
+}
+
+//// aligned arrays
+//__global__ void device_compare_partial_2(int* result, const int* x, const int* y)
+//{
+//	register int block = blockIdx.x;
+//	device_compare_partial(result + block, x + block * 128, y + block * 128);
+//}
+//
+//// not aligned arrays
+//__global__ void device_compare_partial_2(int* result, const int* x, const int* y, const int* x1, const int* y1)
+//{
+//	register int block = blockIdx.x;
+//	if (block == 0)
+//		device_compare_partial(result + block, x, y);
+//	else
+//		device_compare_partial(result + block, x1, y1);
+//}
+
+//// aligned arrays
+//__global__ void device_compare_partial_4(int* result, const int* x, const int* y)
+//{
+//	register int block = blockIdx.x;
+//	device_compare_partial(result + block, x + block * 128, y + block * 128);
+//}
+
+__global__ void device_getbitlength_partial_1(int* result, const int* x)
+{
+	*result = device_getbitlength_partial(x);
+}
+
+// not aligned arrays
+__global__ void device_getbitlength_partial_2(int* result, const int* x, const int* y)
+{
+	register int block = blockIdx.x;
+	result[block] = device_getbitlength_partial(block == 0 ? x : y);
+}
+
+// aligned arrays
+__global__ void device_getbitlength_partial_4(int* result, const int* x)
+{
+	register int block = blockIdx.x;
+	result[block] = device_getbitlength_partial( x + block * 128);
+}
+
+__global__ void device_shift_left_partial_1(int* x, int n)
+{
+	device_shift_left_partial(x, n);
+}
+
+// aligned arrays
+__global__ void device_shift_left_partial_2(int* x, int n)
+{
+	register int block = blockIdx.x;
+	device_shift_left_partial(x + block * 128, n);
+}
+
+// aligned arrays
+__global__ void device_shift_left_partial_4(int* x, int n)
+{
+	register int block = blockIdx.x;
+	device_shift_left_partial(x + block * 128, n);
+}
+
+__global__ void device_shift_right_partial_1(int* x, int n)
+{
+	device_shift_right_partial(x, n);
+}
+
+// aligned arrays
+__global__ void device_shift_right_partial_2(int* x, int n)
+{
+	register int block = blockIdx.x;
+	device_shift_right_partial(x + block * 128, n);
+}
+
+// aligned arrays
+__global__ void device_shift_right_partial_4(int* x, int n)
+{
+	register int block = blockIdx.x;
+	device_shift_right_partial(x + block * 128, n);
+}
+
+__global__ void device_add_partial_1(int* x, const int* y)
+{
+	device_add_partial(x, y);
+}
+
+// aligned arrays
+__global__ void device_add_partial_2(int* x, const int* y)
+{
+	register int block = blockIdx.x;
+	device_add_partial(x + block * 128, y + block * 128);
+}
+
+__global__ void device_subtract_partial_1(int* x, const int* y)
+{
+	device_subtract_partial(x, y);
+}
+
+// not aligned arrays
+__global__ void device_subtract_partial_2(int* x, const int* y, int* x1, const int* y1)
+{
+	register int block = blockIdx.x;
+	if (block == 0)
+		device_subtract_partial(x, y);
+	else
+		device_subtract_partial(x1, y1);
+}
+
+// aligned arrays
+__global__ void device_subtract_partial_4(int* x, const int* y)
+{
+	register int block = blockIdx.x;
+	device_subtract_partial(x + block * 128, y + block * 128);
+}
+
+ __global__ void device_multiply_partial_4(int* result, const int* x, const int* y)
+{
+	register int block = blockIdx.x;
+	// offesets to proper result array index	
+	device_multiply_partial(result + block * 128, x, y);
+}
+
+ // 128 threads
+ __global__ void device_reduce_modulo_1(int* x, const int* m)
+ {	 	 
+	 register int index = threadIdx.x;
+
+	 __shared__ int modulus[128];
+	 device_clone_partial(modulus, m);
+
+	 register int compare = device_compare_partial(x, modulus);
+	 
+	 if (compare == -1)
+	 {
+		 // Trying to reduce modulo a greater integer		
+		 return;
+	 }
+	 if (compare == 0)
+	 {
+		 // Reducing modulo same integer
+		 device_clear_partial(x);		 
+		 return;
+	 }
+
+	 register int bitwiseDifference;
+	 
+	 register int xLength;
+	 register int mLength;
+
+	 xLength = device_getbitlength_partial(x);
+	 mLength = device_getbitlength_partial(modulus);
+
+	 bitwiseDifference = xLength - mLength;
+
+	 device_shift_left_partial(modulus, bitwiseDifference);
+	 while (bitwiseDifference > 0) // TODO: side channel vulnerability ?
+	 {
+		 compare = device_compare_partial(x, modulus);
+		 if (compare == 1)	// x > m
+		 {
+			 if (index < 32)
+			 {
+				 device_subtract_partial(x, modulus);
+			 }
+			 else 
+			 {
+				 __syncthreads();
+				 for (int i = 0; i < 32; i++)
+				 {
+					 __syncthreads();
+				 }
+			 }
+		 }
+		 else // x <= m
+		 {			 
+			 device_shift_right_partial(modulus, 1);
+			 bitwiseDifference--;
+		 }
+		 __syncthreads();
+	 }
+ }
+
+ ////////////////////////////////////
+ // HOST CODE
+ ///////////////////////////////////
+
 
 inline cudaError_t checkCuda(cudaError_t result)
 {
@@ -463,26 +668,27 @@ inline cudaError_t checkCuda(cudaError_t result)
 
 DeviceWrapper::DeviceWrapper()
 {
+	block_1.x = 1;
+	block_2.x = 2;
+	block_4.x = 4;
+	thread_warp.x = 32;
+	thread_2_warp.x = 64;
+	thread_4_warp.x = 128;
+
 	checkCuda(cudaStreamCreate(&mainStream));
-	checkCuda(cudaStreamCreate(&auxStream));
-	checkCuda(cudaMalloc(&deviceOneWord, sizeof(int)));	
-	checkCuda(cudaMalloc(&deviceOneWord2, sizeof(int)));
+	checkCuda(cudaMalloc(&deviceWords, sizeof(int) * 4));
 	checkCuda(cudaMalloc(&device4arrays, sizeof(int) * 128 * 4));
 	checkCuda(cudaMalloc(&deviceStartTime, sizeof(unsigned long long)));
 	checkCuda(cudaMalloc(&deviceStopTime, sizeof(unsigned long long)));
 }
 
 DeviceWrapper::~DeviceWrapper()
-{		
-	checkCuda(cudaFree(deviceOneWord));
-	checkCuda(cudaFree(deviceOneWord2));
+{	
+	checkCuda(cudaFree(deviceWords));
 	checkCuda(cudaFree(device4arrays));
 	checkCuda(cudaFree(deviceStartTime));
 	checkCuda(cudaFree(deviceStopTime));
 	
-	checkCuda(cudaStreamSynchronize(auxStream));
-	checkCuda(cudaStreamDestroy(auxStream));
-
 	checkCuda(cudaStreamSynchronize(mainStream));
 	checkCuda(cudaStreamDestroy(mainStream));
 }
@@ -490,13 +696,9 @@ DeviceWrapper::~DeviceWrapper()
 int* DeviceWrapper::init(int size) const
 {	
 	int* result;
-	checkCuda(cudaMalloc(&result, sizeof(unsigned int) * size));
-	
-	// launch config
-	dim3 blocks(1);
-	dim3 threads(size);
+	checkCuda(cudaMalloc(&result, sizeof(unsigned int) * size));	
 
-	device_clear_partial << <blocks, threads, 0, mainStream >> > (result);
+	device_clear_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (result);
 	checkCuda(cudaStreamSynchronize(mainStream));	
 
 	return result;
@@ -506,12 +708,8 @@ int* DeviceWrapper::init(int size, const int* initial) const
 {
 	int* result;
 	checkCuda(cudaMalloc(&result, sizeof(unsigned int) * size));
-
-	// launch config
-	dim3 blocks(1);
-	dim3 threads(size);
-
-	device_clone_partial << <blocks, threads, 0, mainStream >> > (result, initial);
+	
+	device_clone_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (result, initial);
 	checkCuda(cudaStreamSynchronize(mainStream));
 
 	return result;
@@ -537,25 +735,15 @@ void DeviceWrapper::free(int* device_x) const
 }
 
 void DeviceWrapper::clearParallel(int* device_x) const
-{	
-	// launch config
-	dim3 blocks(1);
-	dim3 threads(BigInteger::ARRAY_SIZE);	// 128
-
-	device_clear_partial << <blocks, threads, 0, mainStream >> > (device_x);
-	
+{
+	device_clear_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (device_x);	
 	checkCuda(cudaStreamSynchronize(mainStream));	
 }
 
 // x := y
 void DeviceWrapper::cloneParallel(int* device_x, const int* device_y) const
 {
-	// launch config
-	dim3 blocks(1);
-	dim3 threads(BigInteger::ARRAY_SIZE);	//128
-	
-	device_clone_partial << <blocks, threads, 0, mainStream >> > (device_x, device_y);	
-
+	device_clone_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (device_x, device_y);
 	checkCuda(cudaStreamSynchronize(mainStream));	
 }
 
@@ -567,14 +755,8 @@ int DeviceWrapper::compareParallel(const int* device_x, const int* device_y) con
 {
 	int result;		
 	
-	// launch config
-	dim3 blocks(1);
-	dim3 threads(BigInteger::ARRAY_SIZE);	//128
-
-	device_compare_partial << <blocks, threads, 0, mainStream >> > (deviceOneWord, device_x, device_y);
-
-	checkCuda(cudaMemcpyAsync(&result, deviceOneWord, sizeof(int), cudaMemcpyDeviceToHost, mainStream));
-	
+	device_compare_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (deviceWords, device_x, device_y);
+	checkCuda(cudaMemcpyAsync(&result, deviceWords, sizeof(int), cudaMemcpyDeviceToHost, mainStream));	
 	checkCuda(cudaStreamSynchronize(mainStream));
 
 	return result;
@@ -584,14 +766,8 @@ bool DeviceWrapper::equalsParallel(const int* device_x, const int* device_y) con
 {
 	int result;
 
-	// launch config
-	dim3 blocks(1);
-	dim3 threads(BigInteger::ARRAY_SIZE);	//128
-
-	device_equals_partial << <blocks, threads, 0, mainStream >> > (deviceOneWord, device_x, device_y);
-
-	checkCuda(cudaMemcpyAsync(&result, deviceOneWord, sizeof(int), cudaMemcpyDeviceToHost, mainStream));
-
+	device_equals_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (deviceWords, device_x, device_y);
+	checkCuda(cudaMemcpyAsync(&result, deviceWords, sizeof(int), cudaMemcpyDeviceToHost, mainStream));
 	checkCuda(cudaStreamSynchronize(mainStream));
 
 	return result == 0;
@@ -609,15 +785,9 @@ int DeviceWrapper::getLSB(const int* device_x) const
 int DeviceWrapper::getBitLength(const int* device_x) const
 {
 	int result;
-
-	// launch config
-	dim3 blocks(1);
-	dim3 threads(BigInteger::ARRAY_SIZE);	//128
-	
-	device_getbitlength_partial << <blocks, threads, 0, mainStream >> > (deviceOneWord, device_x);
-
-	checkCuda(cudaMemcpyAsync(&result, deviceOneWord, sizeof(int), cudaMemcpyDeviceToHost, mainStream));
-
+		
+	device_getbitlength_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (deviceWords, device_x);
+	checkCuda(cudaMemcpyAsync(&result, deviceWords, sizeof(int), cudaMemcpyDeviceToHost, mainStream));
 	checkCuda(cudaStreamSynchronize(mainStream));
 
 	return result;
@@ -657,41 +827,23 @@ void DeviceWrapper::shiftLeftParallel(int* device_x, int bits) const
 		}
 	}
 	
-	// launch config
-	dim3 blocks(1);
-	dim3 threads(BigInteger::ARRAY_SIZE);	// 128
-
-	device_shift_left_partial << <blocks, threads, 0, mainStream >> > (device_x, bits);
-
+	device_shift_left_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (device_x, bits);
 	checkCuda(cudaStreamSynchronize(mainStream));	
 }
 
 void DeviceWrapper::shiftRightParallel(int* device_x, int bits) const
 {	
 	if (bits == 0)
-		return;
-	
-	// launch config
-	dim3 blocks(1);
-	dim3 threads(BigInteger::ARRAY_SIZE);	// 128
+		return;	
 
-	device_shift_right_partial << <blocks, threads, 0, mainStream >> > (device_x, bits);
-
+	device_shift_right_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (device_x, bits);
 	checkCuda(cudaStreamSynchronize(mainStream));		
 }
 
-void DeviceWrapper::addParallel(int* device_x, const int* device_y) const
-{
-	// launch config
-	dim3 blocks(1);
-	dim3 threads(DeviceWrapper::ONE_WARP);
-	addParallel(device_x, device_y, blocks, threads);
-}
-
-inline void DeviceWrapper::addParallel(int * device_x, const int * device_y, dim3 blocks, dim3 threads) const
+void DeviceWrapper::addParallelWithOverflow(int * device_x, const int * device_y, int blocks) const
 {
 	int* xBitLength;
-	int arrays = blocks.x;
+	int arrays = blocks;
 	int** aux_device_x;
 	if (DEBUG)
 	{	
@@ -713,7 +865,11 @@ inline void DeviceWrapper::addParallel(int * device_x, const int * device_y, dim
 		}
 	}
 
-	device_add_partial << <blocks, threads, 0, mainStream >> > (device_x, device_y);
+	if (blocks == 1)
+		device_add_partial_1 << <blocks, thread_warp, 0, mainStream >> > (device_x, device_y);
+	else // blocks == 2
+		device_add_partial_2 << <blocks, thread_warp, 0, mainStream >> > (device_x, device_y);
+
 	checkCuda(cudaStreamSynchronize(mainStream));
 
 	if (DEBUG)
@@ -766,6 +922,18 @@ inline void DeviceWrapper::addParallel(int * device_x, const int * device_y, dim
 	}
 }
 
+void DeviceWrapper::addParallel(int * device_x, const int * device_y) const
+{
+	if (DEBUG)
+	{
+		addParallelWithOverflow(device_x, device_y, block_1.x);
+	}
+	else
+	{
+		device_add_partial_1 << <block_1, thread_warp, 0, mainStream >> > (device_x, device_y);
+	}
+}
+
 void DeviceWrapper::subtractParallel(int* device_x, const int* device_y) const
 {
 	if (DEBUG)
@@ -775,102 +943,84 @@ void DeviceWrapper::subtractParallel(int* device_x, const int* device_y) const
 			std::cerr << "ERROR: DeviceWrapper::subtractParallel: x < y - negative output" << endl;
 		}
 	}
-
-	// launch config
-	dim3 blocks(1);
-	dim3 threads(DeviceWrapper::ONE_WARP);
-
-	device_subtract_partial << <blocks, threads, 0, mainStream >> > (device_x, device_y);
-		
+	
+	device_subtract_partial_1 << <block_1, thread_warp, 0, mainStream >> > (device_x, device_y);		
 	checkCuda(cudaStreamSynchronize(mainStream));	
 }
 
 void DeviceWrapper::multiplyParallel(int* device_x, const int* device_y) const
 {	
-	// launch config
-	dim3 blocks(DeviceWrapper::MULTIPLICATION_BLOCKS_COUNT);
-	dim3 threads(DeviceWrapper::TWO_WARPS);
-
 	// parallel multiplication
-	device_multiply_partial << <blocks, threads, 0, mainStream>> > (device4arrays, device_x, device_y);
+	device_multiply_partial_4 << <block_4, thread_2_warp, 0, mainStream>> > (device4arrays, device_x, device_y);
+	
+	if (DEBUG)
+	{
+		addParallelWithOverflow(device4arrays, device4arrays + 256, block_2.x);
+		addParallelWithOverflow(device4arrays, device4arrays + 128, block_1.x);
+	}
+	else
+	{
+		// reduction
+		device_add_partial_2 << <block_2, thread_warp, 0, mainStream >> > (device4arrays, device4arrays + 256);
 
-	// reduction
-	blocks.x = 2;
-	threads.x = DeviceWrapper::ONE_WARP;
-	addParallel(device4arrays, device4arrays + 128, blocks, threads);	
-
-	// reduction
-	blocks.x = 1;
-	addParallel(device4arrays, device4arrays + 256 , blocks, threads);
+		// reduction	
+		device_add_partial_1 << <block_1, thread_warp, 0, mainStream >> > (device4arrays, device4arrays + 128);
+	}
 
 	// set x := result
-	threads.x = BigInteger::ARRAY_SIZE;
-	device_clone_partial << <blocks, threads, 0, mainStream >> > (device_x, device4arrays);
+	device_clone_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (device_x, device4arrays);
 	
 	checkCuda(cudaStreamSynchronize(mainStream));
 }
 
-void DeviceWrapper::modParallel(int * device_x, const int * device_y) const
+void DeviceWrapper::modParallel(int * device_x, int * device_m) const
 {
-	int compare;
-
-	// launch config
-	dim3 blocks(1);
-	dim3 threads(BigInteger::ARRAY_SIZE);	//128
-	dim3 threadsWarp(DeviceWrapper::ONE_WARP);  // 32
-	
-	device_compare_partial << <blocks, threads, 0, mainStream >> > (deviceOneWord, device_x, device_y);
-	checkCuda(cudaMemcpyAsync(&compare, deviceOneWord, sizeof(int), cudaMemcpyDeviceToHost, mainStream));
+	device_reduce_modulo_1 << <block_1, thread_4_warp, 0, mainStream >> > (device_x, device_m);
 	checkCuda(cudaStreamSynchronize(mainStream));
+}
 
-	if (compare == -1)
-	{
-		// Trying to reduce modulo a greater integer		
-		return;
-	}
-	if (compare == 0)
-	{
-		// Reducing modulo same integer
-		device_clear_partial << <blocks, threads, 0, mainStream >> > (device_x);
-		checkCuda(cudaStreamSynchronize(mainStream));
-		return;
-	}
+void DeviceWrapper::multiplyModParallel(int * device_x, const int * device_y, const int * device_m) const
+{
+	//// launch config
+	//dim3 blocks(1);
+	//dim3 blocks_2(2);
+	//dim3 blocks_4(DeviceWrapper::MULTIPLICATION_BLOCKS_COUNT);
+	//dim3 threads_warp(DeviceWrapper::ONE_WARP);  // 32
+	//dim3 threads_2_warps(DeviceWrapper::TWO_WARPS);	// 64
+	//dim3 threads_array(DeviceWrapper::ONE_WARP);  // 128
 
-	int bitwiseDifference;
-	int xLength, yLength;
-	
-	device_getbitlength_partial << <blocks, threads, 0, mainStream >> > (deviceOneWord, device_x);
-	device_getbitlength_partial << <blocks, threads, 0, auxStream >> > (deviceOneWord2, device_y);
+	//modParallel(device_x, device_m);
 
-	checkCuda(cudaMemcpyAsync(&xLength, deviceOneWord, sizeof(int), cudaMemcpyDeviceToHost, mainStream));	
-	checkCuda(cudaMemcpyAsync(&yLength, deviceOneWord2, sizeof(int), cudaMemcpyDeviceToHost, auxStream));
-	
-	checkCuda(cudaStreamSynchronize(mainStream));
-	checkCuda(cudaStreamSynchronize(auxStream));
+	//// parallel multiplication
+	//device_multiply_partial << <blocks_4, threads_2_warps, 0, mainStream >> > (device4arrays, device_x, device_y);
+	//
+	//// modular reduction of part-results
 
-	bitwiseDifference = xLength - yLength;
-	
-	int* modulus;
-	checkCuda(cudaMalloc(&modulus, sizeof(unsigned int) * 128));
-	device_clone_partial << <blocks, threads, 0, mainStream >> > (modulus, device_y);
-	device_shift_left_partial << <blocks, threads, 0, mainStream >> > (modulus, bitwiseDifference);
-	
-	while (bitwiseDifference >= 0) // TODO: side channel vulnerability ?
-	{
-		device_compare_partial << <blocks, threads, 0, mainStream >> > (deviceOneWord, device_x, modulus);
-		checkCuda(cudaMemcpyAsync(&compare, deviceOneWord, sizeof(int), cudaMemcpyDeviceToHost, mainStream));
-		checkCuda(cudaStreamSynchronize(mainStream));
-		if (compare == 1)	// this > x
-		{
-			device_subtract_partial << <blocks, threadsWarp, 0, mainStream >> > (device_x, modulus);
-		}
-		else // this <= x
-		{			
-			device_shift_right_partial << <blocks, threads, 0, mainStream >> > (modulus, 1);
-			bitwiseDifference--;
-		}
-	}
 
-	checkCuda(cudaFree(modulus));
+	//modParallel(device4arrays, device_m);
+	//modParallel(device4arrays + 128, device_m);
+	//modParallel(device4arrays + 256, device_m);
+	//modParallel(device4arrays + 384, device_m);
+
+	//checkCuda(cudaStreamSynchronize(mainStream));
+
+	//// reduction
+	//blocks.x = 2;
+	//threads.x = DeviceWrapper::ONE_WARP;
+	//addParallel(device4arrays, device4arrays + 128, blocks, threads);
+	//modParallel(device4arrays, device_m);
+	//modParallel(device4arrays + 256, device_m);
+
+	//// reduction
+	//blocks.x = 1;
+	//
+	//addParallel(device4arrays, device4arrays + 256, blocks, threads);
+	//modParallel(device4arrays, device_m);
+
+	//// set x := result
+	//threads.x = BigInteger::ARRAY_SIZE;
+	//device_clone_partial << <blocks, threads, 0, mainStream >> > (device_x, device4arrays);
+
+	//checkCuda(cudaStreamSynchronize(mainStream));
 }
 

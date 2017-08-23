@@ -38,7 +38,7 @@ void Test::testBigIntegerCorrectness(bool print)
 	testSubtract(print);
 	testMultiply(print);
 	testMod(print);	
-	testPowerMod(print);
+	//testPowerMod(print);
 }
 
 void Test::testBigIntegerTimes(int minBits, int maxBits, int step, int repeats)
@@ -57,7 +57,7 @@ void Test::testBigIntegerTimes(int minBits, int maxBits, int step, int repeats)
 	testSubtractTimings(minBits, maxBits, step, repeats);
 	testMultiplyTimings(minBits, maxBits, step, repeats);
 	testModTimings(minBits, maxBits, step, repeats);
-	testPowerModTimings(minBits, maxBits, step, repeats);
+	//testPowerModTimings(minBits, maxBits, step, repeats);
 }
 
 void Test::testEqualsTimings(int minBits, int maxBits, int step, int repeats)
@@ -332,7 +332,7 @@ unsigned long long Test::testShiftRightTime(int bits, int n)
 unsigned long long Test::testModTime(int bits)
 {
 	BigInteger* bigInteger = BigInteger::createRandom(bits);
-	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
+	BigInteger* bigInteger2 = BigInteger::createRandom(bits / 2);
 	if (bigInteger == nullptr || bigInteger2 == nullptr)
 	{
 		cout << "BitInteger is null" << endl;
@@ -437,9 +437,13 @@ unsigned long long Test::testBitwiseLengthDiffrence(bool print)
 	bigInteger->startTimer();
 	bool ok = bigInteger->getBitwiseLengthDiffrence(*bigInteger2) == 4095;
 	unsigned long long time = bigInteger->stopTimer();
-
 	if (print || !ok)
 	{
+		if (!ok)
+		{
+			bigInteger->print("bigInteger:");
+			bigInteger2->print("result");
+		}
 		if (ok)
 		{
 			cout << "BigInteger::getBitwiseLengthDiffrence... SUCCESS elapsed time:  " << time << " cycles" << endl;
@@ -489,6 +493,11 @@ unsigned long long Test::testEquals(bool print)
 	
 	if (print || !ok)
 	{
+		if (!ok)
+		{
+			bigInteger->print("bigInteger:");
+			bigInteger2->print("result");
+		}
 		if (ok)
 		{
 			cout << "BigInteger::equals... SUCCESS elapsed time:  " << time << " cycles" << endl;
@@ -545,6 +554,7 @@ unsigned long long Test::testCompare(bool print)
 
 	if (print || !ok)
 	{
+
 		if (ok)
 		{
 			cout << "BigInteger::compare... SUCCESS elapsed time:  " << time / 3 << " cycles" << endl;
@@ -875,6 +885,54 @@ unsigned long long Test::testMod(bool print)
 	}
 
 	delete bigInteger;
+	delete mod;
+	delete result;
+
+	return time;
+}
+
+unsigned long long Test::testMultiplyMod(bool print)
+{
+	// test modular multiplication 
+	BigInteger* bigInteger = BigInteger::fromHexString("7a334766a93261c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9"
+		"326f9f9f146f9fa9326f9f9f14f9f9f1471c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f14"
+		"b731c173249387351c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f1473d8ff96ae257a3347"
+		"66321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f142624a11c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae2"
+		"57a334766326f9fa9326f9f9f146f9fa9326f9f9f14c1732493873573d8ff96ae257a334766326f9fa9326f9f9f148c727a334766a9326f9f9f147b732624a8c7230c213"
+		"7a507a334766326f9fa9326f9f9f130c2137a507a334766326f9fa9326f9f9f1");
+	BigInteger* times = BigInteger::fromHexString("7");
+	BigInteger* mod = BigInteger::fromHexString("1c1732493873573d8ff96a1c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9f"
+		"a9326f9f9f146f9fa9326f9f9f14e257a33476631c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f"
+		"9f9f1421c173249381c1732493873573d8ff96ae257a334766321c1732493873573d8ff96ae257a334766326f9fa9326f9f9f146f9fa9326f9f9f1473573d8ff96ae257a"
+		"334766326f9fa9326f9f9f146f9fa9326f9f9f14");
+
+	BigInteger* result = BigInteger::fromHexString("46c127f892523f2c2c37eb44f9145bc5e06be1511016449f2d08647d719c3cc584133acd073346ea9be365445e291106954713c9c9fa4bbfe9bd430c9e3a240dc7dcbc1092db49e2eca8cc416babeae66e73ca11eeeb70b0e9685a005ff9bd1c6d08183a7f497c77e39d9b47ccf79c5f33731b4e04fdc2c42f3ac5bcb12dc618a268bf6e2f30a3fc08dba0aa1cc063bc5177718fa003ab7ee5ca86e54e4733b70706731ea5a640b817d6f86fd6311054f5f1d647c42359862da9d1ca8b057419c207840c1a0b373293295fb");
+
+	bigInteger->startTimer();
+	bigInteger->multiplyMod(*times, *mod);
+	unsigned long long time = bigInteger->stopTimer();
+
+	bool ok = bigInteger->equals(*result);
+
+	if (print || !ok)
+	{
+		if (!ok)
+		{
+			bigInteger->print("bigInteger:");
+			result->print("result");
+		}
+		if (ok)
+		{
+			cout << "BigInteger::multiplyMod... SUCCESS elapsed time:  " << time << " cycles" << endl;
+		}
+		else
+		{
+			cout << "BigInteger::multiplyMod... FAILED elapsed time:  " << time << " cycles" << endl;
+		}
+	}
+
+	delete bigInteger;
+	delete times;
 	delete mod;
 	delete result;
 
