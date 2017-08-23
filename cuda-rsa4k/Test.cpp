@@ -62,12 +62,13 @@ void Test::testBigIntegerTimes(int minBits, int maxBits, int step, int repeats)
 
 void Test::testEqualsTimings(int minBits, int maxBits, int step, int repeats)
 {
-	unsigned long long sum = 0ULL;
+	unsigned long long sum;
 	for (int bits = minBits; bits <= maxBits; bits = bits + step)
 	{
+		sum = 0ULL;
 		for (int i = 0; i < repeats; i++)
 		{
-			sum = testEqualsTime(bits);
+			sum += testEqualsTime(bits);
 		}
 		cout << "Test equals: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
 	}
@@ -75,12 +76,13 @@ void Test::testEqualsTimings(int minBits, int maxBits, int step, int repeats)
 
 void Test::testCompareTimings(int minBits, int maxBits, int step, int repeats)
 {
-	unsigned long long sum = 0ULL;
+	unsigned long long sum;
 	for (int bits = minBits; bits <= maxBits; bits = bits + step)
 	{
+		sum = 0ULL;
 		for (int i = 0; i < repeats; i++)
 		{
-			sum = testCompareTime(bits);
+			sum += testCompareTime(bits);
 		}
 		cout << "Test compare: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
 	}
@@ -88,12 +90,13 @@ void Test::testCompareTimings(int minBits, int maxBits, int step, int repeats)
 
 void Test::testShiftLeftTimings(int minBits, int maxBits, int step, int repeats)
 {
-	unsigned long long sum = 0ULL;
+	unsigned long long sum;
 	for (int bits = minBits; bits <= maxBits; bits = bits + step)
 	{
+		sum = 0ULL;
 		for (int i = 0; i < repeats; i++)
 		{
-			sum = testShiftLeftTime(bits, 5);
+			sum += testShiftLeftTime(bits, 5);
 		}
 		cout << "Test shift left: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
 	}
@@ -101,12 +104,13 @@ void Test::testShiftLeftTimings(int minBits, int maxBits, int step, int repeats)
 
 void Test::testShiftRightTimings(int minBits, int maxBits, int step, int repeats)
 {
-	unsigned long long sum = 0ULL;
+	unsigned long long sum;
 	for (int bits = minBits; bits <= maxBits; bits = bits + step)
 	{
+		sum = 0ULL;
 		for (int i = 0; i < repeats; i++)
 		{
-			sum = testShiftRightTime(bits, 3);
+			sum += testShiftRightTime(bits, 3);
 		}
 		cout << "Test shift right: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
 	}
@@ -114,12 +118,13 @@ void Test::testShiftRightTimings(int minBits, int maxBits, int step, int repeats
 
 void Test::testAddTimings(int minBits, int maxBits, int step, int repeats)
 {
-	unsigned long long sum = 0ULL;
+	unsigned long long sum;
 	for (int bits = minBits; bits <= maxBits; bits = bits + step)
 	{
+		sum = 0ULL;
 		for (int i = 0; i < repeats; i++)
 		{
-			sum = testAddTime(bits);
+			sum += testAddTime(bits);
 		}
 		cout << "Test add: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
 	}
@@ -127,12 +132,13 @@ void Test::testAddTimings(int minBits, int maxBits, int step, int repeats)
 
 void Test::testSubtractTimings(int minBits, int maxBits,  int step, int repeats)
 {
-	unsigned long long sum = 0ULL;
+	unsigned long long sum;
 	for (int bits = minBits; bits <= maxBits; bits = bits + step)
 	{
+		sum = 0ULL;
 		for (int i = 0; i < repeats; i++)
 		{
-			sum = testSubtractTime(bits);
+			sum += testSubtractTime(bits);
 		}
 		cout << "Test subtract: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
 	}
@@ -140,12 +146,13 @@ void Test::testSubtractTimings(int minBits, int maxBits,  int step, int repeats)
 
 void Test::testMultiplyTimings(int minBits, int maxBits, int step, int repeats)
 {
-	unsigned long long sum = 0ULL;
+	unsigned long long sum;
 	for (int bits = minBits; bits <= maxBits; bits = bits + step)
 	{
+		sum = 0ULL;
 		for (int i = 0; i < repeats; i++)
 		{
-			sum = testMultiplyTime(bits);
+			sum += testMultiplyTime(bits);
 		}
 		cout << "Test multiply: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
 	}
@@ -153,12 +160,13 @@ void Test::testMultiplyTimings(int minBits, int maxBits, int step, int repeats)
 
 void Test::testModTimings(int minBits, int maxBits, int step, int repeats)
 {
-	unsigned long long sum = 0ULL;
+	unsigned long long sum;
 	for (int bits = minBits; bits <= maxBits; bits = bits + step)
 	{
+		sum = 0ULL;
 		for (int i = 0; i < repeats; i++)
 		{
-			sum = testModTime(bits);
+			sum += testModTime(bits);
 		}
 		cout << "Test mod: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
 	}
@@ -166,9 +174,10 @@ void Test::testModTimings(int minBits, int maxBits, int step, int repeats)
 
 void Test::testPowerModTimings(int minBits, int maxBits, int step, int repeats)
 {
-	unsigned long long sum = 0ULL;
+	unsigned long long sum;
 	for (int bits = minBits; bits <= maxBits; bits = bits + step)
 	{
+		sum = 0ULL;
 		for (int i = 0; i < repeats; i++)
 		{
 			sum = testPowerModTime(bits);
@@ -181,6 +190,11 @@ unsigned long long Test::testBitwiseLengthDiffrenceTime(int bits)
 {
 	BigInteger* bigInteger = BigInteger::createRandom(bits);
 	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
+	if (bigInteger == nullptr || bigInteger2 == nullptr)
+	{
+		cout << "BitInteger is null" << endl;
+		return 0;
+	}
 	bigInteger->startTimer();
 	bigInteger->getBitwiseLengthDiffrence(*bigInteger2);
 	unsigned long long time = bigInteger->stopTimer();	
@@ -193,6 +207,11 @@ unsigned long long Test::testEqualsTime(int bits)
 {
 	BigInteger* bigInteger = BigInteger::createRandom(bits);
 	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
+	if (bigInteger == nullptr || bigInteger2 == nullptr)
+	{
+		cout << "BitInteger is null" << endl;
+		return 0;
+	}
 	bigInteger->startTimer();
 	bigInteger->equals(*bigInteger2);
 	unsigned long long time = bigInteger->stopTimer();
@@ -205,6 +224,11 @@ unsigned long long Test::testCompareTime(int bits)
 {
 	BigInteger* bigInteger = BigInteger::createRandom(bits);
 	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
+	if (bigInteger == nullptr || bigInteger2 == nullptr)
+	{
+		cout << "BitInteger is null" << endl;
+		return 0;
+	}
 	bigInteger->startTimer();
 	bigInteger->compare(*bigInteger2);
 	unsigned long long time = bigInteger->stopTimer();
@@ -217,6 +241,11 @@ unsigned long long Test::testAddTime(int bits)
 {
 	BigInteger* bigInteger = BigInteger::createRandom(bits);
 	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
+	if (bigInteger == nullptr || bigInteger2 == nullptr)
+	{
+		cout << "BitInteger is null" << endl;
+		return 0;
+	}
 	bigInteger->startTimer();
 	bigInteger->add(*bigInteger2);
 	unsigned long long time = bigInteger->stopTimer();
@@ -229,9 +258,25 @@ unsigned long long Test::testSubtractTime(int bits)
 {
 	BigInteger* bigInteger = BigInteger::createRandom(bits);
 	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
-	bigInteger->startTimer();
-	bigInteger->subtract(*bigInteger2);
-	unsigned long long time = bigInteger->stopTimer();
+	int compare = bigInteger->compare(*bigInteger2);
+	if (bigInteger == nullptr || bigInteger2 == nullptr)
+	{
+		cout << "BitInteger is null" << endl;
+		return 0;
+	}
+	unsigned long long time;
+	if (compare == 1)
+	{
+		bigInteger->startTimer();
+		bigInteger->subtract(*bigInteger2);
+		time = bigInteger->stopTimer();
+	}
+	else
+	{
+		bigInteger2->startTimer();
+		bigInteger2->subtract(*bigInteger);
+		time = bigInteger2->stopTimer();
+	}
 	delete bigInteger;
 	delete bigInteger2;
 	return time;
@@ -241,6 +286,11 @@ unsigned long long Test::testMultiplyTime(int bits)
 {
 	BigInteger* bigInteger = BigInteger::createRandom(bits);
 	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
+	if (bigInteger == nullptr || bigInteger2 == nullptr)
+	{
+		cout << "BitInteger is null" << endl;
+		return 0;
+	}
 	bigInteger->startTimer();
 	bigInteger->multiply(*bigInteger2);
 	unsigned long long time = bigInteger->stopTimer();
@@ -252,6 +302,11 @@ unsigned long long Test::testMultiplyTime(int bits)
 unsigned long long Test::testShiftLeftTime(int bits, int n)
 {
 	BigInteger* bigInteger = BigInteger::createRandom(bits);
+	if (bigInteger == nullptr)
+	{
+		cout << "BitInteger is null" << endl;
+		return 0;
+	}
 	bigInteger->startTimer();
 	bigInteger->shiftLeft(n);
 	unsigned long long time = bigInteger->stopTimer();
@@ -262,6 +317,11 @@ unsigned long long Test::testShiftLeftTime(int bits, int n)
 unsigned long long Test::testShiftRightTime(int bits, int n)
 {
 	BigInteger* bigInteger = BigInteger::createRandom(bits);
+	if (bigInteger == nullptr)
+	{
+		cout << "BitInteger is null" << endl;
+		return 0;
+	}
 	bigInteger->startTimer();
 	bigInteger->shiftRight(n);
 	unsigned long long time = bigInteger->stopTimer();
@@ -273,6 +333,11 @@ unsigned long long Test::testModTime(int bits)
 {
 	BigInteger* bigInteger = BigInteger::createRandom(bits);
 	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
+	if (bigInteger == nullptr || bigInteger2 == nullptr)
+	{
+		cout << "BitInteger is null" << endl;
+		return 0;
+	}
 	bigInteger->startTimer();
 	bigInteger->mod(*bigInteger2);
 	unsigned long long time = bigInteger->stopTimer();
@@ -284,8 +349,13 @@ unsigned long long Test::testModTime(int bits)
 unsigned long long Test::testPowerModTime(int bits)
 {
 	BigInteger* bigInteger = BigInteger::createRandom(bits);
-	BigInteger* bigInteger2 = BigInteger::createRandom(bits / 3);
-	BigInteger* bigInteger3 = BigInteger::createRandom(bits / 2);
+	BigInteger* bigInteger2 = BigInteger::createRandom(bits / 3 + 3);
+	BigInteger* bigInteger3 = BigInteger::createRandom(bits / 2 + 2);
+	if (bigInteger == nullptr || bigInteger2 == nullptr || bigInteger3 == nullptr)
+	{
+		cout << "BitInteger is null" << endl;
+		return 0;
+	}
 	bigInteger->startTimer();
 	bigInteger->powerMod(*bigInteger2, *bigInteger3);
 	unsigned long long time = bigInteger->stopTimer();
