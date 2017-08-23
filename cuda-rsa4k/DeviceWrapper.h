@@ -18,8 +18,10 @@ private:
 
 	// main stream for kernel launches
 	cudaStream_t mainStream;
+	cudaStream_t auxStream;
 	
 	int* deviceOneWord;
+	int* deviceOneWord2;
 	int* device4arrays;
 
 	unsigned long long* deviceStartTime;
@@ -57,6 +59,7 @@ public:
 	void addParallel(int* device_x, const int* device_y) const;
 	void subtractParallel(int* device_x, const int* device_y) const;
 	void multiplyParallel(int* device_x, const int* device_y) const;
+	void modParallel(int* device_x, const int* device_y) const;
 
 private:
 	void inline addParallel(int* device_x, const int* device_y, dim3 blocks, dim3 threads) const;

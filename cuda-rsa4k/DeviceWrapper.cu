@@ -464,7 +464,9 @@ inline cudaError_t checkCuda(cudaError_t result)
 DeviceWrapper::DeviceWrapper()
 {
 	checkCuda(cudaStreamCreate(&mainStream));
-	checkCuda(cudaMalloc(&deviceOneWord, sizeof(int)));
+	checkCuda(cudaStreamCreate(&auxStream));
+	checkCuda(cudaMalloc(&deviceOneWord, sizeof(int)));	
+	checkCuda(cudaMalloc(&deviceOneWord2, sizeof(int)));
 	checkCuda(cudaMalloc(&device4arrays, sizeof(int) * 128 * 4));
 	checkCuda(cudaMalloc(&deviceStartTime, sizeof(unsigned long long)));
 	checkCuda(cudaMalloc(&deviceStopTime, sizeof(unsigned long long)));
@@ -473,9 +475,13 @@ DeviceWrapper::DeviceWrapper()
 DeviceWrapper::~DeviceWrapper()
 {		
 	checkCuda(cudaFree(deviceOneWord));
+	checkCuda(cudaFree(deviceOneWord2));
 	checkCuda(cudaFree(device4arrays));
 	checkCuda(cudaFree(deviceStartTime));
 	checkCuda(cudaFree(deviceStopTime));
+	
+	checkCuda(cudaStreamSynchronize(auxStream));
+	checkCuda(cudaStreamDestroy(auxStream));
 
 	checkCuda(cudaStreamSynchronize(mainStream));
 	checkCuda(cudaStreamDestroy(mainStream));
@@ -607,7 +613,7 @@ int DeviceWrapper::getBitLength(const int* device_x) const
 	// launch config
 	dim3 blocks(1);
 	dim3 threads(BigInteger::ARRAY_SIZE);	//128
-
+	
 	device_getbitlength_partial << <blocks, threads, 0, mainStream >> > (deviceOneWord, device_x);
 
 	checkCuda(cudaMemcpyAsync(&result, deviceOneWord, sizeof(int), cudaMemcpyDeviceToHost, mainStream));
@@ -621,7 +627,6 @@ void DeviceWrapper::startClock(void)
 {
 	device_get_clock << <1, 1, 0, mainStream >> > (deviceStartTime);
 	checkCuda(cudaStreamSynchronize(mainStream));
-
 }
 
 unsigned long long DeviceWrapper::stopClock(void)
@@ -803,5 +808,69 @@ void DeviceWrapper::multiplyParallel(int* device_x, const int* device_y) const
 	device_clone_partial << <blocks, threads, 0, mainStream >> > (device_x, device4arrays);
 	
 	checkCuda(cudaStreamSynchronize(mainStream));
+}
+
+void DeviceWrapper::modParallel(int * device_x, const int * device_y) const
+{
+	int compare;
+
+	// launch config
+	dim3 blocks(1);
+	dim3 threads(BigInteger::ARRAY_SIZE);	//128
+	dim3 threadsWarp(DeviceWrapper::ONE_WARP);  // 32
+	
+	device_compare_partial << <blocks, threads, 0, mainStream >> > (deviceOneWord, device_x, device_y);
+	checkCuda(cudaMemcpyAsync(&compare, deviceOneWord, sizeof(int), cudaMemcpyDeviceToHost, mainStream));
+	checkCuda(cudaStreamSynchronize(mainStream));
+
+	if (compare == -1)
+	{
+		// Trying to reduce modulo a greater integer		
+		return;
+	}
+	if (compare == 0)
+	{
+		// Reducing modulo same integer
+		device_clear_partial << <blocks, threads, 0, mainStream >> > (device_x);
+		checkCuda(cudaStreamSynchronize(mainStream));
+		return;
+	}
+
+	int bitwiseDifference;
+	int xLength, yLength;
+	
+	device_getbitlength_partial << <blocks, threads, 0, mainStream >> > (deviceOneWord, device_x);
+	device_getbitlength_partial << <blocks, threads, 0, auxStream >> > (deviceOneWord2, device_y);
+
+	checkCuda(cudaMemcpyAsync(&xLength, deviceOneWord, sizeof(int), cudaMemcpyDeviceToHost, mainStream));	
+	checkCuda(cudaMemcpyAsync(&yLength, deviceOneWord2, sizeof(int), cudaMemcpyDeviceToHost, auxStream));
+	
+	checkCuda(cudaStreamSynchronize(mainStream));
+	checkCuda(cudaStreamSynchronize(auxStream));
+
+	bitwiseDifference = xLength - yLength;
+	
+	int* modulus;
+	checkCuda(cudaMalloc(&modulus, sizeof(unsigned int) * 128));
+	device_clone_partial << <blocks, threads, 0, mainStream >> > (modulus, device_y);
+	device_shift_left_partial << <blocks, threads, 0, mainStream >> > (modulus, bitwiseDifference);
+	
+	while (bitwiseDifference >= 0) // TODO: side channel vulnerability ?
+	{
+		device_compare_partial << <blocks, threads, 0, mainStream >> > (deviceOneWord, device_x, modulus);
+		checkCuda(cudaMemcpyAsync(&compare, deviceOneWord, sizeof(int), cudaMemcpyDeviceToHost, mainStream));
+		checkCuda(cudaStreamSynchronize(mainStream));
+		if (compare == 1)	// this > x
+		{
+			device_subtract_partial << <blocks, threadsWarp, 0, mainStream >> > (device_x, modulus);
+		}
+		else // this <= x
+		{			
+			device_shift_right_partial << <blocks, threads, 0, mainStream >> > (modulus, 1);
+			bitwiseDifference--;
+		}
+	}
+
+	checkCuda(cudaFree(modulus));
 }
 

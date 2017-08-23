@@ -163,39 +163,8 @@ void BigInteger::shiftRight(int n)
 }
 
 void BigInteger::mod(const BigInteger& modulus)
-{	
-	BigInteger* mod = new BigInteger(modulus);
-
-	int compareValue = compare(*mod);
-	if (compareValue == -1)
-	{
-		// Trying to reduce modulo a greater integer		
-		return;
-	}
-	if (compareValue == 0)
-	{
-		// Reducing modulo same integer		
-		clear();
-		return;
-	}
-
-	int bitwiseDifference = getBitwiseLengthDiffrence(*mod);
-	mod->shiftLeft(bitwiseDifference);
-	
-	while (bitwiseDifference >= 0) // TODO: side channel vulnerability
-	{
-		if (compare(*mod) == 1)	// this > x
-		{		
-			subtract(*mod);
-		}
-		else // this <= x
-		{				
-			mod->shiftRight(1);
-			bitwiseDifference--;
-		}
-	}		
-
-	delete mod;
+{
+	deviceWrapper->modParallel(deviceMagnitude, modulus.getDeviceMagnitude());	
 }
 
 void BigInteger::multiplyMod(const BigInteger& x, const BigInteger& modulus)
