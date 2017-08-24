@@ -1,6 +1,7 @@
 #pragma once
 #include "DeviceWrapper.h"
 
+// mutable!
 class BigInteger
 {
 	//fields
@@ -16,6 +17,13 @@ private:
 	// Allocated on the device.
 	unsigned int* deviceMagnitude;
 
+	// same array allocated on the host 
+	// provides faster access if nothing was changed
+	unsigned int* hostMagnitude;
+
+	// flag indicating if hostMagnitude matches deviceMagnitude
+	bool upToDate;
+
 	// Device wrapper instance diffrent for every integer
 	// to provide parallel execution
 	DeviceWrapper* deviceWrapper;
@@ -27,6 +35,8 @@ public:
 	BigInteger(const BigInteger& x);
 	BigInteger(unsigned int value);
 	~BigInteger();
+
+	const unsigned int& operator[](int index);
 
 	// factory
 	static BigInteger* fromHexString(const char* string);
@@ -54,8 +64,8 @@ public:
 	int getBitwiseLengthDiffrence(const BigInteger& value) const;
 	int getBitwiseLength(void) const;
 	int getLSB(void) const;
-	char* toHexString(void) const;
-	void print(const char* title) const;
+	char* toHexString(void);
+	void print(const char* title);
 
 	//timer
 	void startTimer(void);
@@ -65,6 +75,8 @@ private:
 
 	void setMagnitude(const unsigned int* magnitude);
 	void clear(void);
+	void updateDeviceMagnitiude(void);
+	void updateHostMagnitiude(void);
 	static unsigned int random32(void);
 
 	/*

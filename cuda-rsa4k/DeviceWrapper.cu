@@ -431,7 +431,7 @@ extern "C" __device__ void inline device_multiply_partial(unsigned int* result, 
 		result[xIndex + 1] = sharedResult[deviceIndexFixupTable[xIndex + 1]];
 }
 
-extern "C" __device__ void inline device_reduce_modulo(unsigned int* x, const unsigned int* m)
+extern "C" __device__ void inline device_reduce_modulo_partial(unsigned int* x, const unsigned int* m)
 {
 	register int index = threadIdx.x;
 
@@ -655,26 +655,26 @@ __global__ void device_subtract_partial_4(unsigned int* x, const unsigned int* y
 	device_multiply_partial(result + block * 128, x, y);
 }
 
- __global__ void device_reduce_modulo_1(unsigned int* x, const unsigned int* m)
+ __global__ void device_reduce_modulo_partial_1(unsigned int* x, const unsigned int* m)
  {	 	 
-	 device_reduce_modulo(x, m);
+	 device_reduce_modulo_partial(x, m);
  }
 
  // not aligned arrays
- __global__ void device_reduce_modulo_2(unsigned int* x, unsigned int* y,  const unsigned int* m)
+ __global__ void device_reduce_modulo_partial_2(unsigned int* x, unsigned int* y,  const unsigned int* m)
  {
 	 register int block = blockIdx.x;
 	 if (block == 0)
-		device_reduce_modulo(x, m);
+		device_reduce_modulo_partial(x, m);
 	 else
-		device_reduce_modulo(y, m);
+		device_reduce_modulo_partial(y, m);
  }
 
  // aligned arrays, modulus the same in global memory
- __global__ void device_reduce_modulo_4(unsigned int* x, const unsigned int* m)
+ __global__ void device_reduce_modulo_partial_4(unsigned int* x, const unsigned int* m)
  {
 	 register int block = blockIdx.x;
-	 device_reduce_modulo(x + block * 128, m);
+	 device_reduce_modulo_partial(x + block * 128, m);
  }
 
  ////////////////////////////////////
@@ -1002,7 +1002,7 @@ void DeviceWrapper::multiplyParallel(unsigned int* device_x, const unsigned int*
 
 void DeviceWrapper::modParallel(unsigned int * device_x, unsigned int * device_m) const
 {
-	device_reduce_modulo_1 << <block_1, thread_4_warp, 0, mainStream >> > (device_x, device_m);
+	device_reduce_modulo_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (device_x, device_m);
 	checkCuda(cudaStreamSynchronize(mainStream));
 }
 
@@ -1011,7 +1011,7 @@ void DeviceWrapper::multiplyModParallel(unsigned int * device_x, const unsigned 
 	device_clone_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (deviceArray, device_y);
 
 	// reduce mod first
-	device_reduce_modulo_2 << <block_2, thread_4_warp, 0, mainStream >> > (device_x, deviceArray, device_m);
+	device_reduce_modulo_partial_2 << <block_2, thread_4_warp, 0, mainStream >> > (device_x, deviceArray, device_m);
 
 	// parallel multiplication
 	device_multiply_partial_4 << <block_4, thread_2_warp, 0, mainStream >> > (device4arrays, device_x, deviceArray);
@@ -1019,13 +1019,13 @@ void DeviceWrapper::multiplyModParallel(unsigned int * device_x, const unsigned 
 	if (DEBUG)
 	{
 		// modular reduction of part-results
-		device_reduce_modulo_4 << <block_4, thread_4_warp, 0, mainStream >> > (device4arrays, device_m);
+		device_reduce_modulo_partial_4 << <block_4, thread_4_warp, 0, mainStream >> > (device4arrays, device_m);
 
 		// reduction		
 		addParallelWithOverflow(device4arrays, device4arrays + 256, block_2.x);
 
 		// modular reduction
-		device_reduce_modulo_2 << <block_2, thread_4_warp, 0, mainStream >> > (device4arrays, device4arrays + 128, device_m);
+		device_reduce_modulo_partial_2 << <block_2, thread_4_warp, 0, mainStream >> > (device4arrays, device4arrays + 128, device_m);
 
 		// reduction		
 		addParallelWithOverflow(device4arrays, device4arrays + 128, block_1.x);
@@ -1033,20 +1033,20 @@ void DeviceWrapper::multiplyModParallel(unsigned int * device_x, const unsigned 
 	else
 	{
 		// modular reduction of part-results
-		device_reduce_modulo_4 << <block_4, thread_4_warp, 0, mainStream >> > (device4arrays, device_m);
+		device_reduce_modulo_partial_4 << <block_4, thread_4_warp, 0, mainStream >> > (device4arrays, device_m);
 
 		// reduction
 		device_add_partial_2 << <block_2, thread_warp, 0, mainStream >> > (device4arrays, device4arrays + 256);
 
 		// modular reduction
-		device_reduce_modulo_2 << <block_2, thread_4_warp, 0, mainStream >> > (device4arrays, device4arrays + 128, device_m);
+		device_reduce_modulo_partial_2 << <block_2, thread_4_warp, 0, mainStream >> > (device4arrays, device4arrays + 128, device_m);
 
 		// reduction
 		device_add_partial_1 << <block_1, thread_warp, 0, mainStream >> > (device4arrays, device4arrays + 128);
 	}
 
 	// final modular reduction
-	device_reduce_modulo_1 << < block_1, thread_4_warp, 0, mainStream >> > (device4arrays, device_m);
+	device_reduce_modulo_partial_1 << < block_1, thread_4_warp, 0, mainStream >> > (device4arrays, device_m);
 		
 	// set x := result
 	device_clone_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (device_x, device4arrays);

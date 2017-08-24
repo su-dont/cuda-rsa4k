@@ -12,38 +12,50 @@ BigInteger::BigInteger()
 {
 	deviceWrapper = new DeviceWrapper();
 	deviceMagnitude = deviceWrapper->init(ARRAY_SIZE);
+	hostMagnitude = new unsigned int[ARRAY_SIZE];
+	upToDate = false;
 }
 
 BigInteger::BigInteger(const BigInteger & x)
 {
 	deviceWrapper = new DeviceWrapper();
 	deviceMagnitude = deviceWrapper->init(ARRAY_SIZE, x.getDeviceMagnitude());
+	hostMagnitude = new unsigned int[ARRAY_SIZE];
+	upToDate = false;
 }
 
 BigInteger::BigInteger(unsigned int value)
 {
 	deviceWrapper = new DeviceWrapper();
 	deviceMagnitude = deviceWrapper->init(ARRAY_SIZE);
-	unsigned int* magnitude = new unsigned int[ARRAY_SIZE];
+	hostMagnitude = new unsigned int[ARRAY_SIZE];
 	for (int i = 0; i < ARRAY_SIZE; i++)
-		magnitude[i] ^= magnitude[i];
-	magnitude[0] = value;
-	setMagnitude(magnitude);
-	delete[] magnitude;
+		hostMagnitude[i] ^= hostMagnitude[i];
+	hostMagnitude[0] = value;
+	updateDeviceMagnitiude();
 }
 
 BigInteger::~BigInteger()
 {
 	deviceWrapper->free(deviceMagnitude);
+	delete[] hostMagnitude;
 	delete deviceWrapper;	
+}
+
+const unsigned int& BigInteger::operator[](int index)
+{
+	if (!upToDate)
+	{
+		updateHostMagnitiude();
+	}
+	return hostMagnitude[index];
 }
 
 BigInteger* BigInteger::fromHexString(const char* string)
 {
-	unsigned int* magnitude = new unsigned int[ARRAY_SIZE];
+	BigInteger* integer = new BigInteger();
 	for (int i = 0; i < 128; i++)
-		magnitude[i] ^= magnitude[i];
-	BigInteger* integer = new BigInteger();	
+		integer->hostMagnitude[i] ^= integer->hostMagnitude[i];
 	int length = strlen(string);
 	if (length == 0)
 	{
@@ -62,7 +74,7 @@ BigInteger* BigInteger::fromHexString(const char* string)
 	{
 		strncpy(temp, string + i, 8);
 		temp[8] = '\0';		
-		magnitude[j] = parseUnsignedInt(temp);
+		integer->hostMagnitude[j] = parseUnsignedInt(temp);
 		j++;		
 	}	
 	if (i < 0 && j < 127)
@@ -72,12 +84,12 @@ BigInteger* BigInteger::fromHexString(const char* string)
 		strncpy(temp, string, 8 + i);
 		temp[index] = '\0';
 		unsigned int value = parseUnsignedInt(temp);		
-		magnitude[j] = value;				
+		integer->hostMagnitude[j] = value;
 	}
 
-	integer->setMagnitude(magnitude);
+	integer->setMagnitude(integer->hostMagnitude);
+	integer->upToDate = true;
 
-	delete[] magnitude;
 	return integer;
 }
 
@@ -102,42 +114,43 @@ BigInteger* BigInteger::createRandom(int bitLength)
 	int ints = bitLength >> 5;
 	int bits = bitLength & 0x1f;
 
-	unsigned int* magnitude = new unsigned int[ARRAY_SIZE];
+	BigInteger* integer = new BigInteger();
+
 	int i = 0;
 	for (; i < ints; i++)
 	{
-		magnitude[i] = random32();
+		integer->hostMagnitude[i] = random32();
 	}
 	for (; i < 128; i++)
 	{
-		magnitude[i] ^= magnitude[i];
+		integer->hostMagnitude[i] ^= integer->hostMagnitude[i];
 	}
 
 	if (bits > 0)
 	{
-		int msb = 1 << bits - 1;
+		int msb = 1 << (bits - 1);
 		int mask = 0xffffffff << bits;
 		mask = ~mask;
 		int partial = random32();
 		partial = partial & mask;
 		partial = partial | msb;
-		magnitude[ints] = partial;
+		integer->hostMagnitude[ints] = partial;
 	}
 	else
 	{
 		int msb = 1 << 31;
-		magnitude[ints - 1] |= msb;
+		integer->hostMagnitude[ints - 1] |= msb;
 	}
+	
+	integer->setMagnitude(integer->hostMagnitude);
+	integer->upToDate = true;
 
-	BigInteger* integer = new BigInteger();
-	integer->setMagnitude(magnitude);
-
-	delete[] magnitude;
 	return integer;
 }
 
 void BigInteger::set(const BigInteger& x)
 {
+	upToDate = false;
 	deviceWrapper->cloneParallel(deviceMagnitude, x.getDeviceMagnitude());
 }
 
@@ -148,62 +161,72 @@ unsigned int* BigInteger::getDeviceMagnitude(void) const
 
 void BigInteger::add(const BigInteger& x)
 {
+	upToDate = false;
 	deviceWrapper->addParallel(deviceMagnitude, x.getDeviceMagnitude());	
 }
 
 void BigInteger::subtract(const BigInteger& x)
 {
+	upToDate = false;
 	deviceWrapper->subtractParallel(deviceMagnitude, x.getDeviceMagnitude());
 }
 
 void BigInteger::multiply(const BigInteger& x)
 {
+	upToDate = false;
 	deviceWrapper->multiplyParallel(deviceMagnitude, x.getDeviceMagnitude());	
 }
 
 void BigInteger::shiftLeft(int n)
 {
+	upToDate = false;
 	deviceWrapper->shiftLeftParallel(deviceMagnitude, n);
 }
 
 void BigInteger::shiftRight(int n)
 {
+	upToDate = false;
 	deviceWrapper->shiftRightParallel(deviceMagnitude, n);
 }
 
 void BigInteger::mod(const BigInteger& modulus)
 {
+	upToDate = false;
 	deviceWrapper->modParallel(deviceMagnitude, modulus.getDeviceMagnitude());	
 }
 
 void BigInteger::multiplyMod(const BigInteger& x, const BigInteger& modulus)
 {	
+	upToDate = false;
 	deviceWrapper->multiplyModParallel(deviceMagnitude, x.getDeviceMagnitude(), modulus.getDeviceMagnitude());
 }
 
 void BigInteger::powerMod(const BigInteger& exponent, const BigInteger& modulus)
 {
+	upToDate = false;
 	// Assert :: (modulus - 1) * (modulus - 1) does not overflow base
 
-	BigInteger* base = new BigInteger(*this);
-	
-	// set this to 1
-	set(*ONE);
-	
-	BigInteger* exp = new BigInteger(exponent);
-	base->mod(modulus);
+	//BigInteger* x1 = new BigInteger(*this);
+	//BigInteger* x2 = new BigInteger(*this);
+	//x2
+	//
+	//// set this to 1
+	////set(*ONE);
+	//
+	//BigInteger* exp = new BigInteger(exponent);
+	////base->mod(modulus);
 
-	int bits = exp->getBitwiseLength();
-	
-	for (int i = 0; i < bits; i++)
-	{		
-		if (exp->getLSB() == 1)
-		{			
-			multiplyMod(*base, modulus);
-		}		
-		exp->shiftRight(1);		
-		base->multiplyMod(*base, modulus);		
-	}	
+	//int bits = exp->getBitwiseLength();
+	//
+	//for (int i = 0; i < bits; i++)
+	//{		
+	//	if (exp->getLSB() == 1)
+	//	{			
+	//		multiplyMod(*base, modulus);
+	//	}		
+	//	exp->shiftRight(1);		
+	//	base->multiplyMod(*base, modulus);		
+	//}	
 }
 
 bool BigInteger::equals(const BigInteger& value) const
@@ -238,15 +261,14 @@ int BigInteger::getLSB(void) const
 	return deviceWrapper->getLSB(deviceMagnitude);
 }
 
-char* BigInteger::toHexString(void) const
+char* BigInteger::toHexString(void)
 {
-	unsigned int* magnitude = new unsigned int[ARRAY_SIZE];
-	deviceWrapper->updateHost(magnitude, deviceMagnitude, ARRAY_SIZE);
+	updateHostMagnitiude();
 
 	char* buffer = (char*) malloc(ARRAY_SIZE * 8 + 1);
 	for (int i = ARRAY_SIZE - 1, j = 0; i >= 0; i--)
 	{
-		sprintf(buffer + 8 * j++, "%08x", magnitude[i]);
+		sprintf(buffer + 8 * j++, "%08x", hostMagnitude[i]);
 	}
 
 	// clear leading zeros
@@ -258,7 +280,7 @@ char* BigInteger::toHexString(void) const
 	return buffer + i;
 }
 
-void BigInteger::print(const char* title) const
+void BigInteger::print(const char* title)
 {
 	cout << title << endl;
 	cout << "Mag: " << toHexString() << endl;
@@ -303,12 +325,26 @@ unsigned int BigInteger::parseUnsignedInt(const char* hexString)
 
 void BigInteger::setMagnitude(const unsigned int* magnitude)
 {
-	deviceWrapper->updateDevice(deviceMagnitude, magnitude, ARRAY_SIZE);
+	upToDate = false;
+	deviceWrapper->updateDevice(deviceMagnitude, magnitude, ARRAY_SIZE);	
 }
 
 void BigInteger::clear(void)
 {
+	upToDate = false;
 	deviceWrapper->clearParallel(deviceMagnitude);	
+}
+
+void BigInteger::updateDeviceMagnitiude(void)
+{
+	deviceWrapper->updateDevice(deviceMagnitude, hostMagnitude, ARRAY_SIZE);
+	upToDate = true;
+}
+
+void BigInteger::updateHostMagnitiude(void)
+{
+	deviceWrapper->updateHost(hostMagnitude, deviceMagnitude, ARRAY_SIZE);
+	upToDate = true;
 }
 
 unsigned int BigInteger::random32(void)
