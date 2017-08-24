@@ -64,6 +64,7 @@ public:
 	int getBitwiseLengthDiffrence(const BigInteger& value) const;
 	int getBitwiseLength(void) const;
 	int getLSB(void) const;
+	bool testBit(int bit);
 	char* toHexString(void);
 	void print(const char* title);
 

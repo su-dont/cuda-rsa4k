@@ -48,6 +48,7 @@ const unsigned int& BigInteger::operator[](int index)
 	{
 		updateHostMagnitiude();
 	}
+	cout << "operator[] val: " << hex<<hostMagnitude[index] << endl;
 	return hostMagnitude[index];
 }
 
@@ -259,6 +260,20 @@ int BigInteger::getBitwiseLength(void) const
 int BigInteger::getLSB(void) const
 {
 	return deviceWrapper->getLSB(deviceMagnitude);
+}
+
+bool BigInteger::testBit(int bit)
+{
+	if (DEBUG)
+	{
+		if (bit < 0 || bit > 4095)
+		{
+			cerr << "ERROR: BigInteger::getBit: trying to get bit: " << bit << endl;
+			return -1;
+		}
+	}
+
+	return ((*this)[bit >> 5] & (1 << ((bit & 0x1f) - 1))) != 0;
 }
 
 char* BigInteger::toHexString(void)
