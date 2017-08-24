@@ -13,9 +13,12 @@ private:
 	dim3 block_1, block_2, block_4;
 	dim3 thread_warp, thread_2_warp, thread_4_warp;
 
-	// 4 ints to help storing results
-	int* deviceWords;	
+	// 4 ints to help store results
+	int* deviceWords;
+
+	// auxiliary arrays
 	int* device4arrays;
+	int* deviceArray;
 
 	unsigned long long* deviceStartTime;
 	unsigned long long* deviceStopTime;

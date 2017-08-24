@@ -38,6 +38,7 @@ void Test::testBigIntegerCorrectness(bool print)
 	testSubtract(print);
 	testMultiply(print);
 	testMod(print);	
+	testMultiplyMod(print);
 	//testPowerMod(print);
 }
 
@@ -57,6 +58,7 @@ void Test::testBigIntegerTimes(int minBits, int maxBits, int step, int repeats)
 	testSubtractTimings(minBits, maxBits, step, repeats);
 	testMultiplyTimings(minBits, maxBits, step, repeats);
 	testModTimings(minBits, maxBits, step, repeats);
+	testMultiplyModTimings(minBits, maxBits, step, repeats);
 	//testPowerModTimings(minBits, maxBits, step, repeats);
 }
 
@@ -172,6 +174,20 @@ void Test::testModTimings(int minBits, int maxBits, int step, int repeats)
 	}
 }
 
+void Test::testMultiplyModTimings(int minBits, int maxBits, int step, int repeats)
+{
+	unsigned long long sum;
+	for (int bits = minBits; bits <= maxBits; bits = bits + step)
+	{
+		sum = 0ULL;
+		for (int i = 0; i < repeats; i++)
+		{
+			sum += tesMultiplytModTime(bits);
+		}
+		cout << "Test multiply mod: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
+	}
+}
+
 void Test::testPowerModTimings(int minBits, int maxBits, int step, int repeats)
 {
 	unsigned long long sum;
@@ -180,7 +196,7 @@ void Test::testPowerModTimings(int minBits, int maxBits, int step, int repeats)
 		sum = 0ULL;
 		for (int i = 0; i < repeats; i++)
 		{
-			sum = testPowerModTime(bits);
+			sum += testPowerModTime(bits);
 		}
 		cout << "Test power mod: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
 	}
@@ -257,13 +273,13 @@ unsigned long long Test::testAddTime(int bits)
 unsigned long long Test::testSubtractTime(int bits)
 {
 	BigInteger* bigInteger = BigInteger::createRandom(bits);
-	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
-	int compare = bigInteger->compare(*bigInteger2);
+	BigInteger* bigInteger2 = BigInteger::createRandom(bits);	
 	if (bigInteger == nullptr || bigInteger2 == nullptr)
 	{
 		cout << "BitInteger is null" << endl;
 		return 0;
 	}
+	int compare = bigInteger->compare(*bigInteger2);
 	unsigned long long time;
 	if (compare == 1)
 	{
@@ -343,6 +359,25 @@ unsigned long long Test::testModTime(int bits)
 	unsigned long long time = bigInteger->stopTimer();
 	delete bigInteger;
 	delete bigInteger2;
+	return time;
+}
+
+unsigned long long Test::tesMultiplytModTime(int bits)
+{
+	BigInteger* bigInteger = BigInteger::createRandom(bits);
+	BigInteger* bigInteger2 = BigInteger::createRandom(bits / 3 + 3);
+	BigInteger* bigInteger3 = BigInteger::createRandom(bits / 2 + 2);
+	if (bigInteger == nullptr || bigInteger2 == nullptr || bigInteger3 == nullptr)
+	{
+		cout << "BitInteger is null" << endl;
+		return 0;
+	}
+	bigInteger->startTimer();
+	bigInteger->multiplyMod(*bigInteger2, *bigInteger3);
+	unsigned long long time = bigInteger->stopTimer();
+	delete bigInteger;
+	delete bigInteger2;
+	delete bigInteger3;
 	return time;
 }
 

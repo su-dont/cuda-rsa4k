@@ -179,8 +179,6 @@ void BigInteger::mod(const BigInteger& modulus)
 void BigInteger::multiplyMod(const BigInteger& x, const BigInteger& modulus)
 {	
 	deviceWrapper->multiplyModParallel(deviceMagnitude, x.getDeviceMagnitude(), modulus.getDeviceMagnitude());
-	//multiply(x);
-	//mod(modulus);
 }
 
 void BigInteger::powerMod(const BigInteger& exponent, const BigInteger& modulus)

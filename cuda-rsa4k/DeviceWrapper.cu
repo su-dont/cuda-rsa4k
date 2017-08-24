@@ -392,7 +392,7 @@ extern "C" __device__ inline int isYodd(int config)
 	return ((0xFFFFFFFE | config) == 0xFFFFFFFF) ? 1 : 0;
 }
 
-extern "C" __device__ void device_multiply_partial(int* result, const int* x, const int* y)
+extern "C" __device__ void inline device_multiply_partial(int* result, const int* x, const int* y)
 {
 	register int block = blockIdx.x;
 	register const int arraySize = BigInteger::ARRAY_SIZE;
@@ -431,6 +431,71 @@ extern "C" __device__ void device_multiply_partial(int* result, const int* x, co
 	result[xIndex] = sharedResult[deviceIndexFixupTable[xIndex]];
 	if (xIndex + 1 < 128)
 		result[xIndex + 1] = sharedResult[deviceIndexFixupTable[xIndex + 1]];
+}
+
+extern "C" __device__ void inline device_reduce_modulo(int* x, const int* m)
+{
+	register int index = threadIdx.x;
+
+	__shared__ int modulus[128];
+	device_clone_partial(modulus, m);
+
+	register int compare = device_compare_partial(x, modulus);
+
+	if (compare == -1)
+	{
+		// Trying to reduce modulo a greater integer		
+		return;
+	}
+	if (compare == 0)
+	{
+		// Reducing modulo same integer
+		device_clear_partial(x);
+		return;
+	}
+
+	register int bitwiseDifference;
+
+	register int xLength;
+	register int mLength;
+
+	xLength = device_getbitlength_partial(x);
+	mLength = device_getbitlength_partial(modulus);
+
+	bitwiseDifference = xLength - mLength;
+
+	device_shift_left_partial(modulus, bitwiseDifference);
+	while (bitwiseDifference >= 0) // TODO: side channel vulnerability ?
+	{
+		compare = device_compare_partial(x, modulus);
+		if (compare == 1)	// x > m
+		{
+			if (index < 32)
+			{
+				device_subtract_partial(x, modulus);
+			}
+			else
+			{
+				__syncthreads();
+				for (int i = 0; i < 32; i++)
+				{
+					__syncthreads();
+				}
+			}
+		}
+		else if (compare == 0)  // x == m	
+		{
+			device_clear_partial(x);
+			__syncthreads();
+			return;
+		}
+		else // x <= m
+		{
+			device_shift_right_partial(modulus, 1);
+			bitwiseDifference--;
+		}
+		__syncthreads();
+	}
 }
 
 
@@ -592,64 +657,26 @@ __global__ void device_subtract_partial_4(int* x, const int* y)
 	device_multiply_partial(result + block * 128, x, y);
 }
 
- // 128 threads
  __global__ void device_reduce_modulo_1(int* x, const int* m)
  {	 	 
-	 register int index = threadIdx.x;
+	 device_reduce_modulo(x, m);
+ }
 
-	 __shared__ int modulus[128];
-	 device_clone_partial(modulus, m);
+ // not aligned arrays
+ __global__ void device_reduce_modulo_2(int* x, int* y,  const int* m)
+ {
+	 register int block = blockIdx.x;
+	 if (block == 0)
+		device_reduce_modulo(x, m);
+	 else
+		device_reduce_modulo(y, m);
+ }
 
-	 register int compare = device_compare_partial(x, modulus);
-	 
-	 if (compare == -1)
-	 {
-		 // Trying to reduce modulo a greater integer		
-		 return;
-	 }
-	 if (compare == 0)
-	 {
-		 // Reducing modulo same integer
-		 device_clear_partial(x);		 
-		 return;
-	 }
-
-	 register int bitwiseDifference;
-	 
-	 register int xLength;
-	 register int mLength;
-
-	 xLength = device_getbitlength_partial(x);
-	 mLength = device_getbitlength_partial(modulus);
-
-	 bitwiseDifference = xLength - mLength;
-
-	 device_shift_left_partial(modulus, bitwiseDifference);
-	 while (bitwiseDifference > 0) // TODO: side channel vulnerability ?
-	 {
-		 compare = device_compare_partial(x, modulus);
-		 if (compare == 1)	// x > m
-		 {
-			 if (index < 32)
-			 {
-				 device_subtract_partial(x, modulus);
-			 }
-			 else 
-			 {
-				 __syncthreads();
-				 for (int i = 0; i < 32; i++)
-				 {
-					 __syncthreads();
-				 }
-			 }
-		 }
-		 else // x <= m
-		 {			 
-			 device_shift_right_partial(modulus, 1);
-			 bitwiseDifference--;
-		 }
-		 __syncthreads();
-	 }
+ // aligned arrays, modulus the same in global memory
+ __global__ void device_reduce_modulo_4(int* x, const int* m)
+ {
+	 register int block = blockIdx.x;
+	 device_reduce_modulo(x + block * 128, m);
  }
 
  ////////////////////////////////////
@@ -678,6 +705,7 @@ DeviceWrapper::DeviceWrapper()
 	checkCuda(cudaStreamCreate(&mainStream));
 	checkCuda(cudaMalloc(&deviceWords, sizeof(int) * 4));
 	checkCuda(cudaMalloc(&device4arrays, sizeof(int) * 128 * 4));
+	checkCuda(cudaMalloc(&deviceArray, sizeof(int) * 128));
 	checkCuda(cudaMalloc(&deviceStartTime, sizeof(unsigned long long)));
 	checkCuda(cudaMalloc(&deviceStopTime, sizeof(unsigned long long)));
 }
@@ -686,6 +714,7 @@ DeviceWrapper::~DeviceWrapper()
 {	
 	checkCuda(cudaFree(deviceWords));
 	checkCuda(cudaFree(device4arrays));
+	checkCuda(cudaFree(deviceArray));
 	checkCuda(cudaFree(deviceStartTime));
 	checkCuda(cudaFree(deviceStopTime));
 	
@@ -980,47 +1009,50 @@ void DeviceWrapper::modParallel(int * device_x, int * device_m) const
 }
 
 void DeviceWrapper::multiplyModParallel(int * device_x, const int * device_y, const int * device_m) const
-{
-	//// launch config
-	//dim3 blocks(1);
-	//dim3 blocks_2(2);
-	//dim3 blocks_4(DeviceWrapper::MULTIPLICATION_BLOCKS_COUNT);
-	//dim3 threads_warp(DeviceWrapper::ONE_WARP);  // 32
-	//dim3 threads_2_warps(DeviceWrapper::TWO_WARPS);	// 64
-	//dim3 threads_array(DeviceWrapper::ONE_WARP);  // 128
+{		
+	device_clone_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (deviceArray, device_y);
 
-	//modParallel(device_x, device_m);
+	// reduce mod first
+	device_reduce_modulo_2 << <block_2, thread_4_warp, 0, mainStream >> > (device_x, deviceArray, device_m);
 
-	//// parallel multiplication
-	//device_multiply_partial << <blocks_4, threads_2_warps, 0, mainStream >> > (device4arrays, device_x, device_y);
-	//
-	//// modular reduction of part-results
+	// parallel multiplication
+	device_multiply_partial_4 << <block_4, thread_2_warp, 0, mainStream >> > (device4arrays, device_x, deviceArray);
 
+	if (DEBUG)
+	{
+		// modular reduction of part-results
+		device_reduce_modulo_4 << <block_4, thread_4_warp, 0, mainStream >> > (device4arrays, device_m);
 
-	//modParallel(device4arrays, device_m);
-	//modParallel(device4arrays + 128, device_m);
-	//modParallel(device4arrays + 256, device_m);
-	//modParallel(device4arrays + 384, device_m);
+		// reduction		
+		addParallelWithOverflow(device4arrays, device4arrays + 256, block_2.x);
 
-	//checkCuda(cudaStreamSynchronize(mainStream));
+		// modular reduction
+		device_reduce_modulo_2 << <block_2, thread_4_warp, 0, mainStream >> > (device4arrays, device4arrays + 128, device_m);
 
-	//// reduction
-	//blocks.x = 2;
-	//threads.x = DeviceWrapper::ONE_WARP;
-	//addParallel(device4arrays, device4arrays + 128, blocks, threads);
-	//modParallel(device4arrays, device_m);
-	//modParallel(device4arrays + 256, device_m);
+		// reduction		
+		addParallelWithOverflow(device4arrays, device4arrays + 128, block_1.x);
+	}
+	else
+	{
+		// modular reduction of part-results
+		device_reduce_modulo_4 << <block_4, thread_4_warp, 0, mainStream >> > (device4arrays, device_m);
 
-	//// reduction
-	//blocks.x = 1;
-	//
-	//addParallel(device4arrays, device4arrays + 256, blocks, threads);
-	//modParallel(device4arrays, device_m);
+		// reduction
+		device_add_partial_2 << <block_2, thread_warp, 0, mainStream >> > (device4arrays, device4arrays + 256);
 
-	//// set x := result
-	//threads.x = BigInteger::ARRAY_SIZE;
-	//device_clone_partial << <blocks, threads, 0, mainStream >> > (device_x, device4arrays);
+		// modular reduction
+		device_reduce_modulo_2 << <block_2, thread_4_warp, 0, mainStream >> > (device4arrays, device4arrays + 128, device_m);
 
-	//checkCuda(cudaStreamSynchronize(mainStream));
+		// reduction
+		device_add_partial_1 << <block_1, thread_warp, 0, mainStream >> > (device4arrays, device4arrays + 128);
+	}
+
+	// final modular reduction
+	device_reduce_modulo_1 << < block_1, thread_4_warp, 0, mainStream >> > (device4arrays, device_m);
+		
+	// set x := result
+	device_clone_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (device_x, device4arrays);
+
+	checkCuda(cudaStreamSynchronize(mainStream));
 }
 
