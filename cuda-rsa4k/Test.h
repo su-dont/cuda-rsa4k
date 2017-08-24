@@ -24,6 +24,7 @@ public:
 
 	void testParsing(bool print);
 	void testCreateRandom(bool print);
+	void testTestBit(bool print);
 	unsigned long long testBitwiseLengthDiffrence(bool print);
 	unsigned long long testEquals(bool print);
 	unsigned long long testCompare(bool print);

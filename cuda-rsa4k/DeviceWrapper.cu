@@ -519,6 +519,12 @@ __global__ void device_clear_partial_1(unsigned int* x)
 	device_clear_partial(x);
 }
 
+__global__ void device_clear_partial_4(unsigned int* x)
+{
+	register int block = blockIdx.x;
+	device_clear_partial(x + block * 128);
+}
+
 __global__ void device_equals_partial_1(int* result, const unsigned int* x, const unsigned int* y)
 {
 	*result = device_equals_partial(x, y);
@@ -911,6 +917,8 @@ void DeviceWrapper::addParallelWithOverflow(unsigned int * device_x, const unsig
 			resultBitLength[i] = getBitLength(device_x + i * 256);
 		}
 
+		// todo: bugs here
+
 		for (int i = 0; i < arrays; i++)
 		{
 			// comparing bitwise lengths of the result and parameters to quickly detect overflows
@@ -1009,6 +1017,9 @@ void DeviceWrapper::modParallel(unsigned int * device_x, unsigned int * device_m
 void DeviceWrapper::multiplyModParallel(unsigned int * device_x, const unsigned int * device_y, const unsigned int * device_m) const
 {		
 	device_clone_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (deviceArray, device_y);
+
+	// clear result array
+	device_clear_partial_4 << <block_4, thread_4_warp, 0, mainStream >> > (device4arrays);
 
 	// reduce mod first
 	device_reduce_modulo_partial_2 << <block_2, thread_4_warp, 0, mainStream >> > (device_x, deviceArray, device_m);

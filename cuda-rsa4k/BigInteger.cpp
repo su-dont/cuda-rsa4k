@@ -6,7 +6,7 @@
 
 using namespace std;
 
-static const BigInteger* ONE = new BigInteger(1);
+//static const BigInteger* ONE = new BigInteger(1);
 
 BigInteger::BigInteger()
 {
@@ -48,7 +48,7 @@ const unsigned int& BigInteger::operator[](int index)
 	{
 		updateHostMagnitiude();
 	}
-	cout << "operator[] val: " << hex<<hostMagnitude[index] << endl;
+	//cout << "operator[] val: " << hex<<hostMagnitude[index] << endl;
 	return hostMagnitude[index];
 }
 
@@ -108,7 +108,7 @@ BigInteger* BigInteger::createRandom(int bitLength)
 	}
 	if (bitLength == 0)
 	{
-		return new BigInteger(*ONE);
+		return new BigInteger();
 	}
 
 	srand(time(NULL));
@@ -202,32 +202,33 @@ void BigInteger::multiplyMod(const BigInteger& x, const BigInteger& modulus)
 	deviceWrapper->multiplyModParallel(deviceMagnitude, x.getDeviceMagnitude(), modulus.getDeviceMagnitude());
 }
 
-void BigInteger::powerMod(const BigInteger& exponent, const BigInteger& modulus)
+void BigInteger::powerMod(BigInteger& exponent, BigInteger& modulus)
 {
 	upToDate = false;
+
 	// Assert :: (modulus - 1) * (modulus - 1) does not overflow base
+	// todo; warm up
 
-	//BigInteger* x1 = new BigInteger(*this);
-	//BigInteger* x2 = new BigInteger(*this);
-	//x2
-	//
-	//// set this to 1
-	////set(*ONE);
-	//
-	//BigInteger* exp = new BigInteger(exponent);
-	////base->mod(modulus);
+	BigInteger* x1 = new BigInteger(*this);
+	BigInteger* x2 = new BigInteger(*this);
+	x2->multiplyMod(*x2, modulus);	
+	
+	for (int bits = exponent.getBitwiseLength() - 2; bits >= 0; bits--)
+	{
+		cout << "bit: " << bits << endl;
+		if (exponent.testBit(bits))
+		{
+			x1->multiplyMod(*x2, modulus);
+			x2->multiplyMod(*x2, modulus);
+		}
+		else
+		{
+			x2->multiplyMod(*x1, modulus);
+			x1->multiplyMod(*x1, modulus);
+		}
+	}
 
-	//int bits = exp->getBitwiseLength();
-	//
-	//for (int i = 0; i < bits; i++)
-	//{		
-	//	if (exp->getLSB() == 1)
-	//	{			
-	//		multiplyMod(*base, modulus);
-	//	}		
-	//	exp->shiftRight(1);		
-	//	base->multiplyMod(*base, modulus);		
-	//}	
+	set(*x1);
 }
 
 bool BigInteger::equals(const BigInteger& value) const
@@ -273,7 +274,7 @@ bool BigInteger::testBit(int bit)
 		}
 	}
 
-	return ((*this)[bit >> 5] & (1 << ((bit & 0x1f) - 1))) != 0;
+	return ((*this)[bit >> 5] & (1 << (bit & 0x1f))) != 0;
 }
 
 char* BigInteger::toHexString(void)

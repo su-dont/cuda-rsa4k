@@ -52,7 +52,7 @@ public:
 	void multiply(const BigInteger& x);
 	void mod(const BigInteger& modulus);
 	void multiplyMod(const BigInteger& x, const BigInteger& modulus);
-	void powerMod(const BigInteger& exponent, const BigInteger& modulus);
+	void powerMod(BigInteger& exponent, BigInteger& modulus);
 
 	// logics
 	void shiftLeft(int bits);
