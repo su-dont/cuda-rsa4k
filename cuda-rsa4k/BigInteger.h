@@ -14,7 +14,7 @@ private:
 	// Most-significant int is mag[length-1].
 	// Least-significant int is mag[0].
 	// Allocated on the device.
-	int* deviceMagnitude;	
+	unsigned int* deviceMagnitude;
 
 	// Device wrapper instance diffrent for every integer
 	// to provide parallel execution
@@ -34,7 +34,7 @@ public:
 
 	// setters, getters
 	void set(const BigInteger& x);	
-	int* getDeviceMagnitude(void) const;
+	unsigned int* getDeviceMagnitude(void) const;
 
 	// arithmetics
 	void add(const BigInteger& x);

@@ -22,20 +22,6 @@ public:
 	void testMultiplyModTimings(int minBits, int maxBits, int step, int repeats);
 	void testPowerModTimings(int minBits, int maxBits, int step, int repeats);
 
-private:
-	unsigned long long testBitwiseLengthDiffrenceTime(int bits);
-	unsigned long long testEqualsTime(int bits);
-	unsigned long long testCompareTime(int bits);
-	unsigned long long testAddTime(int bits);
-	unsigned long long testSubtractTime(int bits);
-	unsigned long long testMultiplyTime(int bits);
-	unsigned long long testShiftLeftTime(int bits, int n);
-	unsigned long long testShiftRightTime(int bits, int n);
-	unsigned long long testModTime(int bits);
-	unsigned long long tesMultiplytModTime(int bits);
-	unsigned long long testPowerModTime(int bits);
-
-public:
 	void testParsing(bool print);
 	void testCreateRandom(bool print);
 	unsigned long long testBitwiseLengthDiffrence(bool print);
@@ -49,5 +35,18 @@ public:
 	unsigned long long testMod(bool print);
 	unsigned long long testMultiplyMod(bool print);
 	unsigned long long testPowerMod(bool print);
+
+private:
+	unsigned long long testBitwiseLengthDiffrenceTime(int bits);
+	unsigned long long testEqualsTime(int bits);
+	unsigned long long testCompareTime(int bits);
+	unsigned long long testAddTime(int bits);
+	unsigned long long testSubtractTime(int bits);
+	unsigned long long testMultiplyTime(int bits);
+	unsigned long long testShiftLeftTime(int bits, int n);
+	unsigned long long testShiftRightTime(int bits, int n);
+	unsigned long long testModTime(int bits);
+	unsigned long long tesMultiplytModTime(int bits);
+	unsigned long long testPowerModTime(int bits);
 };
 

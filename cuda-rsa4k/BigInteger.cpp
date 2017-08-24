@@ -141,7 +141,7 @@ void BigInteger::set(const BigInteger& x)
 	deviceWrapper->cloneParallel(deviceMagnitude, x.getDeviceMagnitude());
 }
 
-int* BigInteger::getDeviceMagnitude(void) const
+unsigned int* BigInteger::getDeviceMagnitude(void) const
 {
 	return deviceMagnitude;
 }
