@@ -40,7 +40,7 @@ void Test::testBigIntegerCorrectness(bool print)
 	testMultiply(print);
 	testMod(print);	
 	testMultiplyMod(print);
-	//testPowerMod(print);
+	testPowerMod(print);
 }
 
 void Test::testBigIntegerTimes(int minBits, int maxBits, int step, int repeats)
@@ -60,7 +60,7 @@ void Test::testBigIntegerTimes(int minBits, int maxBits, int step, int repeats)
 	testMultiplyTimings(minBits, maxBits, step, repeats);
 	testModTimings(minBits, maxBits, step, repeats);
 	testMultiplyModTimings(minBits, maxBits, step, repeats);
-	//testPowerModTimings(minBits, maxBits, step, repeats);
+	testPowerModTimings(minBits, maxBits, step, repeats);
 }
 
 void Test::testEqualsTimings(int minBits, int maxBits, int step, int repeats)

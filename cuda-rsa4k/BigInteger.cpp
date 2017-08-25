@@ -6,8 +6,6 @@
 
 using namespace std;
 
-//static const BigInteger* ONE = new BigInteger(1);
-
 BigInteger::BigInteger()
 {
 	deviceWrapper = new DeviceWrapper();
@@ -205,7 +203,7 @@ void BigInteger::multiplyMod(const BigInteger& x, const BigInteger& modulus)
 void BigInteger::multiplyModAsync(const BigInteger& x, const BigInteger& modulus)
 {
 	upToDate = false;
-	deviceWrapper->multiplyModParallel(deviceMagnitude, x.getDeviceMagnitude(), modulus.getDeviceMagnitude());
+	deviceWrapper->multiplyModParallelAsync(deviceMagnitude, x.getDeviceMagnitude(), modulus.getDeviceMagnitude());
 }
 
 void BigInteger::powerMod(BigInteger& exponent, BigInteger& modulus)
@@ -213,31 +211,24 @@ void BigInteger::powerMod(BigInteger& exponent, BigInteger& modulus)
 	upToDate = false;
 
 	// Assert :: (modulus - 1) * (modulus - 1) does not overflow base
-	// todo; warm up
+	// todo: warm up?
 
 	BigInteger x0(1);
 
 	BigInteger x1(*this);	
 
-	BigInteger x2(*this);
+	/*BigInteger x2(*this);
 	x2.multiplyModAsync(x2, modulus);
 
 	BigInteger x3(*this);
 	x3.multiplyModAsync(x3, modulus);
-	x3.multiplyModAsync(x1, modulus);
+	x3.multiplyModAsync(x1, modulus);*/
 
 	int value;
-
+	cout << "Running power mod. Bit: "<< endl;
 	for (int bits = exponent.getBitwiseLength() - 1; bits >= 0; bits= bits-1)
 	{
-		value = exponent.testBit(bits);
-		
-		if (bits > 0) 
-		{
-			value = value << 1;
-			value = value | exponent.testBit(bits - 1);
-		}
-
+		cout << bits << ", ";
 		if (exponent.testBit(bits))
 		{
 			x0.multiplyModAsync(x1, modulus);
@@ -249,7 +240,18 @@ void BigInteger::powerMod(BigInteger& exponent, BigInteger& modulus)
 			x0.multiplyModAsync(x0, modulus);
 		}
 			
-	/*	switch (value)
+		x0.synchronize();
+		x1.synchronize();
+
+		/*value = exponent.testBit(bits);
+
+		if (bits > 0)
+		{
+		value = value << 1;
+		value = value | exponent.testBit(bits - 1);
+		}
+
+		switch (value)
 		{
 		case 0:			
 			x1.multiplyModAsync(x0, modulus);
@@ -284,7 +286,6 @@ void BigInteger::powerMod(BigInteger& exponent, BigInteger& modulus)
 */
 		
 	}
-
 
 	set(x0);
 }
