@@ -11,7 +11,8 @@ int main()
 	cudaDeviceReset();
 	
 	Test test;	
-	test.runAll(true, 500, 2000, 500, 10);
+	test.testPowerMod(true);
+	//test.testMultiplyMod(true);
 	
 
 	cudaDeviceSynchronize();	

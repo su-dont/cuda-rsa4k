@@ -21,6 +21,7 @@ public:
 	void testSquareTimings(int minBits, int maxBits, int step, int repeats);
 	void testModTimings(int minBits, int maxBits, int step, int repeats);
 	void testMultiplyModTimings(int minBits, int maxBits, int step, int repeats);
+	void testSquareModTimings(int minBits, int maxBits, int step, int repeats);
 	void testPowerModTimings(int minBits, int maxBits, int step, int repeats);
 
 	void testParsing(bool print);
@@ -37,6 +38,7 @@ public:
 	unsigned long long testShiftRight(bool print);
 	unsigned long long testMod(bool print);
 	unsigned long long testMultiplyMod(bool print);
+	unsigned long long testSquareMod(bool print);
 	unsigned long long testPowerMod(bool print);
 
 private:
@@ -51,6 +53,7 @@ private:
 	unsigned long long testShiftRightTime(int bits, int n);
 	unsigned long long testModTime(int bits);
 	unsigned long long tesMultiplytModTime(int bits);
+	unsigned long long testSquareModTime(int bits);
 	unsigned long long testPowerModTime(int bits);
 };
 

@@ -53,6 +53,7 @@ public:
 	void square(void);
 	void mod(const BigInteger& modulus);
 	void multiplyMod(const BigInteger& x, const BigInteger& modulus);
+	void squareMod(const BigInteger& modulus);
 	void powerMod(BigInteger& exponent, BigInteger& modulus);
 
 	// logics
@@ -82,7 +83,10 @@ private:
 	void updateHostMagnitiude(void);
 	static unsigned int random32(void);
 
+	// async calls
+	// must call synchronize to read from
 	void multiplyModAsync(const BigInteger& x, const BigInteger& modulus);
+	void squareModAsync(const BigInteger& modulus);
 
 	/*
 	Parses hex string to unsigned int type.

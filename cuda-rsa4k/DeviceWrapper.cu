@@ -550,7 +550,7 @@ __global__ void device_clear_partial_1(unsigned int* x)
 	device_clear_partial(x);
 }
 
-__global__ void device_clear_partial_4(unsigned int* x)
+__global__ void device_clear_partial_aligned(unsigned int* x)
 {
 	register int block = blockIdx.x;
 	device_clear_partial(x + block * 128);
@@ -582,8 +582,7 @@ __global__ void device_getbitlength_partial_2(int* result, const unsigned int* x
 	result[block] = device_getbitlength_partial(block == 0 ? x : y);
 }
 
-// aligned arrays
-__global__ void device_getbitlength_partial_4(int* result, const unsigned int* x)
+__global__ void device_getbitlength_partial_aligned(int* result, const unsigned int* x)
 {
 	register int block = blockIdx.x;
 	result[block] = device_getbitlength_partial(x + block * 128);
@@ -594,15 +593,7 @@ __global__ void device_shift_left_partial_1(unsigned int* x, int n)
 	device_shift_left_partial(x, n);
 }
 
-// aligned arrays
-__global__ void device_shift_left_partial_2(unsigned int* x, int n)
-{
-	register int block = blockIdx.x;
-	device_shift_left_partial(x + block * 128, n);
-}
-
-// aligned arrays
-__global__ void device_shift_left_partial_4(unsigned int* x, int n)
+__global__ void device_shift_left_partial_aligned(unsigned int* x, int n)
 {
 	register int block = blockIdx.x;
 	device_shift_left_partial(x + block * 128, n);
@@ -613,15 +604,7 @@ __global__ void device_shift_right_partial_1(unsigned int* x, int n)
 	device_shift_right_partial(x, n);
 }
 
-// aligned arrays
-__global__ void device_shift_right_partial_2(unsigned int* x, int n)
-{
-	register int block = blockIdx.x;
-	device_shift_right_partial(x + block * 128, n);
-}
-
-// aligned arrays
-__global__ void device_shift_right_partial_4(unsigned int* x, int n)
+__global__ void device_shift_right_partial_aligned(unsigned int* x, int n)
 {
 	register int block = blockIdx.x;
 	device_shift_right_partial(x + block * 128, n);
@@ -632,7 +615,6 @@ __global__ void device_add_partial_1(unsigned int* x, const unsigned int* y)
 	device_add_partial(x, y);
 }
 
-// aligned arrays
 __global__ void device_add_partial_aligned(unsigned int* x, const unsigned int* y)
 {
 	register int block = blockIdx.x;
@@ -654,8 +636,7 @@ __global__ void device_subtract_partial_2(unsigned int* x, const unsigned int* y
 		device_subtract_partial(x1, y1);
 }
 
-// aligned arrays
-__global__ void device_subtract_partial_4(unsigned int* x, const unsigned int* y)
+__global__ void device_subtract_partial_aligned(unsigned int* x, const unsigned int* y)
 {
 	register int block = blockIdx.x;
 	device_subtract_partial(x + block * 128, y + block * 128);
@@ -692,7 +673,7 @@ __global__ void device_subtract_partial_4(unsigned int* x, const unsigned int* y
  }
 
  // aligned arrays, modulus the same in global memory
- __global__ void device_reduce_modulo_partial_4(unsigned int* x, const unsigned int* m)
+ __global__ void device_reduce_modulo_partial_aligned(unsigned int* x, const unsigned int* m)
  {
 	 register int block = blockIdx.x;
 	 device_reduce_modulo_partial(x + block * 128, m);
@@ -1080,7 +1061,7 @@ void DeviceWrapper::multiplyModParallelAsync(unsigned int * device_x, const unsi
 	device_clone_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (deviceArray, device_y);
 
 	// clear result array
-	device_clear_partial_4 << <block_4, thread_4_warp, 0, mainStream >> > (device4arrays);
+	device_clear_partial_aligned << <block_4, thread_4_warp, 0, mainStream >> > (device4arrays);
 
 	// reduce mod first
 //	device_reduce_modulo_partial_2 << <block_2, thread_4_warp, 0, mainStream >> > (device_x, deviceArray, device_m);
@@ -1091,7 +1072,7 @@ void DeviceWrapper::multiplyModParallelAsync(unsigned int * device_x, const unsi
 	if (DEBUG)
 	{
 		// modular reduction of part-results
-		device_reduce_modulo_partial_4 << <block_4, thread_4_warp, 0, mainStream >> > (device4arrays, device_m);
+		device_reduce_modulo_partial_aligned << <block_4, thread_4_warp, 0, mainStream >> > (device4arrays, device_m);
 
 		// reduction		
 		addParallelWithOverflow(device4arrays, device4arrays + 256, block_2.x);
@@ -1105,7 +1086,7 @@ void DeviceWrapper::multiplyModParallelAsync(unsigned int * device_x, const unsi
 	else
 	{
 		// modular reduction of part-results
-		device_reduce_modulo_partial_4 << <block_4, thread_4_warp, 0, mainStream >> > (device4arrays, device_m);
+		device_reduce_modulo_partial_aligned << <block_4, thread_4_warp, 0, mainStream >> > (device4arrays, device_m);
 
 		// reduction
 		device_add_partial_aligned << <block_2, thread_warp, 0, mainStream >> > (device4arrays, device4arrays + 256);
@@ -1123,6 +1104,75 @@ void DeviceWrapper::multiplyModParallelAsync(unsigned int * device_x, const unsi
 	// set x := result
 	device_clone_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (device_x, device4arrays);
 	
+}
+
+void DeviceWrapper::squareModParallelAsync(unsigned int * device_x, const unsigned int * device_m) const
+{
+	dim3 blocks(128);
+
+	// parallel squaring
+	device_square_partial_128 << <blocks, thread_4_warp, 0, mainStream >> > (device128arrays, device_x);
+
+	// reduce mod 128 arrays seperatly
+	device_reduce_modulo_partial_aligned << <blocks, thread_4_warp, 0, mainStream >> > (device128arrays, device_m);
+
+	// sum to 64 arrays
+	blocks.x = 64;
+	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 64 * 128);
+
+	// reduce mod 64 arrays seperatly
+	device_reduce_modulo_partial_aligned << <blocks, thread_4_warp, 0, mainStream >> > (device128arrays, device_m);
+
+	// sum to 32 arrays
+	blocks.x = 32;
+	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 32 * 128);
+
+	// reduce mod 32 arrays seperatly
+	device_reduce_modulo_partial_aligned << <blocks, thread_4_warp, 0, mainStream >> > (device128arrays, device_m);
+
+	// sum to 16 arrays
+	blocks.x = 16;
+	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 16 * 128);
+	
+	// reduce mod 16 arrays seperatly
+	device_reduce_modulo_partial_aligned << <blocks, thread_4_warp, 0, mainStream >> > (device128arrays, device_m);
+
+	// sum to 8 arrays
+	blocks.x = 8;
+	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 8 * 128);
+
+	// reduce mod 8 arrays seperatly
+	device_reduce_modulo_partial_aligned << <blocks, thread_4_warp, 0, mainStream >> > (device128arrays, device_m);
+
+	// sum to 4 arrays
+	blocks.x = 4;
+	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 4 * 128);
+	
+	// reduce mod 4 arrays seperatly
+	device_reduce_modulo_partial_aligned << <blocks, thread_4_warp, 0, mainStream >> > (device128arrays, device_m);
+
+	// sum to 2 arrays
+	blocks.x = 2;
+	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 2 * 128);
+	
+	// reduce mod 2 arrays seperatly
+	device_reduce_modulo_partial_aligned << <blocks, thread_4_warp, 0, mainStream >> > (device128arrays, device_m);
+
+	// sum to 1 array
+	blocks.x = 1;
+	device_add_partial_1 << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 128);
+	
+	// final reduce mod
+	device_reduce_modulo_partial_1 << <blocks, thread_4_warp, 0, mainStream >> > (device128arrays, device_m);
+
+	// set x := result
+	device_clone_partial_1 << <blocks, thread_4_warp, 0, mainStream >> > (device_x, device128arrays);
+}
+
+void DeviceWrapper::squareModParallel(unsigned int * device_x, const unsigned int * device_m) const
+{
+	squareModParallelAsync(device_x, device_m);
+	checkCuda(cudaStreamSynchronize(mainStream));
 }
 
 void DeviceWrapper::multiplyModParallel(unsigned int * device_x, const unsigned int * device_y, const unsigned int * device_m) const
