@@ -444,6 +444,8 @@ extern "C" __device__ void inline device_square_partial(unsigned int* result, co
 	register unsigned int high;
 
 	__shared__ unsigned int sharedResult[256 + 1];
+	sharedResult[threadIndex] = 0UL;
+	sharedResult[threadIndex * 2] = 0UL;
 
 	asm volatile (
 		"mul.lo.u32 %0, %2, %3; \n\t"
@@ -1037,27 +1039,28 @@ void DeviceWrapper::squareParallelAsync(unsigned int * device_x) const
 
 	blocks.x = 64;
 	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 64 * 128);
-
+	
 	blocks.x = 32;
 	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 32 * 128);
-	
+		
 	blocks.x = 16;
 	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 16 * 128);
-	
+
 	blocks.x = 8;
 	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 8 * 128);
-	
+		
 	blocks.x = 4;
 	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 4 * 128);
-	
+
 	blocks.x = 2;
 	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 2 * 128);
-	
+
 	blocks.x = 1;
 	device_add_partial_1 << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 128);
-
+	
 	// set x := result
 	device_clone_partial_1 << <blocks, thread_4_warp, 0, mainStream >> > (device_x, device128arrays);
+
 }
 
 void DeviceWrapper::squareParallel(unsigned int * device_x) const
