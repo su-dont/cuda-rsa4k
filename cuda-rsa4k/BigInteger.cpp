@@ -202,6 +202,12 @@ void BigInteger::multiplyMod(const BigInteger& x, const BigInteger& modulus)
 	deviceWrapper->multiplyModParallel(deviceMagnitude, x.getDeviceMagnitude(), modulus.getDeviceMagnitude());
 }
 
+void BigInteger::multiplyModAsync(const BigInteger& x, const BigInteger& modulus)
+{
+	upToDate = false;
+	deviceWrapper->multiplyModParallel(deviceMagnitude, x.getDeviceMagnitude(), modulus.getDeviceMagnitude());
+}
+
 void BigInteger::powerMod(BigInteger& exponent, BigInteger& modulus)
 {
 	upToDate = false;
@@ -209,26 +215,78 @@ void BigInteger::powerMod(BigInteger& exponent, BigInteger& modulus)
 	// Assert :: (modulus - 1) * (modulus - 1) does not overflow base
 	// todo; warm up
 
-	BigInteger* x1 = new BigInteger(*this);
-	BigInteger* x2 = new BigInteger(*this);
-	x2->multiplyMod(*x2, modulus);	
-	
-	for (int bits = exponent.getBitwiseLength() - 2; bits >= 0; bits--)
+	BigInteger x0(1);
+
+	BigInteger x1(*this);	
+
+	BigInteger x2(*this);
+	x2.multiplyModAsync(x2, modulus);
+
+	BigInteger x3(*this);
+	x3.multiplyModAsync(x3, modulus);
+	x3.multiplyModAsync(x1, modulus);
+
+	int value;
+
+	for (int bits = exponent.getBitwiseLength() - 1; bits >= 0; bits= bits-1)
 	{
-		cout << "bit: " << bits << endl;
+		value = exponent.testBit(bits);
+		
+		if (bits > 0) 
+		{
+			value = value << 1;
+			value = value | exponent.testBit(bits - 1);
+		}
+
 		if (exponent.testBit(bits))
 		{
-			x1->multiplyMod(*x2, modulus);
-			x2->multiplyMod(*x2, modulus);
+			x0.multiplyModAsync(x1, modulus);
+			x1.multiplyModAsync(x1, modulus);
 		}
 		else
 		{
-			x2->multiplyMod(*x1, modulus);
-			x1->multiplyMod(*x1, modulus);
+			x1.multiplyModAsync(x0, modulus);
+			x0.multiplyModAsync(x0, modulus);
 		}
+			
+	/*	switch (value)
+		{
+		case 0:			
+			x1.multiplyModAsync(x0, modulus);
+			x2.multiplyModAsync(x0, modulus);
+			x3.multiplyModAsync(x0, modulus);
+			x0.multiplyModAsync(x0, modulus);
+			break;
+		case 1:			
+			x0.multiplyModAsync(x1, modulus);
+			x2.multiplyModAsync(x1, modulus);
+			x3.multiplyModAsync(x1, modulus);
+			x1.multiplyModAsync(x1, modulus);
+			break;
+		case 2:
+			x0.multiplyModAsync(x2, modulus);			
+			x1.multiplyModAsync(x2, modulus);			
+			x3.multiplyModAsync(x2, modulus);
+			x2.multiplyModAsync(x2, modulus);
+			break;
+		case 3:
+			x0.multiplyModAsync(x3, modulus);			
+			x1.multiplyModAsync(x3, modulus);
+			x2.multiplyModAsync(x3, modulus);
+			x3.multiplyModAsync(x3, modulus);			
+			break;
+		}
+
+		x0.synchronize();
+		x1.synchronize();
+		x2.synchronize();
+		x3.synchronize();
+*/
+		
 	}
 
-	set(*x1);
+
+	set(x0);
 }
 
 bool BigInteger::equals(const BigInteger& value) const
@@ -265,16 +323,17 @@ int BigInteger::getLSB(void) const
 
 bool BigInteger::testBit(int bit)
 {
-	if (DEBUG)
+	if (bit < 0 || bit > 4095)
 	{
-		if (bit < 0 || bit > 4095)
-		{
-			cerr << "ERROR: BigInteger::getBit: trying to get bit: " << bit << endl;
-			return -1;
-		}
+		cerr << "ERROR: BigInteger::getBit: trying to get bit: " << bit << endl;
+		return -1;
 	}
-
 	return ((*this)[bit >> 5] & (1 << (bit & 0x1f))) != 0;
+}
+
+void BigInteger::synchronize(void)
+{
+	deviceWrapper->synchronize();
 }
 
 char* BigInteger::toHexString(void)

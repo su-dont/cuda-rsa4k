@@ -65,6 +65,7 @@ public:
 	int getBitwiseLength(void) const;
 	int getLSB(void) const;
 	bool testBit(int bit);
+	void synchronize(void);
 	char* toHexString(void);
 	void print(const char* title);
 
@@ -79,6 +80,8 @@ private:
 	void updateDeviceMagnitiude(void);
 	void updateHostMagnitiude(void);
 	static unsigned int random32(void);
+
+	void multiplyModAsync(const BigInteger& x, const BigInteger& modulus);
 
 	/*
 	Parses hex string to unsigned int type.

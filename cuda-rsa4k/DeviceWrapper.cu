@@ -826,6 +826,11 @@ int DeviceWrapper::getBitLength(const unsigned int* device_x) const
 	return result;
 }
 
+void DeviceWrapper::synchronize(void)
+{
+	checkCuda(cudaStreamSynchronize(mainStream));
+}
+
 void DeviceWrapper::startClock(void)
 {
 	device_get_clock << <1, 1, 0, mainStream >> > (deviceStartTime);
@@ -1014,7 +1019,7 @@ void DeviceWrapper::modParallel(unsigned int * device_x, unsigned int * device_m
 	checkCuda(cudaStreamSynchronize(mainStream));
 }
 
-void DeviceWrapper::multiplyModParallel(unsigned int * device_x, const unsigned int * device_y, const unsigned int * device_m) const
+void DeviceWrapper::multiplyModParallelAsync(unsigned int * device_x, const unsigned int * device_y, const unsigned int * device_m) const
 {		
 	device_clone_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (deviceArray, device_y);
 
@@ -1022,7 +1027,7 @@ void DeviceWrapper::multiplyModParallel(unsigned int * device_x, const unsigned 
 	device_clear_partial_4 << <block_4, thread_4_warp, 0, mainStream >> > (device4arrays);
 
 	// reduce mod first
-	device_reduce_modulo_partial_2 << <block_2, thread_4_warp, 0, mainStream >> > (device_x, deviceArray, device_m);
+//	device_reduce_modulo_partial_2 << <block_2, thread_4_warp, 0, mainStream >> > (device_x, deviceArray, device_m);
 
 	// parallel multiplication
 	device_multiply_partial_4 << <block_4, thread_2_warp, 0, mainStream >> > (device4arrays, device_x, deviceArray);
@@ -1061,7 +1066,12 @@ void DeviceWrapper::multiplyModParallel(unsigned int * device_x, const unsigned 
 		
 	// set x := result
 	device_clone_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (device_x, device4arrays);
+	
+}
 
+void DeviceWrapper::multiplyModParallel(unsigned int * device_x, const unsigned int * device_y, const unsigned int * device_m) const
+{
+	multiplyModParallelAsync(device_x, device_y, device_m);
 	checkCuda(cudaStreamSynchronize(mainStream));
 }
 

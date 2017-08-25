@@ -42,6 +42,7 @@ public:
 	bool equalsParallel(const unsigned int* device_x, const unsigned int* device_y) const;
 	int getLSB(const unsigned int* device_x) const;
 	int getBitLength(const unsigned int* device_x) const;
+	void synchronize(void);
 
 	// measure time
 	void startClock(void);
@@ -57,6 +58,7 @@ public:
 	void multiplyParallel(unsigned int* device_x, const unsigned int* device_y) const;
 	void modParallel(unsigned int* device_x, unsigned int* device_m) const;
 	void multiplyModParallel(unsigned int* device_x, const unsigned int* device_y, const unsigned int* device_m) const;
+	void multiplyModParallelAsync(unsigned int* device_x, const unsigned int* device_y, const unsigned int* device_m) const;
 
 private:
 	void inline addParallelWithOverflow(unsigned int* device_x, const unsigned int* device_y, int blocks) const;
