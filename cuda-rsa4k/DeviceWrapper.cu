@@ -431,6 +431,35 @@ extern "C" __device__ void inline device_multiply_partial(unsigned int* result, 
 		result[xIndex + 1] = sharedResult[deviceIndexFixupTable[xIndex + 1]];
 }
 
+// 128 blocks x 128 threads
+extern "C" __device__ void inline device_square_partial(unsigned int* result, const unsigned int* x)
+{
+	register int threadIndex = threadIdx.x;
+	register int blockIndex = blockIdx.x;
+
+
+	register unsigned int xValue = x[blockIndex];
+	register unsigned int yValue = x[threadIndex];
+
+	register unsigned int high;
+
+	__shared__ unsigned int sharedResult[256 + 1];
+
+	asm volatile (
+		"mul.lo.u32 %0, %2, %3; \n\t"
+		"mul.hi.u32 %1, %2, %3; \n\t"
+		: "=r"(sharedResult[threadIndex + blockIndex]), "=r"(high)
+		: "r"(xValue), "r"(yValue) : "memory");
+
+	__syncthreads();
+
+	sharedResult[threadIndex + blockIndex + 1] += high;	// no carries !
+
+	__syncthreads();
+	
+	result[threadIndex] = sharedResult[threadIndex];	
+}
+
 extern "C" __device__ void inline device_reduce_modulo_partial(unsigned int* x, const unsigned int* m)
 {
 	register int index = threadIdx.x;
@@ -539,30 +568,6 @@ __global__ void device_compare_partial_1(int* result, const unsigned int* x, con
 	*result = device_compare_partial(x, y);
 }
 
-//// aligned arrays
-//__global__ void device_compare_partial_2(int* result, const int* x, const int* y)
-//{
-//	register int block = blockIdx.x;
-//	device_compare_partial(result + block, x + block * 128, y + block * 128);
-//}
-//
-//// not aligned arrays
-//__global__ void device_compare_partial_2(int* result, const int* x, const int* y, const int* x1, const int* y1)
-//{
-//	register int block = blockIdx.x;
-//	if (block == 0)
-//		device_compare_partial(result + block, x, y);
-//	else
-//		device_compare_partial(result + block, x1, y1);
-//}
-
-//// aligned arrays
-//__global__ void device_compare_partial_4(int* result, const int* x, const int* y)
-//{
-//	register int block = blockIdx.x;
-//	device_compare_partial(result + block, x + block * 128, y + block * 128);
-//}
-
 __global__ void device_getbitlength_partial_1(int* result, const unsigned int* x)
 {
 	*result = device_getbitlength_partial(x);
@@ -626,7 +631,7 @@ __global__ void device_add_partial_1(unsigned int* x, const unsigned int* y)
 }
 
 // aligned arrays
-__global__ void device_add_partial_2(unsigned int* x, const unsigned int* y)
+__global__ void device_add_partial_aligned(unsigned int* x, const unsigned int* y)
 {
 	register int block = blockIdx.x;
 	device_add_partial(x + block * 128, y + block * 128);
@@ -660,6 +665,14 @@ __global__ void device_subtract_partial_4(unsigned int* x, const unsigned int* y
 	// offesets to proper result array index	
 	device_multiply_partial(result + block * 128, x, y);
 }
+
+ // 128 blocks x 128 threads
+ // result must be 128 arrays[128] allocated
+ __global__ void device_square_partial_128(unsigned int* result, const unsigned int* x)
+ {
+	 register int block = blockIdx.x;
+	 device_square_partial(result + block * 128, x);
+ }
 
  __global__ void device_reduce_modulo_partial_1(unsigned int* x, const unsigned int* m)
  {	 	 
@@ -709,6 +722,7 @@ DeviceWrapper::DeviceWrapper()
 	checkCuda(cudaStreamCreate(&mainStream));
 	checkCuda(cudaMalloc(&deviceWords, sizeof(int) * 4));
 	checkCuda(cudaMalloc(&device4arrays, sizeof(unsigned int) * 128 * 4));
+	checkCuda(cudaMalloc(&device128arrays, sizeof(unsigned int) * 128 * 128));
 	checkCuda(cudaMalloc(&deviceArray, sizeof(unsigned int) * 128));
 	checkCuda(cudaMalloc(&deviceStartTime, sizeof(unsigned long long)));
 	checkCuda(cudaMalloc(&deviceStopTime, sizeof(unsigned long long)));
@@ -718,6 +732,7 @@ DeviceWrapper::~DeviceWrapper()
 {	
 	checkCuda(cudaFree(deviceWords));
 	checkCuda(cudaFree(device4arrays));
+	checkCuda(cudaFree(device128arrays));
 	checkCuda(cudaFree(deviceArray));
 	checkCuda(cudaFree(deviceStartTime));
 	checkCuda(cudaFree(deviceStopTime));
@@ -906,7 +921,7 @@ void DeviceWrapper::addParallelWithOverflow(unsigned int * device_x, const unsig
 	if (blocks == 1)
 		device_add_partial_1 << <blocks, thread_warp, 0, mainStream >> > (device_x, device_y);
 	else // blocks == 2
-		device_add_partial_2 << <blocks, thread_warp, 0, mainStream >> > (device_x, device_y);
+		device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device_x, device_y);
 
 	checkCuda(cudaStreamSynchronize(mainStream));
 
@@ -1001,7 +1016,7 @@ void DeviceWrapper::multiplyParallel(unsigned int* device_x, const unsigned int*
 	else
 	{
 		// reduction
-		device_add_partial_2 << <block_2, thread_warp, 0, mainStream >> > (device4arrays, device4arrays + 256);
+		device_add_partial_aligned << <block_2, thread_warp, 0, mainStream >> > (device4arrays, device4arrays + 2 * 128);
 
 		// reduction	
 		device_add_partial_1 << <block_1, thread_warp, 0, mainStream >> > (device4arrays, device4arrays + 128);
@@ -1010,6 +1025,44 @@ void DeviceWrapper::multiplyParallel(unsigned int* device_x, const unsigned int*
 	// set x := result
 	device_clone_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (device_x, device4arrays);
 	
+	checkCuda(cudaStreamSynchronize(mainStream));
+}
+
+void DeviceWrapper::squareParallelAsync(unsigned int * device_x) const
+{
+	dim3 blocks(128);
+
+	// parallel squaring
+	device_square_partial_128 << <blocks, thread_4_warp, 0, mainStream >> > (device128arrays, device_x);
+
+	blocks.x = 64;
+	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 64 * 128);
+
+	blocks.x = 32;
+	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 32 * 128);
+	
+	blocks.x = 16;
+	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 16 * 128);
+	
+	blocks.x = 8;
+	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 8 * 128);
+	
+	blocks.x = 4;
+	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 4 * 128);
+	
+	blocks.x = 2;
+	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 2 * 128);
+	
+	blocks.x = 1;
+	device_add_partial_1 << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 128);
+
+	// set x := result
+	device_clone_partial_1 << <blocks, thread_4_warp, 0, mainStream >> > (device_x, device128arrays);
+}
+
+void DeviceWrapper::squareParallel(unsigned int * device_x) const
+{
+	squareParallelAsync(device_x);
 	checkCuda(cudaStreamSynchronize(mainStream));
 }
 
@@ -1052,7 +1105,7 @@ void DeviceWrapper::multiplyModParallelAsync(unsigned int * device_x, const unsi
 		device_reduce_modulo_partial_4 << <block_4, thread_4_warp, 0, mainStream >> > (device4arrays, device_m);
 
 		// reduction
-		device_add_partial_2 << <block_2, thread_warp, 0, mainStream >> > (device4arrays, device4arrays + 256);
+		device_add_partial_aligned << <block_2, thread_warp, 0, mainStream >> > (device4arrays, device4arrays + 256);
 
 		// modular reduction
 		device_reduce_modulo_partial_2 << <block_2, thread_4_warp, 0, mainStream >> > (device4arrays, device4arrays + 128, device_m);

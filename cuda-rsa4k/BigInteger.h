@@ -50,6 +50,7 @@ public:
 	void add(const BigInteger& x);
 	void subtract(const BigInteger& x);
 	void multiply(const BigInteger& x);
+	void square(void);
 	void mod(const BigInteger& modulus);
 	void multiplyMod(const BigInteger& x, const BigInteger& modulus);
 	void powerMod(BigInteger& exponent, BigInteger& modulus);

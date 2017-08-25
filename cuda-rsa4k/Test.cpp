@@ -38,6 +38,7 @@ void Test::testBigIntegerCorrectness(bool print)
 	testAdd(print);
 	testSubtract(print);
 	testMultiply(print);
+	testSquare(print);
 	testMod(print);	
 	testMultiplyMod(print);
 	testPowerMod(print);
@@ -58,6 +59,7 @@ void Test::testBigIntegerTimes(int minBits, int maxBits, int step, int repeats)
 	testAddTimings(minBits, maxBits, step, repeats);
 	testSubtractTimings(minBits, maxBits, step, repeats);
 	testMultiplyTimings(minBits, maxBits, step, repeats);
+	testSquareTimings(minBits, maxBits, step, repeats);
 	testModTimings(minBits, maxBits, step, repeats);
 	testMultiplyModTimings(minBits, maxBits, step, repeats);
 	testPowerModTimings(minBits, maxBits, step, repeats);
@@ -158,6 +160,20 @@ void Test::testMultiplyTimings(int minBits, int maxBits, int step, int repeats)
 			sum += testMultiplyTime(bits);
 		}
 		cout << "Test multiply: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
+	}
+}
+
+void Test::testSquareTimings(int minBits, int maxBits, int step, int repeats)
+{
+	unsigned long long sum;
+	for (int bits = minBits; bits <= maxBits; bits = bits + step)
+	{
+		sum = 0ULL;
+		for (int i = 0; i < repeats; i++)
+		{
+			sum += testSquareTime(bits);
+		}
+		cout << "Test square: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
 	}
 }
 
@@ -313,6 +329,21 @@ unsigned long long Test::testMultiplyTime(int bits)
 	unsigned long long time = bigInteger->stopTimer();
 	delete bigInteger;
 	delete bigInteger2;
+	return time;
+}
+
+unsigned long long Test::testSquareTime(int bits)
+{
+	BigInteger* bigInteger = BigInteger::createRandom(bits);
+	if (bigInteger == nullptr)
+	{
+		cout << "BitInteger is null" << endl;
+		return 0;
+	}
+	bigInteger->startTimer();
+	bigInteger->square();
+	unsigned long long time = bigInteger->stopTimer();
+	delete bigInteger;
 	return time;
 }
 
@@ -815,6 +846,54 @@ unsigned long long Test::testMultiply(bool print)
 
 	delete bigInteger;
 	delete multiplied;
+	delete result;
+
+	return time;
+}
+
+unsigned long long Test::testSquare(bool print)
+{
+	// test square parallel
+	BigInteger* bigInteger = BigInteger::fromHexString("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffff");
+	BigInteger* result = BigInteger::fromHexString("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffe000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001");
+
+
+	bigInteger->startTimer();
+	bigInteger->square();
+	unsigned long long time = bigInteger->stopTimer();
+
+	bool ok = bigInteger->equals(*result);
+
+	if (print || !ok)
+	{
+		if (!ok)
+		{
+			bigInteger->print("bigInteger:");
+			result->print("result");
+		}
+
+		if (ok)
+		{
+			cout << "BigInteger::square... SUCCESS elapsed time:  " << time << " cycles" << endl;
+		}
+		else
+		{
+			cout << "BigInteger::square... FAILED elapsed time:  " << time << " cycles" << endl;
+		}
+	}
+
+	delete bigInteger;
 	delete result;
 
 	return time;

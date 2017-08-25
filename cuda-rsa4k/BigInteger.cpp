@@ -176,6 +176,12 @@ void BigInteger::multiply(const BigInteger& x)
 	deviceWrapper->multiplyParallel(deviceMagnitude, x.getDeviceMagnitude());	
 }
 
+void BigInteger::square(void)
+{
+	upToDate = false;
+	deviceWrapper->squareParallel(deviceMagnitude);
+}
+
 void BigInteger::shiftLeft(int n)
 {
 	upToDate = false;

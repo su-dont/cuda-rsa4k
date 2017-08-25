@@ -18,6 +18,7 @@ public:
 	void testAddTimings(int minBits, int maxBits, int step, int repeats);
 	void testSubtractTimings(int minBits, int maxBits, int step, int repeats);
 	void testMultiplyTimings(int minBits, int maxBits, int step, int repeats);
+	void testSquareTimings(int minBits, int maxBits, int step, int repeats);
 	void testModTimings(int minBits, int maxBits, int step, int repeats);
 	void testMultiplyModTimings(int minBits, int maxBits, int step, int repeats);
 	void testPowerModTimings(int minBits, int maxBits, int step, int repeats);
@@ -31,6 +32,7 @@ public:
 	unsigned long long testAdd(bool print);
 	unsigned long long testSubtract(bool print);
 	unsigned long long testMultiply(bool print);
+	unsigned long long testSquare(bool print);
 	unsigned long long testShiftLeft(bool print);
 	unsigned long long testShiftRight(bool print);
 	unsigned long long testMod(bool print);
@@ -44,6 +46,7 @@ private:
 	unsigned long long testAddTime(int bits);
 	unsigned long long testSubtractTime(int bits);
 	unsigned long long testMultiplyTime(int bits);
+	unsigned long long testSquareTime(int bits);
 	unsigned long long testShiftLeftTime(int bits, int n);
 	unsigned long long testShiftRightTime(int bits, int n);
 	unsigned long long testModTime(int bits);

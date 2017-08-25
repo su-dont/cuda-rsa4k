@@ -18,6 +18,7 @@ private:
 
 	// auxiliary arrays
 	unsigned int* device4arrays;
+	unsigned int* device128arrays;
 	unsigned int* deviceArray;
 
 	unsigned long long* deviceStartTime;
@@ -56,6 +57,8 @@ public:
 	void addParallel(unsigned int* device_x, const unsigned int* device_y) const;
 	void subtractParallel(unsigned int* device_x, const unsigned int* device_y) const;
 	void multiplyParallel(unsigned int* device_x, const unsigned int* device_y) const;
+	void squareParallelAsync(unsigned int* device_x) const;
+	void squareParallel(unsigned int* device_x) const;
 	void modParallel(unsigned int* device_x, unsigned int* device_m) const;
 	void multiplyModParallel(unsigned int* device_x, const unsigned int* device_y, const unsigned int* device_m) const;
 	void multiplyModParallelAsync(unsigned int* device_x, const unsigned int* device_y, const unsigned int* device_m) const;
