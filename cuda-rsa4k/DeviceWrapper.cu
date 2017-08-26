@@ -14,7 +14,7 @@ const int ADDITION_CELLS_PER_THREAD = 4;	// BigInteger::ARRAY_SIZE / ONE_WARP
 // shared memory stuctures
 typedef struct
 {
-	unsigned int value;
+	volatile unsigned int value;
 	unsigned int padding[31];
 	// padding to match with 32 byte memory line
 
@@ -22,8 +22,8 @@ typedef struct
 
 typedef struct
 {
-	memory32byte result[ADDITION_CELLS_PER_THREAD];
-	unsigned int carry;
+	volatile memory32byte result[ADDITION_CELLS_PER_THREAD];
+	volatile unsigned int carry;
 	// 4 byte carry offsets to another memory bank, which eliminates bank conflicts
 
 } additionSharedMemory;
@@ -222,8 +222,8 @@ extern "C" __device__ inline void device_add_partial(unsigned int* x, const  uns
 	register const int startIndex = resultIndex << 2;	// * DeviceWrapper::ADDITION_CELLS_PER_THREAD;
 
 	// 32 threads + 1 to avoid out of bounds exception
-	__shared__ additionSharedMemory shared[33];
-	shared[resultIndex].carry = 0UL;
+	volatile __shared__ additionSharedMemory shared[33];
+	 shared[resultIndex].carry = 0UL;
 
 	register int index = 0;
 
@@ -437,15 +437,19 @@ extern "C" __device__ void inline device_square_partial(unsigned int* result, co
 	register int threadIndex = threadIdx.x;
 	register int blockIndex = blockIdx.x;
 
-
 	register unsigned int xValue = x[blockIndex];
 	register unsigned int yValue = x[threadIndex];
 
 	register unsigned int high;
 
-	__shared__ unsigned int sharedResult[256 + 1];
+	volatile __shared__ unsigned int sharedResult[256 + 2];
+	volatile __shared__ unsigned int carries[256 + 2];
+
 	sharedResult[threadIndex] = 0UL;
 	sharedResult[threadIndex * 2] = 0UL;
+
+	carries[threadIndex] = 0UL;
+	carries[threadIndex * 2] = 0UL;
 
 	asm volatile (
 		"mul.lo.u32 %0, %2, %3; \n\t"
@@ -455,11 +459,15 @@ extern "C" __device__ void inline device_square_partial(unsigned int* result, co
 
 	__syncthreads();
 
-	sharedResult[threadIndex + blockIndex + 1] += high;	// no carries !
+	asm volatile (
+		"add.cc.u32 %0, %0, %2; \n\t"
+		"addc.u32   %1, %1, 0; \n\t"
+		: "+r"(sharedResult[threadIndex + blockIndex + 1]), "+r"(carries[threadIndex + blockIndex + 2])
+		: "r"(high) : "memory");
 
 	__syncthreads();
 	
-	result[threadIndex] = sharedResult[threadIndex];	
+	result[threadIndex] = sharedResult[threadIndex] + carries[threadIndex];
 }
 
 extern "C" __device__ void inline device_reduce_modulo_partial(unsigned int* x, const unsigned int* m)
@@ -1020,16 +1028,16 @@ void DeviceWrapper::squareParallelAsync(unsigned int * device_x) const
 
 	blocks.x = 64;
 	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 64 * 128);
-	
+
 	blocks.x = 32;
 	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 32 * 128);
-		
+
 	blocks.x = 16;
 	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 16 * 128);
 
 	blocks.x = 8;
 	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 8 * 128);
-		
+
 	blocks.x = 4;
 	device_add_partial_aligned << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 4 * 128);
 
@@ -1038,10 +1046,9 @@ void DeviceWrapper::squareParallelAsync(unsigned int * device_x) const
 
 	blocks.x = 1;
 	device_add_partial_1 << <blocks, thread_warp, 0, mainStream >> > (device128arrays, device128arrays + 128);
-	
+
 	// set x := result
 	device_clone_partial_1 << <blocks, thread_4_warp, 0, mainStream >> > (device_x, device128arrays);
-
 }
 
 void DeviceWrapper::squareParallel(unsigned int * device_x) const
