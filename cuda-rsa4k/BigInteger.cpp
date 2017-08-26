@@ -46,7 +46,6 @@ const unsigned int& BigInteger::operator[](int index)
 	{
 		updateHostMagnitiude();
 	}
-	//cout << "operator[] val: " << hex<<hostMagnitude[index] << endl;
 	return hostMagnitude[index];
 }
 
@@ -228,25 +227,11 @@ void BigInteger::powerMod(BigInteger& exponent, BigInteger& modulus)
 {
 	upToDate = false;
 
-	// Assert :: (modulus - 1) * (modulus - 1) does not overflow base
-	// todo: warm up?
-
 	BigInteger x0(1);
-
 	BigInteger x1(*this);	
 
-	/*BigInteger x2(*this);
-	x2.multiplyModAsync(x2, modulus);
-
-	BigInteger x3(*this);
-	x3.multiplyModAsync(x3, modulus);
-	x3.multiplyModAsync(x1, modulus);*/
-
-	int value;
-	cout << "Running power mod. Bit: "<< endl;
-	for (int bits = exponent.getBitwiseLength() - 1; bits >= 0; bits= bits-1)
+	for (int bits = exponent.getBitwiseLength() - 1; bits >= 0; bits--)
 	{
-		cout << bits << ", ";
 		if (exponent.testBit(bits))
 		{
 			x0.multiplyModAsync(x1, modulus);
@@ -256,55 +241,10 @@ void BigInteger::powerMod(BigInteger& exponent, BigInteger& modulus)
 		{
 			x1.multiplyModAsync(x0, modulus);
 			x0.multiplyModAsync(x0, modulus);
-		}
-			
+		}			
 		x0.synchronize();
-		x1.synchronize();
-
-		/*value = exponent.testBit(bits);
-
-		if (bits > 0)
-		{
-		value = value << 1;
-		value = value | exponent.testBit(bits - 1);
-		}
-
-		switch (value)
-		{
-		case 0:			
-			x1.multiplyModAsync(x0, modulus);
-			x2.multiplyModAsync(x0, modulus);
-			x3.multiplyModAsync(x0, modulus);
-			x0.multiplyModAsync(x0, modulus);
-			break;
-		case 1:			
-			x0.multiplyModAsync(x1, modulus);
-			x2.multiplyModAsync(x1, modulus);
-			x3.multiplyModAsync(x1, modulus);
-			x1.multiplyModAsync(x1, modulus);
-			break;
-		case 2:
-			x0.multiplyModAsync(x2, modulus);			
-			x1.multiplyModAsync(x2, modulus);			
-			x3.multiplyModAsync(x2, modulus);
-			x2.multiplyModAsync(x2, modulus);
-			break;
-		case 3:
-			x0.multiplyModAsync(x3, modulus);			
-			x1.multiplyModAsync(x3, modulus);
-			x2.multiplyModAsync(x3, modulus);
-			x3.multiplyModAsync(x3, modulus);			
-			break;
-		}
-
-		x0.synchronize();
-		x1.synchronize();
-		x2.synchronize();
-		x3.synchronize();
-*/
-		
+		x1.synchronize();		
 	}
-
 	set(x0);
 }
 
@@ -347,7 +287,7 @@ bool BigInteger::testBit(int bit)
 		cerr << "ERROR: BigInteger::getBit: trying to get bit: " << bit << endl;
 		return -1;
 	}
-	return ((*this)[bit >> 5] & (1 << (bit & 0x1f))) != 0;
+	return ((*this)[bit >> 5] & (1 << (bit & 0x1f))) != 0 ;
 }
 
 void BigInteger::synchronize(void)

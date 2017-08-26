@@ -37,7 +37,7 @@ REM call .\windows_device_build.bat
 "%nvcc%" %flags% -I.\..\ -ccbin "%CCBIN%" -dc .\..\main.cpp -o .\main.obj
 
 REM timer build
-"%nvcc%" %flags% -I.\..\ -ccbin "%CCBIN%" device.obj BigInteger.obj  .\..\timer.cpp -o .\timer.exe
+REM "%nvcc%" %flags% -I.\..\ -ccbin "%CCBIN%" device.obj BigInteger.obj  .\..\timer.cpp -o .\timer.exe
 
 echo ::LINK::
 "%nvcc%" %flags% -ccbin "%CCBIN%" %objects% -o rsa.exe
@@ -46,3 +46,5 @@ cd ..\..
 echo ::RUN::
 rsa.exe
 echo ::QUIT::
+
+

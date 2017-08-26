@@ -17,6 +17,8 @@ void Test::runAll(bool print, int minBits, int maxBits, int step, int repeats)
 {
 	testBigIntegerCorrectness(print);	
 	testBigIntegerTimes(minBits, maxBits, step, repeats);
+
+	cout << "\nFINISHED!" << endl;
 }
 
 void Test::testBigIntegerCorrectness(bool print)
@@ -43,6 +45,7 @@ void Test::testBigIntegerCorrectness(bool print)
 	testMultiplyMod(print);
 	testSquareMod(print);
 	testPowerMod(print);
+
 }
 
 void Test::testBigIntegerTimes(int minBits, int maxBits, int step, int repeats)
@@ -396,7 +399,7 @@ unsigned long long Test::testShiftRightTime(int bits, int n)
 unsigned long long Test::testModTime(int bits)
 {
 	BigInteger* bigInteger = BigInteger::createRandom(bits);
-	BigInteger* bigInteger2 = BigInteger::createRandom(bits / 2);
+	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
 	if (bigInteger == nullptr || bigInteger2 == nullptr)
 	{
 		cout << "BitInteger is null" << endl;
@@ -413,8 +416,8 @@ unsigned long long Test::testModTime(int bits)
 unsigned long long Test::tesMultiplytModTime(int bits)
 {
 	BigInteger* bigInteger = BigInteger::createRandom(bits);
-	BigInteger* bigInteger2 = BigInteger::createRandom(bits / 3 + 3);
-	BigInteger* bigInteger3 = BigInteger::createRandom(bits / 2 + 2);
+	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
+	BigInteger* bigInteger3 = BigInteger::createRandom(bits);
 	if (bigInteger == nullptr || bigInteger2 == nullptr || bigInteger3 == nullptr)
 	{
 		cout << "BitInteger is null" << endl;
@@ -432,7 +435,7 @@ unsigned long long Test::tesMultiplytModTime(int bits)
 unsigned long long Test::testSquareModTime(int bits)
 {
 	BigInteger* bigInteger = BigInteger::createRandom(bits);
-	BigInteger* bigInteger2 = BigInteger::createRandom(bits / 2 + 2);
+	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
 	if (bigInteger == nullptr || bigInteger2 == nullptr)
 	{
 		cout << "BitInteger is null" << endl;
@@ -450,8 +453,8 @@ unsigned long long Test::testSquareModTime(int bits)
 unsigned long long Test::testPowerModTime(int bits)
 {
 	BigInteger* bigInteger = BigInteger::createRandom(bits);
-	BigInteger* bigInteger2 = BigInteger::createRandom(bits / 3 + 3);
-	BigInteger* bigInteger3 = BigInteger::createRandom(bits / 2 + 2);
+	BigInteger* bigInteger2 = new BigInteger(0x10001);
+	BigInteger* bigInteger3 = BigInteger::createRandom(bits);
 	if (bigInteger == nullptr || bigInteger2 == nullptr || bigInteger3 == nullptr)
 	{
 		cout << "BitInteger is null" << endl;
@@ -1130,7 +1133,11 @@ unsigned long long Test::testMultiplyMod(bool print)
 unsigned long long Test::testSquareMod(bool print)
 {
 	// test modular square 
-	BigInteger* bigInteger = BigInteger::fromHexString("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");	
+	BigInteger* bigInteger = BigInteger::fromHexString("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffffffffffffffff");	
 	BigInteger* mod = BigInteger::fromHexString("9fa32766326f9fa6f9f766326f9faaf9fa3766326f9fa26f9fa766326f9fa26f");
 
 	BigInteger* result = BigInteger::fromHexString("350d329b02f5d57d05e747d539d6ed434e38b8be1f8eb142c13840482843fa1");
@@ -1143,11 +1150,11 @@ unsigned long long Test::testSquareMod(bool print)
 
 	if (print || !ok)
 	{
-		//if (!ok)
-	//	{
+		if (!ok)
+		{
 			bigInteger->print("bigInteger:");
 			result->print("result");
-		//}
+		}
 		if (ok)
 		{
 			cout << "BigInteger::squareMod... SUCCESS elapsed time:  " << time << " cycles" << endl;
@@ -1169,11 +1176,21 @@ unsigned long long Test::testSquareMod(bool print)
 unsigned long long Test::testPowerMod(bool print)
 {
 	// test modular exponentiation 
-	BigInteger* bigInteger = BigInteger::fromHexString("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-	BigInteger* exponent = BigInteger::fromHexString("766f9fa9326f9f96cec15c6766326766766326f9fa32766326f9fa6f9f76");
-	BigInteger* mod = BigInteger::fromHexString("76766766327663766766326766766326f9fa32766326f9fa6f9f766326f9faaf9fa3766326f9fa26f9fa766326f9fa26f9fa6f9766326f9fafa326f9766326f9fafa63766326f766326f9fa97663766326f9fa26f9fafa21c1766326f9fa7324766326f9fa766766326f76766766327663766766326766766326f9fa32766326f9fa6f9f766326f9faaf9fa3766326f9fa26f9fa766326f9fa26f9fa6f9766326f9fafa326f9766326f9fafa63766326f766326634766326f9fa9326f9f96cec15c67");	
+	BigInteger* bigInteger = BigInteger::fromHexString("fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffff");
+	BigInteger* exponent = BigInteger::fromHexString("10001");
+	BigInteger* mod = BigInteger::fromHexString("76766766327663766766326766766326f9fa32766326f9fa6f9f766326f9faaf9fa3766326f9fa26f9fa766326f9fa26"
+		"f9fa6f9766326f9fafa326f9766326f9fafa63766326f766326f9fa97663766326f9fa26f9fafa21c1766326f9fa7324766326f9fa766766326f76766766327663766766"
+		"326766766326f9fa32766326f9fa6f9f766326f9faaf9fa3766326f9fa26f9fa766326f9fa26f9fa6f9766326f9fafa326f9766326f9fafa63766326f766326634766326"
+		"f9fa9326f9f96cec15c67");	
 
-	BigInteger* result = BigInteger::fromHexString("36e320cd1e18c2a83ef50b9d12e8a1789a77b8d2bd6d9daa0503a69cc0e7ced78437b4f06cc2bdb369dd9630c123c72bb6f82468387a1537c91cfc224fa104d38b0fc7d41a9b36720737b45f65cabbad3864d1a369ca928ac1bce0f8122f9bcf4e867c36f81974b23ba9b326f389db26bf13f1f240929d81f0b3815a7c46b5db1d34449c6bc7c49b383a0b443e9d5085db1ae6d5ea99601f87c05d5a774b553d946d86a66813693ad4a9a64e483c175d12e2c9a0f29933407d4f440a2f133e5cd8e69");
+	BigInteger* result = BigInteger::fromHexString("3526b7970e87462c90837b07a6af105122dbd34dcbbd6df757528e82c8ebccd26ee354415617a14d158951ff6fe77"
+		"7ad623facbc211c6b4d3cb3688c949da188a1900c5b57a1b6fb8d55fd5d0b4b867fb86c152e53a5994e664bb14c8f97458f07aef731e47ddb718dc4c45d2be4a30deabe8"
+		"0bc8e4b05b2c04d1e8f3297f49246212d791fcb1a2d303b3ea1da74c8cacaadef772489e2535a0fbc0ebd7a4ebc962ebfabf9c791a60955f147929ec1be9559f05243986"
+		"7b982fa78faf78c7050ddef5");
 
 	bigInteger->startTimer();
 	bigInteger->powerMod(*exponent, *mod);
