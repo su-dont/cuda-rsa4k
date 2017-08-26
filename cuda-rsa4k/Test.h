@@ -9,7 +9,9 @@ public:
 
 	void runAll(bool print, int minBits, int maxBits, int step, int repeats);
 	void testBigIntegerCorrectness(bool print);
+	void testRsaCorrectness(bool print);
 	void testBigIntegerTimes(int minBits, int maxBits, int step, int repeats);
+	void testRsaTimes(int minBits, int maxBits, int step, int repeats);
 
 	void testEqualsTimings(int minBits, int maxBits, int step, int repeats);
 	void testCompareTimings(int minBits, int maxBits, int step, int repeats);
@@ -23,6 +25,7 @@ public:
 	void testMultiplyModTimings(int minBits, int maxBits, int step, int repeats);
 	void testSquareModTimings(int minBits, int maxBits, int step, int repeats);
 	void testPowerModTimings(int minBits, int maxBits, int step, int repeats);
+	void testRsaTimings(int minBits, int maxBits, int step, int repeats);
 
 	void testParsing(bool print);
 	void testCreateRandom(bool print);
@@ -40,6 +43,7 @@ public:
 	unsigned long long testMultiplyMod(bool print);
 	unsigned long long testSquareMod(bool print);
 	unsigned long long testPowerMod(bool print);
+	unsigned long long testRsa(bool print);
 
 private:
 	unsigned long long testBitwiseLengthDiffrenceTime(int bits);
@@ -55,5 +59,6 @@ private:
 	unsigned long long tesMultiplytModTime(int bits);
 	unsigned long long testSquareModTime(int bits);
 	unsigned long long testPowerModTime(int bits);
+	unsigned long long testRsaTime(int bits);
 };
 

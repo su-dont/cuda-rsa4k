@@ -60,6 +60,7 @@ public:
 	void squareParallel(unsigned int* device_x) const;
 	void squareParallelAsync(unsigned int* device_x) const;
 	void modParallel(unsigned int* device_x, unsigned int* device_m) const;
+	void modParallelAsync(unsigned int* device_x, unsigned int* device_m) const;
 	void multiplyModParallel(unsigned int* device_x, const unsigned int* device_y, const unsigned int* device_m) const;
 	void multiplyModParallelAsync(unsigned int* device_x, const unsigned int* device_y, const unsigned int* device_m) const;
 	void squareModParallel(unsigned int* device_x, const unsigned int* device_m) const;

@@ -211,6 +211,12 @@ void BigInteger::squareMod(const BigInteger & modulus)
 	deviceWrapper->squareModParallel(deviceMagnitude, modulus.getDeviceMagnitude());
 }
 
+void BigInteger::modAsync(const BigInteger & modulus)
+{
+	upToDate = false;
+	deviceWrapper->modParallelAsync(deviceMagnitude, modulus.getDeviceMagnitude());
+}
+
 void BigInteger::multiplyModAsync(const BigInteger& x, const BigInteger& modulus)
 {
 	upToDate = false;
@@ -223,7 +229,7 @@ void BigInteger::squareModAsync(const BigInteger & modulus)
 	deviceWrapper->squareModParallelAsync(deviceMagnitude, modulus.getDeviceMagnitude());
 }
 
-void BigInteger::powerMod(BigInteger& exponent, BigInteger& modulus)
+void BigInteger::powerMod(BigInteger& exponent, const BigInteger& modulus)
 {
 	upToDate = false;
 

@@ -10,7 +10,7 @@ REM set CSC=C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe
 set nvcc=%NVCCBIN%\nvcc.exe
 
 set flags=-arch=sm_30 -m 32
-set objects=device.obj BigInteger.obj Test.obj main.obj
+set objects=device.obj BigInteger.obj Test.obj Rsa.obj main.obj
 
 cls  
 echo ::CLEAN::
@@ -34,6 +34,7 @@ REM call .\windows_device_build.bat
 
 "%nvcc%" %flags% -I.\..\ -ccbin "%CCBIN%" -dc .\..\BigInteger.cpp -o .\BigInteger.obj
 "%nvcc%" %flags% -I.\..\ -ccbin "%CCBIN%" -dc .\..\Test.cpp -o .\Test.obj
+"%nvcc%" %flags% -I.\..\ -ccbin "%CCBIN%" -dc .\..\Rsa.cpp -o .\Rsa.obj
 "%nvcc%" %flags% -I.\..\ -ccbin "%CCBIN%" -dc .\..\main.cpp -o .\main.obj
 
 REM timer build

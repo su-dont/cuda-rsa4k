@@ -1063,6 +1063,11 @@ void DeviceWrapper::modParallel(unsigned int * device_x, unsigned int * device_m
 	checkCuda(cudaStreamSynchronize(mainStream));
 }
 
+void DeviceWrapper::modParallelAsync(unsigned int * device_x, unsigned int * device_m) const
+{
+	device_reduce_modulo_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (device_x, device_m);
+}
+
 void DeviceWrapper::multiplyModParallelAsync(unsigned int * device_x, const unsigned int * device_y, const unsigned int * device_m) const
 {		
 	device_clone_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (deviceArray, device_y);

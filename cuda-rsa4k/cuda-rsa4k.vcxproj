@@ -154,11 +154,13 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="BigInteger.h" />
     <ClInclude Include="BuildConfig.h" />
     <ClInclude Include="DeviceWrapper.h" />
+    <ClInclude Include="RSA.h" />
     <ClInclude Include="Test.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BigInteger.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="RSA.cpp" />
     <ClCompile Include="Test.cpp" />
   </ItemGroup>
   <ItemGroup>

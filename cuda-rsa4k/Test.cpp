@@ -1,8 +1,9 @@
 #include "Test.h"
-#include "BigInteger.h"
 #include "BuildConfig.h"
-#include <iostream>
+#include "BigInteger.h"
+#include "RSA.h"
 
+#include <iostream>
 using namespace std;
 
 Test::Test()
@@ -16,7 +17,9 @@ Test::~Test()
 void Test::runAll(bool print, int minBits, int maxBits, int step, int repeats)
 {
 	testBigIntegerCorrectness(print);	
+	testRsaCorrectness(print);
 	testBigIntegerTimes(minBits, maxBits, step, repeats);
+	testRsaTimes(minBits, maxBits, step, repeats);
 
 	cout << "\nFINISHED!" << endl;
 }
@@ -48,6 +51,13 @@ void Test::testBigIntegerCorrectness(bool print)
 
 }
 
+void Test::testRsaCorrectness(bool print)
+{
+	cout << "\n\nTesting Rsa correctnes" << endl;
+
+	testRsa(print);
+}
+
 void Test::testBigIntegerTimes(int minBits, int maxBits, int step, int repeats)
 {
 	cout << "\n\nTesting BigInteger execution times..." << endl;
@@ -68,6 +78,12 @@ void Test::testBigIntegerTimes(int minBits, int maxBits, int step, int repeats)
 	testMultiplyModTimings(minBits, maxBits, step, repeats);
 	testSquareModTimings(minBits, maxBits, step, repeats);
 	testPowerModTimings(minBits, maxBits, step, repeats);
+}
+
+void Test::testRsaTimes(int minBits, int maxBits, int step, int repeats)
+{
+	cout << "\n\nTesting RSA execution time..." << endl;
+	testRsaTimings(minBits, maxBits, step, repeats);
 }
 
 void Test::testEqualsTimings(int minBits, int maxBits, int step, int repeats)
@@ -235,6 +251,20 @@ void Test::testPowerModTimings(int minBits, int maxBits, int step, int repeats)
 			sum += testPowerModTime(bits);
 		}
 		cout << "Test power mod: bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
+	}
+}
+
+void Test::testRsaTimings(int minBits, int maxBits, int step, int repeats)
+{
+	unsigned long long sum;
+	for (int bits = minBits; bits <= maxBits; bits = bits + step)
+	{
+		sum = 0ULL;
+		for (int i = 0; i < repeats; i++)
+		{
+			sum += testRsaTime(bits);
+		}
+		cout << "Test rsa encrypt bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
 	}
 }
 
@@ -466,6 +496,20 @@ unsigned long long Test::testPowerModTime(int bits)
 	delete bigInteger;
 	delete bigInteger2;
 	delete bigInteger3;
+	return time;
+}
+
+unsigned long long Test::testRsaTime(int bits)
+{
+	RSA rsa;
+
+	BigInteger* plainText = BigInteger::createRandom(bits);
+	BigInteger* modulus = BigInteger::createRandom(bits);
+	
+	unsigned long long time = rsa.encrypt(*plainText, *modulus);
+
+	delete plainText;
+	delete modulus;
 	return time;
 }
 
@@ -1219,6 +1263,53 @@ unsigned long long Test::testPowerMod(bool print)
 	delete exponent;
 	delete mod;
 	delete result;
+
+	return time;
+}
+
+unsigned long long Test::testRsa(bool print)
+{
+	// test rsa encryption 
+	BigInteger* plainText = BigInteger::fromHexString("fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		"fffffffffffffff");
+	BigInteger* mod = BigInteger::fromHexString("76766766327663766766326766766326f9fa32766326f9fa6f9f766326f9faaf9fa3766326f9fa26f9fa766326f9fa26"
+		"f9fa6f9766326f9fafa326f9766326f9fafa63766326f766326f9fa97663766326f9fa26f9fafa21c1766326f9fa7324766326f9fa766766326f76766766327663766766"
+		"326766766326f9fa32766326f9fa6f9f766326f9faaf9fa3766326f9fa26f9fa766326f9fa26f9fa6f9766326f9fafa326f9766326f9fafa63766326f766326634766326"
+		"f9fa9326f9f96cec15c67");
+
+	BigInteger* cipherText = BigInteger::fromHexString("3526b7970e87462c90837b07a6af105122dbd34dcbbd6df757528e82c8ebccd26ee354415617a14d158951ff6fe77"
+		"7ad623facbc211c6b4d3cb3688c949da188a1900c5b57a1b6fb8d55fd5d0b4b867fb86c152e53a5994e664bb14c8f97458f07aef731e47ddb718dc4c45d2be4a30deabe8"
+		"0bc8e4b05b2c04d1e8f3297f49246212d791fcb1a2d303b3ea1da74c8cacaadef772489e2535a0fbc0ebd7a4ebc962ebfabf9c791a60955f147929ec1be9559f05243986"
+		"7b982fa78faf78c7050ddef5");
+
+	RSA rsa;
+	unsigned long long time = rsa.encrypt(*plainText, *mod);
+
+	bool ok = plainText->equals(*cipherText);
+
+	if (print || !ok)
+	{
+		if (!ok)
+		{
+			plainText->print("bigInteger:");
+			cipherText->print("result");
+		}
+		if (ok)
+		{
+			cout << "RSA::encrypt... SUCCESS elapsed time:  " << time << " cycles" << endl;
+		}
+		else
+		{
+			cout << "RSA::encrypt... FAILED elapsed time:  " << time << " cycles" << endl;
+		}
+	}
+
+	delete plainText;
+	delete mod;
+	delete cipherText;
 
 	return time;
 }
