@@ -56,16 +56,22 @@
 
 
 \begin{document}
-%\bibliographystyle{plabbrv} %tylko gdy uĹĽywamy BibTeXa, ustawia polski styl bibliografii
+\bibliographystyle{plabbrv}
 
 \maketitle 
 \tableofcontents
 
 \chapter{Introduction}
 
+Public key cryptography is the key factor in providing secure communication between two parties. Fast development of distributed system requiring not only security, but also integrity and non-repudiation has pushed cryptography to the limit. Since 1978\cite{rsa} most commonly used cryptosystem is RSA, which provides asymmetric encryption, as well as generation of digital signatures. The security of RSA is mainly base on the bitwise key length. As computational power of modern CPUs arises, the minimal bit length of RSA key gets significantly bigger to provide sufficient security. At least 4096 bits long keys are considered secure nowadays. This leads to very high workload required to perform encryption/decryption. RSA is mainly based on modular arithmetics and simple computations become infeasible for moder CPUs, when dealing with so large integers. 
+
+One of the solution to this problem is to parallelize. GPGPU\cite{gpgpu} (for General-Purpose
+computing on the Graphics Processing Unit) enables the use of GPU for parallel computation other than graphics. GPUs are designed to perform computations in parallel. Since every PC is equipped with some kind of GPU, one can easily exploit its capabilities.    
+NVIDIA has made it even more accessible by creating CUDA (Compute Unified Device Architecture)\cite{cuda}. It is a parallel computing platform and API, which exposes GPUs true potential. 
   
-  
-  \section{Environment Specification}
+\section{Environment Specification}
+
+
  
 
 
@@ -279,10 +285,8 @@ RSA class contains single "encrypt" function, which encrypts provided value. Ful
 \section{Parallel power modulo}
 
 
-\addcontentsline{toc}{chapter}{Bibliography} %utworzenie w spisie treĹ›ci pozycji Bibliografia
-\bibliography{bibliography} % wstawia bibliografiÄ™ korzystajÄ…c z pliku bibliografia.bib - dotyczy BibTeXa, jeĹĽeli nie korzystamy z BibTeXa naleĹĽy uĹĽyÄ‡ otoczenia thebibliography
-
-%opcjonalnie moĹĽe siÄ™ tu pojawiÄ‡ spis rysunkĂłw i tabel
+\addcontentsline{toc}{chapter}{References}
+\bibliography{bibliography}
  \listoffigures
  \listoftables
 \end{document}
