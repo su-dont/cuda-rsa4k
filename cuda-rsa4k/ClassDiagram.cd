@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="DeviceWrapper">
+    <Position X="2" Y="0.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>BCDBAhIAAARDAAQAgDsBACgASCYoAAoAAiJBCEAAAAA=</HashCode>
+      <FileName>DeviceWrapper.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="BigInteger">
+    <Position X="4.25" Y="0.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>GEwgICAEAACAAgACIAwgBBAAiwEnSAgCAAAEAAACYwA=</HashCode>
+      <FileName>BigInteger.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RSA">
+    <Position X="6.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAIAAEAgAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RSA.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Test">
+    <Position X="8.25" Y="0.5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAQGYMIAAUAktICBNAEwYjAE5UAQAAAJAASAAgAAA=</HashCode>
+      <FileName>Test.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Struct Name="__unnamed_struct_0003_1">
+    <Position X="0.5" Y="0.5" Width="1.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAACAAA=</HashCode>
+      <FileName>DeviceWrapper.cu</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="__unnamed_struct_0003_2">
+    <Position X="0.5" Y="2" Width="1.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>DeviceWrapper.cu</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="__unnamed_struct_0003_3">
+    <Position X="0.5" Y="3.5" Width="1.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAQABAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>DeviceWrapper.cu</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

@@ -5,6 +5,47 @@
 \usepackage[utf8]{inputenc}
 \usepackage[british,UKenglish,USenglish,english,american]{babel}
 \usepackage{showlabels}
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{dred}{rgb}{0.545,0,0}
+\definecolor{dblue}{rgb}{0,0,0.545}
+\definecolor{lgrey}{rgb}{0.9,0.9,0.9}
+\definecolor{gray}{rgb}{0.4,0.4,0.4}
+\definecolor{darkblue}{rgb}{0.0,0.0,0.6}
+\definecolor{bluekeywords}{rgb}{0,0,1}
+\definecolor{eminence}{RGB}{0,174,178}
+\lstdefinelanguage{cpp}{
+	backgroundcolor=\color{lgrey},  
+	basicstyle=\footnotesize \ttfamily \color{black} \bfseries,   
+	breakatwhitespace=false,       
+	breaklines=true,               
+	captionpos=b,                   
+	commentstyle=\color{dkgreen},   
+	deletekeywords={...},          
+	escapeinside={\%*}{*)},                  
+	frame=single,                  
+	language=C++,                
+	keywordstyle=\color{bluekeywords},  
+	morekeywords={BRIEFDescriptorConfig,string,TiXmlNode,DetectorDescriptorConfigContainer,istringstream,cerr,exit}, 
+	identifierstyle=\color{black},
+	emph={BigInteger,cudaStream_t,dim3,DeviceWrapper},
+	emphstyle={\color{eminence}},
+	stringstyle=\color{blue},      
+	numbers=right,                 
+	numbersep=5pt,                  
+	numberstyle=\tiny\color{black}, 
+	rulecolor=\color{black},        
+	showspaces=false,               
+	showstringspaces=false,        
+	showtabs=false,                
+	stepnumber=1,                   
+	tabsize=5,                     
+	title=\lstname,                 
+}
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
+\usepackage{caption}
 
 \title{ }
 \engtitle{Timing Attack Resistant Implementation of RSA on GPU.}
@@ -22,10 +63,220 @@
 
 \chapter{Introduction}
 
+  
+  
+  \section{Environment Specification}
+ 
 
 
+\chapter{Theory}
 
-sadfadsf adsfadsf as dfadsf sad fsad fsafas dfa
+\section{RSA}
+
+\section{Side channel attacks}
+
+\subsection{Timing attacks}
+
+\section{Parallel programming on CUDA}
+
+\chapter{Implementation}
+
+The code was written in C++ language. In order to minimize data movement between host and the device, most of logics and computation are executed fully on GPU. Implementation of RSA encryption requires only one function - modular exponentiation of a multi precision integer. Implemented Big Integer class provides much more functions, to properly handle data and validate results. Code listing below shows the header of class BigInteger.
+
+\begin{lstlisting}[language=cpp,caption={BigInteger.h}]
+class BigInteger
+{
+//fields
+public:
+
+// 4096 bits
+static const int ARRAY_SIZE = 128;	
+
+private:
+// Magnitude array in little endian order.
+// Most-significant int is mag[length-1].
+// Least-significant int is mag[0].
+// Allocated on the device.
+unsigned int* deviceMagnitude;
+
+// same array allocated on the host 
+// provides faster access if nothing was changed
+unsigned int* hostMagnitude;
+
+// flag indicating if hostMagnitude matches deviceMagnitude
+bool upToDate;
+
+// Device wrapper instance diffrent for every integer
+// to provide parallel execution
+DeviceWrapper* deviceWrapper;
+
+// methods
+public:
+BigInteger();
+BigInteger(const BigInteger& x);
+BigInteger(unsigned int value);
+~BigInteger();
+const unsigned int& operator[](int index);
+
+// factory
+static BigInteger* fromHexString(const char* string);
+static BigInteger* createRandom(int bitLength);
+
+// setters, getters
+void set(const BigInteger& x);	
+unsigned int* getDeviceMagnitude(void) const;
+
+// arithmetics
+void add(const BigInteger& x);
+void subtract(const BigInteger& x);
+void multiply(const BigInteger& x);
+void square(void);
+void mod(const BigInteger& modulus);
+void multiplyMod(const BigInteger& x, const BigInteger& modulus);
+void squareMod(const BigInteger& modulus);
+void powerMod(BigInteger& exponent, const BigInteger& modulus);
+
+// logics
+void shiftLeft(int bits);
+void shiftRight(int bits);
+
+// extras
+bool equals(const BigInteger& value) const;
+int compare(const BigInteger& value) const;
+int getBitwiseLengthDiffrence(const BigInteger& value) const;
+int getBitwiseLength(void) const;
+int getLSB(void) const;
+bool testBit(int bit);
+void synchronize(void);
+char* toHexString(void);
+void print(const char* title);
+
+//timer
+void startTimer(void);
+unsigned long long stopTimer(void);
+
+// async calls
+// must call synchronize to read from
+void modAsync(const BigInteger& modulus);
+void multiplyModAsync(const BigInteger& x, const BigInteger& modulus);
+void squareModAsync(const BigInteger& modulus);
+
+private:
+
+void setMagnitude(const unsigned int* magnitude);
+void clear(void);
+void updateDeviceMagnitiude(void);
+void updateHostMagnitiude(void);
+static unsigned int random32(void);
+
+/*
+Parses hex string to unsigned int type.
+Accepts both upper and lower case, no "0x" at the beginning.
+E.g.: 314Da43F 
+*/	
+static unsigned int parseUnsignedInt(const char* hexString);
+};
+
+\end{lstlisting}
+
+Big Integer class handles mathematical logic, validates input / output, and provides comfortable and readable interface.
+
+The intermediary between Big Integer and GPU is another class - Device Wrapper.
+It handles GPU kernel launches, synchronization and data movement. Class definition is listed below.
+
+\begin{lstlisting}[language=cpp,caption={DeviceWrapper.h}]
+class DeviceWrapper
+{
+
+private:
+
+// main stream for kernel launches
+cudaStream_t mainStream;
+
+// lauch config
+dim3 block_1, block_2, block_4;
+dim3 thread_warp, thread_2_warp, thread_4_warp;
+
+// 4 ints to help store results
+int* deviceWords;
+
+// auxiliary arrays
+unsigned int* device4arrays;
+unsigned int* device128arrays;
+unsigned int* deviceArray;
+
+unsigned long long* deviceStartTime;
+unsigned long long* deviceStopTime;
+
+public:
+
+DeviceWrapper();
+~DeviceWrapper();
+
+// sync
+unsigned int* init(int size) const;
+unsigned int* init(int size, const unsigned int* initial) const;
+void updateDevice(unsigned int* device_array, const unsigned int* host_array, int size) const;
+void updateHost(unsigned int* host_array, const unsigned int* device_array, int size) const;
+void free(unsigned int* device_x) const;
+
+// extras
+void clearParallel(unsigned int* device_x) const;
+void cloneParallel(unsigned int* device_x, const unsigned int* device_y) const;
+int compareParallel(const unsigned int* device_x, const unsigned int* device_y) const;
+bool equalsParallel(const unsigned int* device_x, const unsigned int* device_y) const;
+int getLSB(const unsigned int* device_x) const;
+int getBitLength(const unsigned int* device_x) const;
+void synchronize(void);
+
+// measure time
+void startClock(void);
+unsigned long long stopClock(void);
+
+// logics
+void shiftLeftParallel(unsigned int* device_x, int bits) const;
+void shiftRightParallel(unsigned int* device_x, int bits) const;
+
+// arithmetics
+void addParallel(unsigned int* device_x, const unsigned int* device_y) const;
+void subtractParallel(unsigned int* device_x, const unsigned int* device_y) const;
+void multiplyParallel(unsigned int* device_x, const unsigned int* device_y) const;
+void squareParallel(unsigned int* device_x) const;
+void squareParallelAsync(unsigned int* device_x) const;
+void modParallel(unsigned int* device_x, unsigned int* device_m) const;
+void modParallelAsync(unsigned int* device_x, unsigned int* device_m) const;
+void multiplyModParallel(unsigned int* device_x, const unsigned int* device_y, const unsigned int* device_m) const;
+void multiplyModParallelAsync(unsigned int* device_x, const unsigned int* device_y, const unsigned int* device_m) const;
+void squareModParallel(unsigned int* device_x, const unsigned int* device_m) const;
+void squareModParallelAsync(unsigned int* device_x, const unsigned int* device_m) const;
+
+private:
+void inline addParallelWithOverflow(unsigned int* device_x, const unsigned int* device_y, int blocks) const;
+};
+\end{lstlisting}
+
+Project also contains Test class to validate computations, measure times and simulate encryption.
+RSA class contains single "encrypt" function, which encrypts provided value. Full class diagram is presented on figure \ref{fig:classdiagram}.
+
+\begin{figure}
+	\centering
+	\includegraphics{ClassDiagram}
+	\caption{Class Diagram}
+	\label{fig:classdiagram}
+\end{figure}
+
+
+\section{Parallel equals}
+\section{Parallel compare}
+\section{Parallel bit length}
+\section{Parallel left shift}
+\section{Parallel right shift}
+\section{Parallel add}
+\section{Parallel subtract}
+\section{Parallel multiply}
+\section{Parallel modulo reduction}
+\section{Parallel multiply modulo}
+\section{Parallel power modulo}
 
 
 \addcontentsline{toc}{chapter}{Bibliography} %utworzenie w spisie treĹ›ci pozycji Bibliografia
