@@ -70,14 +70,83 @@ computing on the Graphics Processing Unit) enables the use of GPU for parallel c
 NVIDIA has made it even more accessible by creating CUDA (Compute Unified Device Architecture)\cite{cuda}. It is a parallel computing platform and API, which exposes GPUs true potential. 
   
 \section{Environment Specification}
+This project was developed in Microsoft Visual Studio 2015\cite{vs} with NSight plugin and CUDA API.\cite{cuda} Source code is written mainly in C++ and inline assembly - PTX.\cite{ptx} Table \ref{dspec} more precisely illustrates GPU specification on which the program and all tests are run.
 
-
+\begin{table}[!h]
+	\caption{Device specification}
+	\label{dspec}
+	\centering
+	\begin{tabular}{ | l | l |}
+		\hline
+		Device name: & GeForce GTX 960 \\ \hline
+		CUDA Driver Version: & 9.0 \\
+		CUDA Runtime Version: & 8.0  \\
+		CUDA Capability version number: & 5.2  \\ 
+		Total amount of global memory: & 4096 MBytes (4294967296 bytes)  \\
+    	GPU Max Clock rate:  & 1304 MHz (1.30 GHz)  \\
+		Total amount of shared memory per block: & 49152 bytes  \\
+		Warp size: & 32  \\\hline
+	\end{tabular}
+\end{table}
  
+ Table below presents full platform and system information.
+ 
+ \begin{table}[h]
+ 	\caption{PC specification}
+ 	\label{pspec}
+ 	\centering
+ 	\begin{tabular}{ | l | l |}
+ 		\hline
+ 		Operating System: & Windows 10 Education 64-bit \\
+ 		Motherboard: & Gigabyte Technology Co., Ltd. P55A-UD4 \\
+ 		CPU: & Intel(R) Core(TM) i5 CPU 750  @ 2.67GHz (4 CPUs), ~2.7GHz  \\
+ 		RAM Memory: : & 4096MB \\\hline
+ 	\end{tabular}
+ \end{table}
 
 
 \chapter{Theory}
+This chapter basically presents minimal amount of theory required to fully understand the concepts, problems and solutions which were applied and implemented within this project.
 
 \section{RSA}
+
+The RSA algorithm was created by Ronald Rivest, Adi Shamir, and Leonard Adleman in 1970s.
+The security of the algorithm is based on the problem of integer factorization.
+
+\begin{itemize}
+	\item Key generation
+	\begin{itemize}
+		\item Choose two large and distinct prime numbers $p$ and $q$.
+		\item Compute the modulus $n$
+		\[n=pq\]
+		\item Compute 
+		\[\lambda(n) = lcm(\lambda(p), \lambda(q)) = lcm(p-1, q-1)\]
+		where $\lambda$ is the Carmichael Totient Function\cite{lambda}. This value must be kept in private.
+		\item Choose an integer $e$ such that:
+		\[1 < e < \lambda(n)\] 
+		and
+		\[gcd(e, \lambda(n)) = 1\]
+		This means $e$ and $\lambda(n)$ are coprime.\cite{primes}
+		\item Choose value $d$ for decryption and solve for $d$:
+		\[de \equiv 1 (mod \lambda(n))\] 
+		$e$ is used for encryption. Usually this is done the other way around. $e$ is chosen first so it has short bit length and small Hamming weight,\cite{hamm} which provides for much faster encryption. In most cases $e=3$,$5$ or $7$. High security is provided if larger number is used. Most common is Fermat's four: $e=2^{16}+1=65537 = 0$x$10001$
+		\item Public key is then:
+		\[(e,n)\]
+		and the private key:
+		\[(d,n)\]
+	\end{itemize}
+	\item Encryption
+	
+	For message $m$ the ciphertext $c$ is in relation:
+	\begin{center}
+	$c\equiv m^e$ mod$n$
+	\end{center}
+	\item Decryption
+	\begin{center}
+		$m\equiv c^d$ mod$n$ $\equiv(m^e)^d$ mod$n$ $\equiv m$ mod$n$
+	\end{center}
+	
+\end{itemize}
 
 \section{Side channel attacks}
 
