@@ -15,6 +15,7 @@ public:
 
 	void testEqualsTimings(int minBits, int maxBits, int step, int repeats);
 	void testCompareTimings(int minBits, int maxBits, int step, int repeats);
+	void testGetLengthTimings(int minBits, int maxBits, int step, int repeats);
 	void testShiftLeftTimings(int minBits, int maxBits, int step, int repeats);
 	void testShiftRightTimings(int minBits, int maxBits, int step, int repeats);
 	void testAddTimings(int minBits, int maxBits, int step, int repeats);
@@ -48,6 +49,7 @@ public:
 private:
 	unsigned long long testBitwiseLengthDiffrenceTime(int bits);
 	unsigned long long testEqualsTime(int bits);
+	unsigned long long testGetBitLengthTime(int bits);
 	unsigned long long testCompareTime(int bits);
 	unsigned long long testAddTime(int bits);
 	unsigned long long testSubtractTime(int bits);
