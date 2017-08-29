@@ -12,7 +12,7 @@ int main()
 	cudaDeviceReset();
 	
 	Test test;	
-	test.runAll(true, 1, 2048, 500, 2);
+	test.runAll(true, 0, 2048, 500, 2);
 	
 	cudaDeviceSynchronize();	
 	cudaDeviceReset();

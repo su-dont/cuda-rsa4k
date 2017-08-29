@@ -127,8 +127,7 @@ void Test::testGetLengthTimings(int minBits, int maxBits, int step, int repeats)
 		{
 			sum += testGetBitLengthTime(bits);
 		}
-		//cout << "Test get bit length bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;
-		cout <<bits<<"\t"<< sum / (unsigned long long) repeats << endl;
+		cout << "Test get bit length bits: " << bits << " avg time: " << sum / (unsigned long long) repeats << endl;		
 	}
 }
 
