@@ -1142,7 +1142,7 @@ Figure \ref{fig:equals} presents execution times of the function Equals in $\mu$
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth, height=26cm,keepaspectratio]{rightshift_occupancy_charts}.
-	\caption{Occupancy charts of Left Right function}
+	\caption{Occupancy charts of Right shift function}
 	\label{fig:rightshift_occupancy_charts}
 \end{figure}
 
@@ -1188,6 +1188,70 @@ Figure \ref{fig:equals} presents execution times of the function Equals in $\mu$
 	\label{fig:rightshift_shared}
 \end{figure}
 
+\section{Add}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth,trim={0.5cm 2.8cm 0.4cm 2.8cm},clip]{add.pdf}.
+	\caption{Execution time of function Add in $\mu$m depending on input's bitwise length}
+	\label{fig:add}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{add_occupancy}.
+	\caption{Occupancy statistics of Add function}
+	\label{fig:add_occupancy}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth, height=26cm,keepaspectratio]{add_occupancy_charts}.
+	\caption{Occupancy charts of Add function}
+	\label{fig:add_occupancy_charts}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth, height=26cm,keepaspectratio]{add_instructions}.
+	\caption{Instruction statistics of Add function}
+	\label{fig:add_instructions}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{add_branch}.
+	\caption{Branch statistics of Add function}
+	\label{fig:add_branch}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{add_issue}.
+	\caption{Issue efficiency of Add function}
+	\label{fig:add_issue}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{add_pipe}.
+	\caption{Pipe utilization of Add function}
+	\label{fig:add_pipe}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{add_memory}.
+	\caption{Memory overview of Add function}
+	\label{fig:add_memory}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{add_shared}.
+	\caption{Shared memory chart of Add function}
+	\label{fig:add_shared}
+\end{figure}
 
 \addcontentsline{toc}{chapter}{References}
 \bibliography{bibliography}
