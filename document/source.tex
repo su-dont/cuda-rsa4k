@@ -32,7 +32,8 @@
 	keywordstyle=\color{bluekeywords},  
 	morekeywords={BRIEFDescriptorConfig,string,TiXmlNode,DetectorDescriptorConfigContainer,istringstream,cerr,exit}, 
 	identifierstyle=\color{black},
-	emph={BigInteger,cudaStream_t,dim3,DeviceWrapper},
+	emph={BigInteger,cudaStream\_t,dim3,DeviceWrapper, \_\_shared\_\_,
+	\_\_device\_\_, \_\_global\_\_},
 	emphstyle={\color{eminence}},
 	stringstyle=\color{blue},      
 	numbers=right,                 
@@ -382,7 +383,7 @@ RSA class contains single "encrypt" function, which encrypts provided value. Ful
 \section{Parallel power modulo}
 
 \chapter{Testing}
-This chapter presents the behavior of implemented algorithms based on the inputs' lengths. All of the functions are designed to handle data up to 4096 bits long. Each test is repeated 50-100 times (depends on the complexity) to provide rather average results.  
+This chapter presents the behavior of implemented algorithms based on the inputs' lengths. All of the functions are designed to handle data up to 4096 bits long. Each test is repeated 100-300 times (depends on the complexity) to provide rather average results.  
 
 
 Other test were executed using CUDA Profiler Activity. "This tool gathers detailed performance information, in addition to timing and launch configuration details. A CUDA Profiler activity consists of a kernel filter and a set of profiler experiments. Profile experiments are directed analysis tests targeted at collecting in-depth performance information for an isolated instance of a kernel launch."\cite{nsight}
@@ -392,7 +393,7 @@ Other test were executed using CUDA Profiler Activity. "This tool gathers detail
 \subsection{Occupancy}
 "A warp (32 threads) is considered active from the time its threads begin executing to the time when all threads in the warp have exited from the kernel. There is a maximum number of warps which can be concurrently active on a Streaming Multiprocessor (SM). Occupancy is defined as the ratio of active warps on an SM to the maximum number of active warps supported by the SM. Occupancy varies over time as warps begin and end, and can be different for each SM.
 
-Low occupancy results in poor instruction issue efficiency, because there are not enough eligible warps to hide latency between dependent instructions. When occupancy is at a sufficient level to hide latency, increasing it further may degrade performance due to the reduction in resources per thread. An early step of kernel performance analysis should be to check occupancy and observe the effects on kernel execution time when running at different occupancy levels.
+Low occupancy results in poor instruction issue efficiency, because there are not enough eligible warps to hide latency between dependent instructions. When occupancy is at a sufficient level to hide latency, increasing it further may degrade performance due to the reduction in resources per thread.
 
 \subsection{Theoretical occupancy}
 There is an upper limit for active warps, and thus also for occupancy, derivable from the launch configuration, compile options for the kernel, and device capabilities. Each block of a kernel launch gets distributed to one of the SMs for execution. A block is considered active from the time its warps begin executing to the time when all warps in the block have exited from the kernel. The number of blocks which can execute concurrently on an SM is limited by the factors listed below. The upper limit for active warps is the product of the upper limit for active blocks and the number of warps per block. Thus, the upper limit for active warps can be raised by increasing the number of warps per block (defined by block dimensions), or by changing the factors limiting how many blocks can fit on an SM to allow more active blocks. The limiting factors are:
@@ -488,7 +489,7 @@ Issuing an instruction multiple times is also referred to as Instruction Replay.
 	\begin{itemize}	
 		\item Issued IPC
 		
-		The average number of issued instructions per cycle accounting for every iteration of instruction replays. Optimal if as close as possible to the Executed IPC. Some assembly instructions require to be multi-issued. hence the instruction mix affects the definition of the optimal target for this metric.
+		The average number of issued instructions per cycle accounting for every iteration of instruction replays. Optimal if as close as possible to the Executed IPC. Some assembly instructions require to be multi-issued, hence the instruction mix affects the definition of the optimal target for this metric.
 	
 		\item Executed IPC
 		
@@ -619,9 +620,7 @@ The issue efficiency experiment provides information about the device's ability 
 	
 	
 	\begin{itemize}
-		\item Active Warps  
-		
-		A warp is active from the time it is scheduled on a multiprocessor until it completes the last instruction. Each warp scheduler maintains its own list of assigned active warps. This assignment of warps to the schedulers is done once at the time a warp becomes active and is valid for the lifetime of the warp. 
+	
 		
 		\item Eligible Warps 
 		
@@ -641,13 +640,9 @@ The issue efficiency experiment provides information about the device's ability 
 
 	\item Warp Issue Efficiency
 	
-	The metrics are reported as average values across the complete kernel execution for each individual SM of the target device. The y-Axis is scaled to the device limit.
-	
-	
-	\begin{itemize}
-		\item Active Warps  
+	On every clock cycle, a warp scheduler tries to issue an instruction from one of its warps. When a warp issues an instruction, it takes at least a few cycles before it becomes eligible to issue again, so many warps should be active on a warp scheduler to ensure it can issue an instruction from some warp on every cycle. In this experiment, the profiler counts whether an instruction was issued or not for each clock cycle on each warp scheduler. The Warp Issue Efficiency chart shows the average across all warp schedulers over the duration of kernel execution. 
 		
-		On every clock cycle, a warp scheduler tries to issue an instruction from one of its warps. When a warp issues an instruction, it takes at least a few cycles before it becomes eligible to issue again, so many warps should be active on a warp scheduler to ensure it can issue an instruction from some warp on every cycle. In this experiment, the profiler counts whether an instruction was issued or not for each clock cycle on each warp scheduler. The Warp Issue Efficiency chart shows the average across all warp schedulers over the duration of kernel execution. 
+	\begin{itemize}
 		
 		\item No Eligible  
 		
@@ -925,7 +920,13 @@ Figure \ref{fig:equals} presents execution times of the function Equals in $\mu$
 	\label{fig:equals_shared}
 \end{figure}
 
- Analyzing figure \ref{fig:equals} we can see the trend line showing the average time actually drops as the input's length rises. This is probably caused by caching techniques implemented on the device. It is safe to state the function runs in constant time, and is resistant to timing attacks. 
+ Analyzing figure \ref{fig:equals} we can see the trend line showing the average time actually drops as the input's length rises. This is probably caused by caching techniques implemented on the device. It is safe to state the function runs in constant time, and is resistant to timing attacks. Achieved occupancy at only 0.78\% is caused by shared memory.
+ In order to eliminate bank conflicts, the function uses a 7168 bytes of shared memory, where most of it is padding.
+\begin{lstlisting}[language=cpp]
+	__shared__ int shared[7][256];
+\end{lstlisting}
+ This successfully eliminates most of the bank conflicts,\ref{fig:equals_shared} but reduces the active blocks count to two.\ref{fig:equals_occupancy_charts} Varying Block Size chart shows the occupancy could easily get higher by increasing the block size, but the algorithm is designed to operate and synchronizes on 128 threads. Solution of bank conflicts and lack of any atomic or floating point instructions in the function's code yields very good IPC coverage. Every issued instruction is immediately executed as shown on the Instruction Per Clock chart.\ref{fig:equals_instructions}
+ The Branch Statistics\ref{fig:equals_branch} are very good as well. No diverged threads gives 100\% efficiency and supports resistance to side-channel. Despite this, the statistics on the Issue Efficiency charts look much worse.\ref{fig:equals_issue} Very little eligible warps mostly stalled by execution dependency or synchronization indicate low performance of the code.
 
 \section{Compare}
 
@@ -935,6 +936,8 @@ Figure \ref{fig:equals} presents execution times of the function Equals in $\mu$
 	\caption{Execution time of function Compare in $\mu$s depending on input's bitwise length}
 	\label{fig:compare}
 \end{figure}
+
+Compare function contains very similar code to Equals. The main difference is - here the corresponding x and y values are not "xored" together, but rather compared to eventually distinguish greater value. The statistics only differ in Active Block count, which resulted in slightly higher occupancy - 18.75\% theoretical.  
 
 \begin{figure}[H]
 	\centering
@@ -1002,6 +1005,8 @@ Figure \ref{fig:equals} presents execution times of the function Equals in $\mu$
 	\label{fig:bitlength}
 \end{figure}
 
+The function returning bitwise length of the array seems to be slightly dependent on the array's length. Even though the algorithm is fully designed to run in constant time, probably due to some compilers optimization, the execution time on the bigger input is longer by a little. The statistics look pretty much the same as in Compare function. A bit less no eligible warps from which most are stalled by execution dependency.\ref{fig:bitlength_issue} No bank conflicts whatsoever.\ref{fig:bitlength_shared}
+
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth]{bitlength_occupancy}.
@@ -1066,6 +1071,8 @@ Figure \ref{fig:equals} presents execution times of the function Equals in $\mu$
 	\caption{Execution time of function Left shift in $\mu$s, depending on number of bits to shift}
 	\label{fig:leftshift}
 \end{figure}
+
+The left shift function ideally operates in resistance to side-channel. The execution time is constant from small bit lengths up to 4000 bits, with only minute offsets. This is achieved by proper implementation for CUDA device execution, meaning there are very little branching conditions, no loops and most instructions are logics and simple integer arithmetics. The statistics are very similar to other functions designed for 128 threads (4 warps). Occupancy limited by memory to 18.75\%, three active blocks, no bank conflicts, good branch statistics and poor warps issue efficiency.   
 
 \begin{figure}[H]
 	\centering
@@ -1132,6 +1139,17 @@ Figure \ref{fig:equals} presents execution times of the function Equals in $\mu$
 	\label{fig:rightshift}
 \end{figure}
 
+The right shift function is very much the same as the left shift. Small difference in statics is shown in Branches per Warp chart, \ref{fig:rightshift_branch} most probably caused by code listed below.
+\begin{lstlisting}[language=cpp]
+if (index - 1 >= 0)
+	sharedResult[index - 1] = sharedX[index] << remainingBits;
+else
+	sharedResult[127] = 0UL;
+__syncthreads();
+\end{lstlisting}
+The condition blocks writing out of the array's bounds. The "else" statement occurs only for thread 0, which caused 3.33\% diverged branches. This has a negligible effect on function's performance. The  average execution time is roughly 20$\mu$s less then left shift function.
+
+
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth]{rightshift_occupancy}.
@@ -1196,6 +1214,9 @@ Figure \ref{fig:equals} presents execution times of the function Equals in $\mu$
 	\caption{Execution time of function Add in $\mu$s depending on input's bitwise length}
 	\label{fig:add}
 \end{figure}
+
+The Add function does not depend on the inputs' lengths as presented on the chart above, but the execution times are a bit scattered in comparison to left/right shifts.
+The function launches 1 warp (96 threads less then the functions described above), yet the statistics hardly changed.
 
 \begin{figure}[H]
 	\centering
@@ -1262,6 +1283,8 @@ Figure \ref{fig:equals} presents execution times of the function Equals in $\mu$
 	\label{fig:subtract}
 \end{figure}
 
+The implementation of Subtract function is almost identical as Add. Surprisingly the execution time is much more stable. The average time is higher probably because of additional instructions in storing borrow value. The statistics look the same.
+
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth]{subtract_occupancy}.
@@ -1319,6 +1342,8 @@ Figure \ref{fig:equals} presents execution times of the function Equals in $\mu$
 \end{figure}
 
 \section{Multiply}
+
+The multiply initial configuration is 4 blocks, 64 threads each. Occupancy is limited to 6.25\% by shared memory. The computations are evenly distributed between 4 SMs. 
 
 \begin{figure}[H]
 	\centering
@@ -1393,12 +1418,16 @@ Figure \ref{fig:equals} presents execution times of the function Equals in $\mu$
 	\label{fig:mod}
 \end{figure}
 
+The graph\ref{fig:mod} presents measurements of operation X mod M, where bitwise length of both X and M increases, and the length of X i always one bit less the M. During tests four blocks were launched, each with different values. The chart\ref{fig:mod_instructions} shows how higher values on SM 0 block activity of other SMs. This is caused by use of "while" loop in implementation. For higher values the loop needs to makes more rounds which needs more time for computation, eventually decreasing performance. 
+
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth,trim={0.5cm 2.8cm 0.4cm 2.8cm},clip]{mod_diff.pdf}.
 	\caption{Execution time of function Modulo reduction in ms depending on inputs' bitwise lengths differences}
 	\label{fig:mod_diff}
 \end{figure}
+
+The graph above shows how the function performance depends on the difference in lengths of X and M. Modulus M is set at 8 bits, whereas bitwise length of value X increases. This causes more repetitions of the loop which affects performance. 
 
 \begin{figure}[H]
 	\centering
@@ -1458,6 +1487,9 @@ Figure \ref{fig:equals} presents execution times of the function Equals in $\mu$
 
 \section{Multiply modulo}
 
+
+The function multiply modulo composes of multiply function and couple of calls to modulo reduction. For constant difference in lengths between multiplication factors and modulus the function operates stable.
+
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth,trim={0.5cm 2.8cm 0.4cm 2.8cm},clip]{mull_mod.pdf}.
@@ -1472,7 +1504,10 @@ Figure \ref{fig:equals} presents execution times of the function Equals in $\mu$
 	\label{fig:mull_mod_diff}
 \end{figure}
 
+The chart above shows how overhead of modulo reductions function seizes the final performance.
+
 \section{Power modulo}
+
 
 \begin{figure}[H]
 	\centering
@@ -1480,6 +1515,11 @@ Figure \ref{fig:equals} presents execution times of the function Equals in $\mu$
 	\caption{Execution time of function Power modulo in ms depending on exponent's bitwise length}
 	\label{fig:powmod}
 \end{figure}
+
+The modular exponentiation was implemented using Montgomery Ladder. The complexity of the algorithim is:
+\[log_2(bits)\]
+which is clearly presented on the chart characteristic.\ref{fig:powmod}
+
 
 \section{RSA encrypt}
 
@@ -1489,6 +1529,8 @@ Figure \ref{fig:equals} presents execution times of the function Equals in $\mu$
 	\caption{Execution time of function encrypt in ms depending on message's bitwise length}
 	\label{fig:rsa}
 \end{figure}
+
+RSA encryption uses modular exponentiation with exponent set to 65537. As the message's length rises so does the encryption time. This is caused again by modular reduction. At 2000 bits threshold the values begin to overflow the magnitude array which causes undefined behavior. This also shows the correctness of calculations stops at 2K.
 
 
 \addcontentsline{toc}{chapter}{References}
