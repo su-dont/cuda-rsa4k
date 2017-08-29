@@ -461,8 +461,8 @@ unsigned long long Test::testShiftRightTime(int bits, int n)
 
 unsigned long long Test::testModTime(int bits)
 {
-	BigInteger* bigInteger = BigInteger::createRandom(bits);
-	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
+	BigInteger* bigInteger = BigInteger::createRandom(8 + bits);
+	BigInteger* bigInteger2 = BigInteger::createRandom(8);
 	if (bigInteger == nullptr || bigInteger2 == nullptr)
 	{
 		cout << "BitInteger is null" << endl;
@@ -478,9 +478,9 @@ unsigned long long Test::testModTime(int bits)
 
 unsigned long long Test::tesMultiplytModTime(int bits)
 {
-	BigInteger* bigInteger = BigInteger::createRandom(bits);
-	BigInteger* bigInteger2 = BigInteger::createRandom(bits);
-	BigInteger* bigInteger3 = BigInteger::createRandom(bits);
+	BigInteger* bigInteger = BigInteger::createRandom(8+ bits);
+	BigInteger* bigInteger2 = BigInteger::createRandom(8+bits);
+	BigInteger* bigInteger3 = BigInteger::createRandom(8);
 	if (bigInteger == nullptr || bigInteger2 == nullptr || bigInteger3 == nullptr)
 	{
 		cout << "BitInteger is null" << endl;
@@ -515,9 +515,9 @@ unsigned long long Test::testSquareModTime(int bits)
 
 unsigned long long Test::testPowerModTime(int bits)
 {
-	BigInteger* bigInteger = BigInteger::createRandom(bits);
-	BigInteger* bigInteger2 = new BigInteger(0x10001);
-	BigInteger* bigInteger3 = BigInteger::createRandom(bits);
+	BigInteger* bigInteger = BigInteger::createRandom(256);
+	BigInteger* bigInteger2 = new BigInteger(bits);
+	BigInteger* bigInteger3 = BigInteger::createRandom(512);
 	if (bigInteger == nullptr || bigInteger2 == nullptr || bigInteger3 == nullptr)
 	{
 		cout << "BitInteger is null" << endl;
@@ -537,7 +537,7 @@ unsigned long long Test::testRsaTime(int bits)
 	RSA rsa;
 
 	BigInteger* plainText = BigInteger::createRandom(bits);
-	BigInteger* modulus = BigInteger::createRandom(bits);
+	BigInteger* modulus = BigInteger::createRandom(bits + 8);
 	
 	unsigned long long time = rsa.encrypt(*plainText, *modulus);
 
