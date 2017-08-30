@@ -35,7 +35,7 @@
 	emph={BigInteger,cudaStream\_t,dim3,DeviceWrapper, \_\_shared\_\_,
 	\_\_device\_\_, \_\_global\_\_},
 	emphstyle={\color{eminence}},
-	stringstyle=\color{blue},      
+	stringstyle=\color{dred},      
 	numbers=right,                 
 	numbersep=5pt,                  
 	numberstyle=\tiny\color{black}, 
@@ -362,25 +362,293 @@ void inline addParallelWithOverflow(unsigned int* device_x, const unsigned int* 
 Project also contains Test class to validate computations, measure times and simulate encryption.
 RSA class contains single "encrypt" function, which encrypts provided value. Full class diagram is presented on figure \ref{fig:classdiagram}.
 
-\begin{figure}
+\begin{figure}[H]
 	\centering
-	\includegraphics{ClassDiagram}
+	\includegraphics[width=\textwidth]{ClassDiagram}
 	\caption{Class Diagram}
 	\label{fig:classdiagram}
 \end{figure}
 
 
 \section{Parallel equals}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{al_equals}
+	\caption{Equals function algorithm}
+	\label{fig:al_equals}
+\end{figure}  
+
+The equals algorithm is designed for 128 threads. Each thread "xors" corresponding elements of input arrays. If the values are identical it returns 0. The result are stored in shared memory. Next, all elements of shared array are merged together using bitwise OR, which preserves only set bits. The function returns "true" if the value is 0 after merging every element.
+
+\begin{lstlisting}[language=cpp]
+shared[0][index] = x[index] ^ y[index];
+__syncthreads();
+\end{lstlisting}
+
+
 \section{Parallel compare}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{al_compare}
+	\caption{Compare function algorithm}
+	\label{fig:al_compare}
+\end{figure}
+
+The Compare function runs on 128 threads. Each thread separately compares corresponding elements of X and Y. The output is stored in shared memory. Next, the two neighboring elements are merged together.
+
+\begin{lstlisting}[language=cpp]
+extern "C" __device__ inline int merge(int x, int y)
+{
+	return x == 0 ? y : x;
+}
+\end{lstlisting}
+
+This process needs to be repeated seven times ($log_2 128=7$) to reach final result.
+
+\begin{lstlisting}[language=cpp]
+for (int i = 1; i < 7; i++)
+{
+	if (1 << (7 - i) > index)	// todo: 6 bank conflicts left
+		shared[i][index] = merge(shared[i - 1][globalIndex + 1], shared[i - 1][globalIndex]);
+	__syncthreads();
+}
+return merge(shared[6][1], shared[6][0]);
+\end{lstlisting}
+
 \section{Parallel bit length}
-\section{Parallel left shift}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{al_bitlength}
+	\caption{Bit length function algorithm}
+	\label{fig:al_bilength}
+\end{figure}
+
+The function returns position of the highest set bit. It runs on 128 threads. Each thread calculates the highest bit for corresponding element in the array, and stores the result in shared memory.
+
+
+\begin{lstlisting}[language=cpp]
+#pragma unroll
+	for (int i = 0; i < 32; i++)
+	{
+		if (value >> i == 1)
+			bits = i + 1;
+	}
+	shared[index] = bits;
+	__syncthreads();
+\end{lstlisting}
+
+The return value is the index of the highest element multiplied by 32 (bit length of an integer), plus the result of the element.
+
 \section{Parallel right shift}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{al_shiftright}
+	\caption{Right shift function algorithm}
+	\label{fig:al_shiftright}
+\end{figure}
+
+Shift right function runs on 128 threads. Each thread computes the number on elements to move and bits to shift.
+
+\begin{lstlisting}[language=cpp]
+register int ints = n >> 5;	// n / 32
+register int bits = n & 0x1f;	// n mod 32
+\end{lstlisting}
+
+First elements of the array are moved and threads are synchronized. Then the bits are shifted. 
+
+\begin{lstlisting}[language=cpp]
+register int remainingBits = 32 - bits;
+if (index - 1 >= 0)
+	sharedResult[index - 1] = sharedX[index] << remainingBits;
+else
+	sharedResult[127] = 0UL;
+__syncthreads();
+sharedResult[index] = sharedResult[index] | (sharedX[index] >> bits);
+__syncthreads();
+
+if (bits > 0)
+	x[index] = sharedResult[index];
+else
+	x[index] = sharedX[index];
+\end{lstlisting}
+
+\section{Parallel left shift}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{al_leftshift}
+	\caption{Left shift function algorithm}
+	\label{fig:al_leftshift}
+\end{figure}
+
+Left shift algorithm is very similar to the right shift only the direction inversed. 
+
+
 \section{Parallel add}
+
+The add algorithm is designed for 32 threads, which means each thread handles 4 elements of the input array.
+
+\begin{lstlisting}[language=cpp]
+asm volatile (
+	"addc.cc.u32 %0, %1, %2; \n\t"	// propagate and genarate carry
+	: "=r"(shared[resultIndex].result[index].value)
+	: "r"(x[startIndex + index]), "r"(y[startIndex + index]) : "memory");
+\end{lstlisting}
+
+The carry out from last addition is stored in shared memory.
+
+\begin{lstlisting}[language=cpp]
+// last iteration generates and stores carry in the array
+asm volatile (
+	"addc.cc.u32 %0, %2, %3; \n\t"
+	"addc.u32 %1, 0, 0; \n\t"
+	: "=r"(shared[resultIndex].result[index].value), "=r"(shared[resultIndex + 1].carry)
+	: "r"(x[startIndex + index]), "r"(y[startIndex + index]) : "memory");
+
+__syncthreads();
+\end{lstlisting}
+
+Next, the stored carries need to be propagated.
+
+\begin{lstlisting}[language=cpp]
+// first iteration propagates carry from array
+asm volatile (
+	"add.cc.u32 %0, %0, %1; \n\t"	//  
+	: "+r"(shared[resultIndex].result[index].value)
+	: "r"(carry) : "memory");
+
+#pragma unroll
+for (index = 1; index < ADDITION_CELLS_PER_THREAD - 1; index++)
+{
+	asm volatile (
+	"addc.cc.u32 %0, %0, 0; \n\t"	//propagate generated carries
+	: "+r"(shared[resultIndex].result[index].value) :: "memory");
+}
+
+// last iteration generates and stores carry in the array
+asm volatile (
+	"addc.cc.u32 %0, %0, 0; \n\t"
+	"addc.u32 %1, 0, 0; \n\t"
+	: "+r"(shared[resultIndex].result[index].value), "=r"(shared[resultIndex + 1].carry) :: "memory");
+
+__syncthreads();
+\end{lstlisting} 
+
+Normally this process would need to be repeated while the carries' array is greater than 0. Since this implementation must be timing attack resistant, it always runs worst cases scenario - 32 iterations. 
+
 \section{Parallel subtract}
+Implementation of the subtraction is very similar to addition. The only signifying difference is storing the borrow in memory, as it required a simple trick to obtain "1" on the borrow out. 
+
+\begin{lstlisting}[language=cpp]
+// last iteration generates and stores borrow in the array
+asm volatile (
+	"subc.cc.u32 %0, %2, %3; \n\t"
+	"subc.u32 %1, 1, 0; \n\t"	// if borrow out than %1 has 0 (1-0-1=0), else %1 has 1 (1-0-0=1)
+	"xor.b32 %1, %1, 1; \n\t"	// invert 1-->0 and 0-->1
+	: "=r"(shared[resultIndex].result[index].value), "+r"(shared[resultIndex + 1].borrow)
+	: "r"(x[startIndex + index]), "r"(y[startIndex + index]) : "memory");
+\end{lstlisting}
+
 \section{Parallel multiply}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{al_mull_all}
+	\caption{Text-book multiplication algorithm}
+	\label{fig:al_mull_all}
+\end{figure}
+
+Using classic text-book multiplication algorithm is not the best solution when trying to parallelize, as shown on figuer \ref{fig:al_mull_all}. The vertical lines show conflicts in reading and writing to/from shared memory.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{all_mull}
+	\caption{Even/Odd multiplication algorithm}
+	\label{fig:al_mull}
+\end{figure}
+
+The proposed algorithm is to computed intermediate result arrays by multiplying even-even, even-odd, odd-even and odd-odd indices of x and y separately. Two elements offset eliminates conflicts and makes it much easier to synchronize and handle carries. All four arrays can also be computed fully in parallel. Next, the reduction process sums all arrays up using Add function.
+
+\begin{lstlisting}[language=cpp]
+// parallel multiplication
+device_multiply_partial_4 << <block_4, thread_2_warp, 0, mainStream>> > (device4arrays, device_x, device_y);
+
+// reduction
+device_add_partial_aligned << <block_2, thread_warp, 0, mainStream >> > (device4arrays, device4arrays + 2 * 128);
+
+// reduction	
+device_add_partial_1 << <block_1, thread_warp, 0, mainStream >> > (device4arrays, device4arrays + 128);
+
+// set x := result
+device_clone_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (device_x, device4arrays);
+\end{lstlisting}
+ 
+
 \section{Parallel modulo reduction}
 \section{Parallel multiply modulo}
+
+Multiplication is executed using even/odd algorithm without any changes. 
+Modular reduction is injected in after the arrays were generated, and also after every reduction process (summing up).
+
+\begin{lstlisting}[language=cpp]
+// reduce mod first
+device_reduce_modulo_partial_2 << <block_2, thread_4_warp, 0, mainStream >> > (device_x, deviceArray, device_m);
+
+// parallel multiplication
+device_multiply_partial_4 << <block_4, thread_2_warp, 0, mainStream >> > (device4arrays, device_x, deviceArray);
+
+// modular reduction of part-results
+device_reduce_modulo_partial_aligned << <block_4, thread_4_warp, 0, mainStream >> > (device4arrays, device_m);
+
+// reduction
+device_add_partial_aligned << <block_2, thread_warp, 0, mainStream >> > (device4arrays, device4arrays + 256);
+
+// modular reduction
+device_reduce_modulo_partial_2 << <block_2, thread_4_warp, 0, mainStream >> > (device4arrays, device4arrays + 128, device_m);
+
+// reduction
+device_add_partial_1 << <block_1, thread_warp, 0, mainStream >> > (device4arrays, device4arrays + 128);
+
+// final modular reduction
+device_reduce_modulo_partial_1 << < block_1, thread_4_warp, 0, mainStream >> > (device4arrays, device_m);
+
+// set x := result
+device_clone_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (device_x, device4arrays);
+\end{lstlisting}
+
 \section{Parallel power modulo}
+
+This function uses the Montgomery Ladder algorithm. Implementations is rather simple. 
+
+
+\begin{lstlisting}[language=cpp]
+BigInteger x0(1);
+BigInteger x1(*this);	
+
+for (int bits = exponent.getBitwiseLength() - 1; bits >= 0; bits--)
+{
+	if (exponent.testBit(bits))
+	{
+		x0.multiplyModAsync(x1, modulus);
+		x1.multiplyModAsync(x1, modulus);
+		}
+	else
+	{
+		x1.multiplyModAsync(x0, modulus);
+		x0.multiplyModAsync(x0, modulus);
+	}			
+	x0.synchronize();
+	x1.synchronize();		
+}
+set(x0);
+\end{lstlisting}
+
+
+The multiplication of x0 and x1 are executed in parallel.
+
+
 
 \chapter{Testing}
 This chapter presents the behavior of implemented algorithms based on the inputs' lengths. All of the functions are designed to handle data up to 4096 bits long. Each test is repeated 100-300 times (depends on the complexity) to provide rather average results.  
