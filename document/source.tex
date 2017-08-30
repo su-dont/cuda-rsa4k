@@ -1532,6 +1532,18 @@ which is clearly presented on the chart characteristic.\ref{fig:powmod}
 
 RSA encryption uses modular exponentiation with exponent set to 65537. As the message's length rises so does the encryption time. This is caused again by modular reduction. At 2000 bits threshold the values begin to overflow the magnitude array which causes undefined behavior. This also shows the correctness of calculations stops at 2K.
 
+\chapter{Conclusions}
+
+
+This project approaches the general problems concerning implementations of cryptographic schemes. Following from that, it mainly focuses on multiple precision integer arithmetics and solutions using parallelized computing. Large numbers are the keystone in security. However, performance and efficiency become collateral when side-channel attacks are taken into the account. Even the most secure cryptographic systems become vulnerable to penetration and exploitable when improperly implemented.
+
+Successful parts of this project are definitely the implementations of BigInteger library and DeviceWrapper class, providing a very good base for further development and improvement. Some parts of the code would certainly need to be rewritten, especially modular reduction algorithm, if the project was to fully meet imposed assumptions. In chapter 4, it was shown how much more work can be done to escalate parallelization and to provide genuine resistance to timing attacks.
+
+CUDA technology is a growing architecture which constantly provides new tools to harness the GPUs true potential.
+It has been a solution to many projects restrained by weak computational performance, and nowadays it becomes a standard in programming cryptographic systems. The platform contains much more features which could freely be implemented within this application. (e.g. dynamic parallelism\cite{dp})
+
+Further work will surly require much more analysis, testing and adjustments to bring this project to usable state. Many loose ends prompt constant development, as well as never-stopping requisition for fast and secure cryptographic systems. 
+
 
 \addcontentsline{toc}{chapter}{References}
 \bibliography{bibliography}
