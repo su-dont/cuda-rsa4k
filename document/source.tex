@@ -10,6 +10,8 @@
 \usepackage{listings}
 \usepackage{siunitx}
 \usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{dred}{rgb}{0.545,0,0}
 \definecolor{dblue}{rgb}{0,0,0.545}
@@ -67,7 +69,7 @@
 
 \chapter{Introduction}
 
-Public key cryptography is the key factor in providing secure communication between two parties. Fast development of distributed system requiring not only security, but also integrity and non-repudiation has pushed cryptography to the limit. Since 1978\cite{rsa} most commonly used cryptosystem is RSA, which provides asymmetric encryption, as well as generation of digital signatures. The security of RSA is mainly base on the bitwise key length. As computational power of modern CPUs arises, the minimal bit length of RSA key gets significantly bigger to provide sufficient security. At least 4096 bits long keys are considered secure nowadays. This leads to very high workload required to perform encryption/decryption. RSA is mainly based on modular arithmetics and simple computations become infeasible for moder CPUs, when dealing with so large integers. 
+Public key cryptography is the key factor in providing secure communication between two parties. Fast development of distributed system requiring not only security, but also integrity and non-repudiation has pushed cryptography to the limit. Since 1978\cite{rsa} most commonly used cryptosystem is RSA, which provides asymmetric encryption, as well as generation of digital signatures. The security of RSA is mainly based on the bitwise key length. As computational power of modern CPUs arises, the minimal bit length of RSA key gets significantly bigger to provide sufficient security. At least 4096 bits long keys are considered secure nowadays. This leads to very high workload required to perform encryption/decryption. RSA is mainly based on modular arithmetics and simple computations become infeasible for moder CPUs, when dealing with so large integers. 
 
 One of the solution to this problem is to parallelize. GPGPU\cite{gpgpu} (for General-Purpose
 computing on the Graphics Processing Unit) enables the use of GPU for parallel computation other than graphics. GPUs are designed to perform computations in parallel. Since every PC is equipped with some kind of GPU, one can easily exploit its capabilities.    
@@ -154,7 +156,7 @@ The security of the algorithm is based on the problem of integer factorization.
 
 \section{Side channel attacks}
 
-Side-channel attacks are very powerful attacks against cryptographic implementations. They take the advantage of implementation flaws, gathering informations about almost everything that can be measured during execution time. If no care is taken, side-channel attacks can be used to compromise virtually any mathematically secure system. 
+Side-channel attacks are very powerful attacks against cryptographic implementations. They take the advantage of implementation flaws, gathering information about almost everything that can be measured during execution time. If no care is taken, side-channel attacks can be used to compromise any mathematically secure system. 
 \begin{figure}[H]
 	\centering
 	\includegraphics{sidechannel}
@@ -169,18 +171,74 @@ Side-channel attacks aim to retrieve secret data from a cryptographic system by 
 
 Implementations of cryptographic algorithms often perform computations in non-constant
 time, due to performance optimizations. If such operations involve secret parameters, these timing
-variations can leak some information and, provided enough knowledge of the implementation is at
-hand, a careful statistical analysis could even lead to the total recovery of these secret parameters.\cite{sc} 
+variations can leak some information and, provided enough knowledge of the implementation at
+hand, a careful statistical analysis could even lead to the total recovery of these secret parameters.\cite{sc} Perfect example of the private key leakage is implementation of RSA, using Square and Multiply algorithm.\cite{sqm}
+
+\begin{algorithm}[H]
+	\caption{Square and multiply}\label{sqm}
+	\begin{algorithmic}[1]
+		
+		\State $Input: x,e,n \in N$
+		\State $Output: m^e$ mod $n$
+		\State a $\gets$ 1
+		\For {$i=k-1$ to $0$}
+			\State  a $\gets a^2$ mod $n$
+			\If {$d_i = 1$}
+				\State a $\gets a 	\times m$ mod $n$
+			\EndIf
+		\EndFor
+		\State
+		\Return $a$
+	\end{algorithmic}
+\end{algorithm}
+
+The algorithm leaks information about exponent $e$ by analyzing difference in computations when $d_i=1$, which is presented on the figure below.\cite{zz}
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{double}
+	\caption{Square and Multiply information leakage}
+	\label{fig:double}
+\end{figure}
+
+\section{Montgomery Ladder Algorithm}
+
+Montgomery Ladder algorithm is a remarkably simple method of computing modular exponentiation, keeping resistance to side-channel attacks. It performs both multiplication and squaring every time the loop is iterated. The complexity of the algorithm is $log_2 n$, where $n$ is the bitwise length of the exponent.\cite{zz1}
+
+\begin{algorithm}[H]
+	\caption{Montgomery Ladder Algorithm}\label{ml}
+	\begin{algorithmic}[1]
+		
+		\State $Input: x,e,n \in N$
+		\State $Output: m^e$ mod $n$
+		\State $ R_0 \gets$ 1
+		\State $ R_1 \gets$ m
+		\For {$i=k-1$ to $0$}
+		\State  $ R_{1-d_i} \gets R_0 \times R_1$ mod $n$
+		\State  $ R_{d_i} \gets R_{d_i}^2$ mod $n$		
+		\EndFor
+		\State
+		\Return $R_0$
+	\end{algorithmic}
+\end{algorithm}
+
+
 
 \section{Parallel programming on CUDA}
+
+CUDA (Compute Unified Device Architecture (the acronym dropped recently)) - is a parallel computing platform and API developed by Nvidia.
+Having CUDA-capable Graphics Processing Unit, the platform enables general purpose computations on the graphics card. CUDA is basically an intermediary between host and the GPU. It provides direct access to device's kernels, instructions and other components for parallel execution. 
+
+The calculations on CUDA are executed on SM - streaming multiprocessor. Threads are organized in blocks. A block is executed by a multiprocessing unit. Blocks are further organized into grids. The number of blocks being able to execute simultaneously matches the number of SMs on the device.
+The threads are also executed simultaneously in a group of 32 called a warp. Threads can also synchronize and share common memory, which is thoroughly explained in the 2.4.1. 
+
 
 \subsection{Shared Memory}
 "Threads within a block can cooperate by sharing data through shared memory and by synchronizing their execution to coordinate memory accesses. Because it is on-chip, shared memory has much higher bandwidth and much lower latency than local or global memory. For that shared memory is equivalent to a user-managed cache: The application explicitly allocates and accesses it. A typical programming pattern is to stage data coming from device memory into shared memory, process the data in shared memory while sharing the shared view of the data across the threads of a block, and write the results back to device memory.
 
 To achieve high bandwidth, shared memory is divided into equally-sized memory modules, called banks, which can be accessed simultaneously. Any memory read or write request made of n addresses that fall in n distinct memory banks can therefore be serviced simultaneously, yielding an overall bandwidth that is n times as high as the bandwidth of a single module. However, if two addresses of a memory request fall in the same memory bank, there is a bank conflict and the access has to be serialized. The hardware splits a memory request with bank conflicts into as many separate conflict-free requests as necessary, decreasing throughput by a factor equal to the number of separate memory requests. If the number of separate memory requests is n, the initial memory request is said to cause n-way bank conflicts. To get maximum performance, it is therefore important to minimize bank conflicts.
-
 Shared memory has 32 banks that are organized such that successive 32bit words map to successive banks. A shared memory request for a warp does not generate a bank conflict between two threads that access any address within the same 32bit word (even though the two addresses fall in the same bank).
-
 For devices of compute capability 3.x, shared memory has 32 banks with two addressing modes that can be configured using cudaDeviceSetSharedMemConfig(). Each bank has a bandwidth of 64 bits per clock cycle. In 64bit mode, successive 64bit words map to successive banks. A shared memory request for a warp does not generate a bank conflict between two threads that access any sub-word within the same 64bit word (even though the addresses of the two sub-words fall in the same bank). In 32bit mode (default), successive 32bit words map to successive banks. A shared memory request for a warp does not generate a bank conflict between two threads that access any sub-word within the same 32bit word or within two 32bit words whose indices i and j are in the same 64word aligned segment (i.e., a segment whose first index is a multiple of 64) and such that j=i+32 (even though the addresses of the two sub-words fall in the same bank)."\cite{nsight}
 
 \chapter{Implementation}
@@ -449,7 +507,7 @@ The return value is the index of the highest element multiplied by 32 (bit lengt
 	\label{fig:al_shiftright}
 \end{figure}
 
-Shift right function runs on 128 threads. Each thread computes the number on elements to move and bits to shift.
+Shift right function runs on 128 threads. Each thread computes the number of elements to move and bits to shift.
 
 \begin{lstlisting}[language=cpp]
 register int ints = n >> 5;	// n / 32
@@ -483,7 +541,7 @@ else
 	\label{fig:al_leftshift}
 \end{figure}
 
-Left shift algorithm is very similar to the right shift only the direction inversed. 
+Left shift algorithm is very similar to the right shift. Only difference is inversed direction. 
 
 
 \section{Parallel add}
@@ -569,7 +627,7 @@ Using classic text-book multiplication algorithm is not the best solution when t
 	\label{fig:al_mull}
 \end{figure}
 
-The proposed algorithm is to computed intermediate result arrays by multiplying even-even, even-odd, odd-even and odd-odd indices of x and y separately. Two elements offset eliminates conflicts and makes it much easier to synchronize and handle carries. All four arrays can also be computed fully in parallel. Next, the reduction process sums all arrays up using Add function.
+The proposed algorithm is to compute intermediate result arrays by multiplying even-even, even-odd, odd-even and odd-odd indices of x and y separately. Two-element offset eliminates conflicts and makes it much easier to synchronize and handle carries. All four arrays can also be computed fully in parallel. Next, the reduction process sums all arrays up using Add function.
 
 \begin{lstlisting}[language=cpp]
 // parallel multiplication
@@ -587,6 +645,72 @@ device_clone_partial_1 << <block_1, thread_4_warp, 0, mainStream >> > (device_x,
  
 
 \section{Parallel modulo reduction}
+
+The algorithm must solve:
+
+\begin{center}
+	$x$ mod $m$, $x \geq m$
+\end{center}
+
+
+
+According to CUDA specification\cite{ndoc}:
+"Integer division and modulo operation are costly as they compiler to up to 20 instructions. They can be replaced with bitwise operations in some cases: If n is a power of 2, (i/n) is equivalent to (i>>log2(n)) and (i\%n) is equivalent to (i\&(n-1))" One way to solve this without any division could be by simply subtracting $m$ from $x$, until $x\leq m$. However, it would result in tremendous amount of computation, especially if $x$ is significantly larger than $m$. 
+The following property becomes helpful:
+\begin{center}
+	$x$ mod $m$ = $(x$ mod $km)$ mod $m$
+\end{center}
+It basically means that some multiple of $m$ can be used to "pre-reduce" $x$. Of course $x$ must still be reduced by standalone $m$, but the value of $x$ is much lower then. Using powers od 2 as factor $k$, it simplifies to left and right bitwise shifts. The proposed algorithm is to left shift $m$ by the difference in bitwise lengths between $x$ and $m$. If $m < x$ simply subtract $m$ from $x$. In other case ($m > x$) right shift $m$ by one bit.
+
+\begin{algorithm}
+	\caption{X mod M}\label{euclid}
+	\begin{algorithmic}[1]
+		\State xLength $\gets$ bitwise length of X
+		\State mLength $\gets$ bitwise length of M
+		\State bitwiseDifference := xLength - mLength
+		\State M := M $<<$ bitwiseDifference
+		\While{bitwiseDifference $\geq 0$}
+				\If {X $>$ M}
+					\State X := X - M
+				\Else
+					\State M := M $>>$ 1
+				\EndIf		
+		\EndWhile
+		\State
+		\Return X 
+	\end{algorithmic}
+\end{algorithm}
+The implementation:
+ \begin{lstlisting}[language=cpp]
+int xLength = device_getbitlength_partial(x);
+int mLength = device_getbitlength_partial(modulus);
+int bitwiseDifference = xLength - mLength;
+device_shift_left_partial(modulus, bitwiseDifference);
+while (bitwiseDifference >= 0)
+{
+	compare = device_compare_partial(x, modulus);
+	if (compare == 1)	// x > m
+	{
+		device_subtract_partial(x, modulus);
+	}
+	else if (compare == 0)  // x == m	
+	s{
+		device_clear_partial(x);
+		return;
+	}
+	else // x < m
+		{
+		device_shift_right_partial(modulus, 1);
+		bitwiseDifference--;
+	}
+	__syncthreads();
+}
+ \end{lstlisting}
+
+
+
+
+
 \section{Parallel multiply modulo}
 
 Multiplication is executed using even/odd algorithm without any changes. 
@@ -1107,7 +1231,7 @@ Pipeline Utilization metrics report the observed utilization for each pipeline a
 		\includegraphics{MemoryStatisticsChart}
 		\caption{Memory Statistics chart example}
 	\end{figure}
-s
+
 	\item Shared memory Chart
 	
 	The number of Load/Store Requests equals the amount of shared memory instructions executed. When a warp executes an instruction that accesses shared memory, it resolves the bank conflicts. Each bank conflict forces a new memory transaction. The more transactions are necessary, the more unused words are transferred in addition to the words accessed by the threads, reducing the instruction throughput accordingly. Each memory transaction also requires the assembly instruction to be issued again; causing instruction replays if more than one transaction is required to fulfill the request of a warp.
@@ -1686,7 +1810,7 @@ The multiply initial configuration is 4 blocks, 64 threads each. Occupancy is li
 	\label{fig:mod}
 \end{figure}
 
-The graph\ref{fig:mod} presents measurements of operation X mod M, where bitwise length of both X and M increases, and the length of X i always one bit less the M. During tests four blocks were launched, each with different values. The chart\ref{fig:mod_instructions} shows how higher values on SM 0 block activity of other SMs. This is caused by use of "while" loop in implementation. For higher values the loop needs to makes more rounds which needs more time for computation, eventually decreasing performance. 
+The graph\ref{fig:mod} presents measurements of operation X mod M, where bitwise lengths of both X and M increase, and the length of X i always one bit less the M. During tests four blocks were launched, each with different values. The chart\ref{fig:mod_instructions} shows how higher values on SM 0 block activity of other SMs. This is caused by use of "while" loop in implementation. For higher values the loop needs to makes more rounds which needs more time for computation, eventually decreasing performance. 
 
 \begin{figure}[H]
 	\centering
@@ -1805,7 +1929,7 @@ RSA encryption uses modular exponentiation with exponent set to 65537. As the me
 
 This project approaches the general problems concerning implementations of cryptographic schemes. Following from that, it mainly focuses on multiple precision integer arithmetics and solutions using parallelized computing. Large numbers are the keystone in security. However, performance and efficiency become collateral when side-channel attacks are taken into the account. Even the most secure cryptographic systems become vulnerable to penetration and exploitable when improperly implemented.
 
-Successful parts of this project are definitely the implementations of BigInteger library and DeviceWrapper class, providing a very good base for further development and improvement. Some parts of the code would certainly need to be rewritten, especially modular reduction algorithm, if the project was to fully meet imposed assumptions. In chapter 4, it was shown how much more work can be done to escalate parallelization and to provide genuine resistance to timing attacks.
+Successful parts of this project are definitely the implementations of BigInteger library and DeviceWrapper class, providing a very good base for further development and improvement. Most of the implemented functions, like add, subtract, multiply, shift left, shift right, compare, equals, clear and clone, are working efficiently and are resistant to timing attacks. Some parts of the code would certainly need to be rewritten, especially modular reduction algorithm, if the project was to fully meet imposed assumptions. In chapter 4, it was shown how much more work can be done to escalate parallelization and to provide genuine resistance to more side-channel attacks.
 
 CUDA technology is a growing architecture which constantly provides new tools to harness the GPUs true potential.
 It has been a solution to many projects restrained by weak computational performance, and nowadays it becomes a standard in programming cryptographic systems. The platform contains much more features which could freely be implemented within this application. (e.g. dynamic parallelism\cite{dp})
@@ -1814,6 +1938,7 @@ Further work will surly require much more analysis, testing and adjustments to b
 
 
 \addcontentsline{toc}{chapter}{References}
+\nocite{*}
 \bibliography{bibliography}
  \listoffigures
  \listoftables
